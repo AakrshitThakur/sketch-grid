@@ -1,0 +1,21 @@
+{
+  "name": "@repo/zod",
+  "version": "0.0.0",
+  "private": true,
+  "main": "index.js",
+  "exports": {
+    "./*": "./dist/*.js"
+  },
+  "scripts": {
+    "dev": "npx tsc --watch",
+    "build": "npx tsc -b"
+  },
+  "dependencies": {
+    "@repo/typescript-config": "*",
+    "typescript": "^5.9.3"
+  },
+  "keywords": [],
+  "author": "Aakrshit Thakur",
+  "license": "ISC",
+  "description": ""
+}

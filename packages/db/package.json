@@ -1,0 +1,24 @@
+{
+  "name": "@repo/db",
+  "version": "1.0.0",
+  "main": "dist/index.js",
+  "exports": {
+    "./*": "./dist/*.js"
+  },
+  "scripts": {
+    "init": "npx prisma init",
+    "migrate": "npx prisma migrate dev",
+    "generate": "npx prisma generate", 
+    "build": "npm run migrate && npm run generate && npx tsc -b"
+  },
+  "keywords": [],
+  "author": "Aakrshit Thakur",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "@prisma/client": "^6.17.1"
+  },
+  "devDependencies": {
+    "@repo/typescript-config": "*"
+  }
+}

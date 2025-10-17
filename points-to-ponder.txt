@@ -1,0 +1,1 @@
+1. Always configure the Turborepo build so that all applications can import compiled ts (i.e. js) code from packages directory.
