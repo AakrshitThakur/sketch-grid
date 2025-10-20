@@ -2,6 +2,7 @@
 import express from "express";
 import dotenv from "dotenv";
 import auth_router from "./routes/auth.routes.js";
+import room_router from "./routes/room.routes.js";
 
 dotenv.config();
 
@@ -11,6 +12,7 @@ const app = express();
 app.use(express.json());
 
 app.use("/api/v1/auth", auth_router);
+app.use("/api/v1/rooms", room_router);
 
 const port = process.env.PORT || 5000;
 app.listen(port, () => {
