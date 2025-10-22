@@ -1,0 +1,18 @@
+{
+  "name": "@repo/utils",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "build": "npx tsc -b"
+  },
+  "exports": {
+    "./*": "./dist/*.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "devDependencies": {
+    "@repo/typescript-config": "*"
+  }
+}

@@ -21,6 +21,7 @@
   "devDependencies": {
     "@repo/zod": "*",
     "@repo/db": "*", 
-    "@repo/configs": "*"
+    "@repo/configs": "*", 
+    "@repo/utils": "*" 
   }
 }
