@@ -1,4 +1,3 @@
-import type { Response } from "express";
 import { prisma_client } from "@repo/db/connect";
 import { catch_general_exception } from "@repo/utils/exceptions";
 import type { ReturnPrismaResponse } from "@repo/types/prisma.types.d";
@@ -11,19 +10,28 @@ interface GetRoomRecords {
 
 async function get_room_records(input: GetRoomRecords) {
   try {
-    const room = await prisma_client.room.findMany({
+    const rooms = await prisma_client.room.findMany({
       where: {
         ...input,
       },
     });
 
-    const return_room: ReturnPrismaResponse<typeof room> = {
+    if (rooms.length === 0) {
+      return {
+        status_code: 404,
+        status: "error",
+        message: "No Rooms found",
+        payload: null,
+      } as ReturnPrismaResponse<null>;
+    }
+
+    const return_rooms: ReturnPrismaResponse<typeof rooms> = {
       status_code: 200,
       status: "success",
       message: "success",
-      payload: room,
+      payload: rooms,
     };
-    return return_room;
+    return return_rooms;
   } catch (error) {
     const { status_code, message } = catch_general_exception(error as Error);
     return {

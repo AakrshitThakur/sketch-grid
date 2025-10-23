@@ -1,7 +1,7 @@
 import type { Request, Response, NextFunction } from "express";
 import jsonwebtoken from "jsonwebtoken";
 import { JWT_SECRET } from "@repo/configs/index";
-import { catch_general_exception } from "../utils/exceptions.js";
+import { catch_general_exception } from "@repo/utils/exceptions";
 
 interface JwtPayload {
   id: string;
@@ -18,7 +18,7 @@ function check_user_auth(req: Request, res: Response, next: NextFunction) {
         .status(401)
         .json({ message: "Please sign in or create an account to continue" });
       return;
-    } 
+    }
 
     // Object.fromEntries() method is used to transform a list of key-value pairs (like an array or map) into an object
     const cookies_obj = Object.fromEntries(
@@ -56,7 +56,8 @@ function check_user_auth(req: Request, res: Response, next: NextFunction) {
       }
     );
   } catch (error) {
-    catch_general_exception(error as Error, res);
+    const { status_code, message } = catch_general_exception(error as Error);
+    res.status(status_code).json({ message });
     return;
   }
 }

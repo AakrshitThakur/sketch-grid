@@ -5,12 +5,13 @@ import {
   signout_controller,
   is_user_authenticated_controller,
 } from "../controllers/auth.controllers.js";
+import { check_user_auth } from "../middlewares/auth.middlewares.js";
 
 const router = express.Router();
 
 router.post("/signin", signin_controller);
 router.post("/signup", signup_controller);
-router.delete("/signout", signout_controller);
+router.delete("/signout", check_user_auth, signout_controller);
 router.get("/check-authentication", is_user_authenticated_controller);
 
 export default router;
