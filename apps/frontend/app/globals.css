@@ -1,0 +1,23 @@
+@import "tailwindcss";
+
+@source "../../../packages/ui/src/**/*.{js,jsx,ts,tsx}";
+
+:root {
+  /* override default toast variables */
+  --toastify-toast-padding: 0.5rem;
+  --toastify-toast-min-height: auto;
+}
+
+.apply-font {
+  font-family: var(--playwrite-au-qld) "cursive" !important;
+}
+
+/* override default toast mobile behaviour */
+@media only screen and (max-width: 480px) {
+  .Toastify__toast-container .Toastify__toast {
+    --toastify-toast-width: 50% !important;
+    --toastify-toast-padding: 0.5rem !important;
+    border-radius: 6px !important;
+    margin-top: 0.5rem;
+  }
+}

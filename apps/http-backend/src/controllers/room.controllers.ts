@@ -5,6 +5,7 @@ import { create_room_zod_schema } from "@repo/zod/room.zod";
 import { catch_general_exception } from "@repo/utils/exceptions";
 import { prisma_client } from "@repo/db/connect";
 
+// create a new room
 async function create_room_controller(req: Request, res: Response) {
   try {
     const credentials = req.body;
@@ -51,6 +52,7 @@ async function create_room_controller(req: Request, res: Response) {
   }
 }
 
+// get all rooms from Room table
 async function get_all_rooms_controller(req: Request, res: Response) {
   try {
     // get user-cred
@@ -133,6 +135,7 @@ async function get_room_by_id_controller(req: Request, res: Response) {
   }
 }
 
+// delete room by room-id
 async function delete_room_controller(req: Request, res: Response) {
   try {
     const room_id = parseInt(req.params.room_id as string);
