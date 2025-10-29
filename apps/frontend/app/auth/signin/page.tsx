@@ -5,13 +5,12 @@ import { useRouter } from "next/navigation";
 import useFetch from "@/hooks/use-fetch";
 import { FaSignInAlt, FaUser, FaLock } from "react-icons/fa";
 import { BsEyeFill, BsEyeSlashFill } from "react-icons/bs";
-import { CiCircleAlert } from "react-icons/ci";
-import { info_notification } from "@/utils/toast.utils";
+import { success_notification, error_notification, info_notification } from "@/utils/toast.utils";
+import { signin_zod_schema } from "@repo/zod/auth.zod";
 
-interface FormErrors {
+interface FormValidationErrors {
   email?: string;
   password?: string;
-  general?: string;
 }
 interface CallApi {
   url: string;
@@ -36,7 +35,7 @@ export default function Signin() {
     email: "",
     password: "",
   });
-  const [errors, set_errors] = useState<FormErrors>({});
+  const [v_errors, set_v_errors] = useState<FormValidationErrors>({});
   const [show_password, set_show_password] = useState(false);
   const [call_api, set_call_api] = useState<CallApi>({ url: "", options: {} });
 
@@ -56,6 +55,21 @@ export default function Signin() {
   function handle_on_submit(e: React.FormEvent) {
     e.preventDefault();
 
+    // check validation errors
+    const check = signin_zod_schema.safeParse(form_data);
+
+    // catch validation errors
+    if (!check.success) {
+      set_v_errors({
+        [check.error?.issues[0]?.path[0]]: check.error?.issues[0]?.message,
+        [check.error?.issues[1]?.path[0]]: check.error?.issues[1]?.message,
+      });
+      return;
+    }
+
+    // no validation errors
+    set_v_errors({ email: "", password: "" });
+
     // call custom use-fetch hook
     set_call_api({
       url: URL,
@@ -66,21 +80,26 @@ export default function Signin() {
   // check values from use-fetch hook
   useEffect(() => {
     if (data) {
-      alert(data.message);
-      // router.push("/home");
+      success_notification(data.message);
+      router.push("/");
     } else if (error) {
-      alert(error);
+      error_notification(error);
+      // set use-fetch hook to initial state
+      set_call_api({
+        url: "",
+        options: {},
+      });
     }
-  }, [data, error, loading]);
+  }, [data, error]);
 
   return (
     <div
       id="signin"
-      className="color-base-100 color-base-content bg-linear-to-b to-yellow-300 overflow-hidden p-5 sm:p-7 md:p-9"
+      className="color-base-100 color-base-content bg-linear-to-b to-green-500 overflow-hidden p-5 sm:p-7 md:p-9"
     >
       <div className="flex flex-col items-center justify-center overflow-hidden">
         <div className="color-accent color-accent-content w-full max-w-md h-auto space-y-5 p-5 rounded-2xl">
-          {/* Header */}
+          {/* header */}
           <div className="text-center space-y-2">
             <div className="flex justify-center">
               <div className="color-primary p-3 rounded-full">
@@ -91,30 +110,19 @@ export default function Signin() {
           </div>
 
           <div className="color-base-200 color-base-content rounded-xl">
-            {/* Card Header */}
-            <div className="px-6 py-3">
-              <h2 className="text-2xl font-semibold text-center mb-1">
-                Sign In
-              </h2>
-              <p className="text-base text-center">
-                Enter your credentials to access the admin panel
-              </p>
+            {/* card-header */}
+            <div className="space-y-1 px-5 pt-3">
+              <h2 className="text-2xl font-semibold text-center">Sign In</h2>
+              <p className="text-base text-center">Enter your credentials to access the admin panel</p>
             </div>
 
             <form onSubmit={handle_on_submit}>
-              {/* Card Content */}
+              {/* card-content */}
               <div className="px-6 py-4 space-y-3">
-                {errors.general && (
-                  <div className="flex items-center p-4 bg-red-50 border border-red-200 rounded-md">
-                    <CiCircleAlert className="h-4 w-4 text-red-600 mr-2" />
-                    <p className="text-sm text-red-700">{errors.general}</p>
-                  </div>
-                )}
-
-                {/* Email Field */}
                 <div className="space-y-2">
+                  {/* email-field */}
                   <label htmlFor="email" className="block text-sm font-medium">
-                    Username
+                    Email
                   </label>
                   <div className="relative text-base">
                     <FaUser className="absolute left-3 top-3 h-4 w-4" />
@@ -128,23 +136,16 @@ export default function Signin() {
                       className="w-full px-10 pr-3 py-2 border rounded-md"
                     />
                   </div>
-                  {errors.email && (
-                    <p
-                      id="username-error"
-                      className="text-xs text-red-600"
-                      role="alert"
-                    >
-                      {errors.email}
+                  {v_errors.email && (
+                    <p id="email-validation-error" className="text-xs text-red-500" role="alert">
+                      {v_errors.email}
                     </p>
                   )}
                 </div>
 
                 {/* Password Field */}
                 <div className="space-y-2">
-                  <label
-                    htmlFor="password"
-                    className="block text-sm font-medium"
-                  >
+                  <label htmlFor="password" className="block text-sm font-medium">
                     Password
                   </label>
                   <div className="relative text-base">
@@ -162,9 +163,7 @@ export default function Signin() {
                       type="button"
                       onClick={() => set_show_password(!show_password)}
                       className="absolute right-3 top-3"
-                      aria-label={
-                        show_password ? "Hide Password" : "Show Password"
-                      }
+                      aria-label={show_password ? "Hide Password" : "Show Password"}
                     >
                       {show_password ? (
                         <BsEyeFill className="h-4 w-4 cursor-pointer" />
@@ -173,13 +172,9 @@ export default function Signin() {
                       )}
                     </button>
                   </div>
-                  {errors.password && (
-                    <p
-                      id="password-error"
-                      className="text-xs text-red-600"
-                      role="alert"
-                    >
-                      {errors.password}
+                  {v_errors.password && (
+                    <p id="password-error" className="text-xs text-red-500" role="alert">
+                      {v_errors.password}
                     </p>
                   )}
                 </div>
@@ -189,7 +184,7 @@ export default function Signin() {
               <div className="px-6 py-4 space-y-4">
                 <button
                   type="submit"
-                  className="w-full color-success color-success-content hover:bg-blue-700 disabled:bg-blue-400 text-white font-medium py-2 px-4 rounded-md transition-colors cursor-pointer"
+                  className="w-full color-success color-success-content font-medium py-2 px-4 rounded-md cursor-pointer"
                   disabled={loading}
                   aria-describedby="signin-button-description"
                 >
@@ -204,7 +199,7 @@ export default function Signin() {
                 </button>
 
                 <p id="signin-button-description" className="sr-only">
-                  Click to sign in to your admin account
+                  Click to sign in to your account
                 </p>
 
                 {/* Registration Link */}

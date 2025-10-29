@@ -1,7 +1,7 @@
 import Link from "next/link";
-import { BsTwitterX } from "react-icons/bs";
 import { FaGithub, FaLinkedin } from "react-icons/fa";
-import { GoMail } from "react-icons/go";
+import { FaSquareXTwitter } from "react-icons/fa6";
+import { IoMdMail } from "react-icons/io";
 
 export default function Footer() {
   const currentYear = new Date().getFullYear();
@@ -45,14 +45,14 @@ export default function Footer() {
                 aria-label="Email"
                 className="text-muted-foreground hover:text-foreground transition-colors"
               >
-                <GoMail className="w-5 h-auto" />
+                <IoMdMail className="w-5 h-auto" />
               </Link>
               <Link
                 href="#"
                 aria-label="Twitter"
                 className="text-muted-foreground hover:text-foreground transition-colors"
               >
-                <BsTwitterX className="w-5 h-auto" />
+                <FaSquareXTwitter className="w-5 h-auto" />
               </Link>
             </div>
           </div>

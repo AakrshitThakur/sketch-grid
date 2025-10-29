@@ -7,13 +7,14 @@ interface ButtonParams {
   type: ButtonType;
   size: "sm" | "md" | "lg";
   text: string;
+  on_click?: () => void;
 }
 
-export default function Button(params: ButtonParams) {
+export default function Button(props: ButtonParams) {
   // add css to button
   let add_css_to_btn = "cursor-pointer  ";
 
-  switch (params.type) {
+  switch (props.type) {
     case "primary":
       add_css_to_btn += "color-primary color-primary-content ";
       break;
@@ -33,17 +34,21 @@ export default function Button(params: ButtonParams) {
       add_css_to_btn += "color-primary color-primary-content ";
   }
 
-  switch (params.size) {
+  switch (props.size) {
     case "sm":
       add_css_to_btn += "text-xs px-2 py-1 rounded-sm ";
       break;
-      case "md": add_css_to_btn += "text-sm px-2 py-1 rounded-md ";
+    case "md":
+      add_css_to_btn += "text-sm px-2 py-1 rounded-md ";
       break;
-      case "lg": add_css_to_btn += "text-base px-3 py-2 rounded-lg";
+    case "lg":
+      add_css_to_btn += "text-base px-3 py-2 rounded-lg";
       break;
   }
 
   return (
-    <button className={add_css_to_btn}>{params.text || "Click Me"}</button>
+    <button onClick={props.on_click} className={add_css_to_btn}>
+      {props.text || "Click Me"}
+    </button>
   );
 }

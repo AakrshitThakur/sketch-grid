@@ -3,19 +3,19 @@ import jsonwebtoken from "jsonwebtoken";
 import bcrypt from "bcrypt";
 import { prisma_client } from "@repo/db/connect";
 import { signin_zod_schema, signup_zod_schema } from "@repo/zod/auth.zod";
-import { JWT_SECRET } from "@repo/configs/index";
+import { JWT_SECRET, ENVIRONMENT } from "@repo/configs/index";
 import { AUTH_COOKIE_OPTIONS } from "../configs/constants.js";
 import { get_user_record } from "@repo/db/auth";
-import {
-  catch_general_exception,
-  catch_auth_exception,
-} from "@repo/utils/exceptions";
+import { catch_general_exception, catch_auth_exception } from "@repo/utils/exceptions";
 
 // sign-in
 async function signin_controller(req: Request, res: Response) {
   try {
     const credentials = req.body;
     const v_credentials = signin_zod_schema.parse(credentials);
+
+    console.log("ENVIRONMENT", ENVIRONMENT);
+    console.log("JWT", JWT_SECRET);
 
     // get user record from email field
     const user_obj = await get_user_record({ email: v_credentials.email });
@@ -25,10 +25,7 @@ async function signin_controller(req: Request, res: Response) {
     }
 
     // compare passwords
-    const check_psd = await bcrypt.compare(
-      v_credentials.password,
-      user_obj.payload?.password || ""
-    );
+    const check_psd = await bcrypt.compare(v_credentials.password, user_obj.payload?.password || "");
 
     // invalid password provided
     if (!check_psd) {
@@ -118,9 +115,7 @@ function signout_controller(req: Request, res: Response) {
 
     // id not-found
     if (!user_credentials) {
-      res
-        .status(401)
-        .json({ message: "Please sign in or create an account to continue" });
+      res.status(401).json({ message: "Please sign in or create an account to continue" });
       return;
     }
 
@@ -142,9 +137,7 @@ async function is_user_authenticated_controller(req: Request, res: Response) {
 
     // id not-found
     if (!user_credentials) {
-      res
-        .status(401)
-        .json({ message: "Please sign in or create an account to continue" });
+      res.status(401).json({ message: "Please sign in or create an account to continue" });
       return;
     }
 
@@ -167,9 +160,4 @@ async function is_user_authenticated_controller(req: Request, res: Response) {
   }
 }
 
-export {
-  signin_controller,
-  signup_controller,
-  signout_controller,
-  is_user_authenticated_controller,
-};
+export { signin_controller, signup_controller, signout_controller, is_user_authenticated_controller };

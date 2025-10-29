@@ -22,13 +22,13 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${playwrite_au_qld.className}`}>
-      <body
-        className={`${playwrite_au_qld.className} color-base-100 color-base-content p-1`}
-      >
-        <ToastContainer toastClassName={`${playwrite_au_qld.className}`}  />
-        <Navbar />
-        {children}
-        <Footer />
+      <body className="color-base-100 color-base-content flex justify-center items-center p-1">
+        <div id="app" className="max-w-7x">
+          <ToastContainer />
+          <Navbar />
+          {children}
+          <Footer />
+        </div>
       </body>
     </html>
   );

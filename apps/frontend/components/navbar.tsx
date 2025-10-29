@@ -1,91 +1,128 @@
 "use client";
 import { useState } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { CiMenuBurger } from "react-icons/ci";
 import { TfiClose } from "react-icons/tfi";
-import { FaGithub,FaLinkedin } from "react-icons/fa";
-import { FaXTwitter } from "react-icons/fa6";
-import { GoMail } from "react-icons/go";
+import { FaGithub, FaLinkedin } from "react-icons/fa";
+import { FaSquareXTwitter } from "react-icons/fa6";
+import { IoMdMail } from "react-icons/io";
+import { GoSignIn, GoSignOut } from "react-icons/go";
+import { FaUserPlus } from "react-icons/fa6";
 import { Button, DropDownLinks } from "@repo/ui/index";
 import ToggleMode from "./toggle-mode";
 
-const drop_down_props = {
-  label: "Socials",
-  class_names: {
-    drop_down: "color-secondary color-secondary-content ",
-    toggle_btn: "color-secondary color-secondary-content ",
-  },
-  drop_down_links: [
-    {
-      label: "GitHub",
-      href: "demo",
-      icon: <FaGithub className="inline-block w-5 h-auto" />,
-    },
-    {
-      label: "LinkedIn",
-      href: "demo",
-      icon: <FaLinkedin className="inline-block w-5 h-auto" />,
-    },
-    {
-      label: "X - ",
-      href: "demo",
-      icon: <FaXTwitter className="inline-block w-5 h-auto" />,
-    },
-    {
-      label: "Email - ",
-      href: "demo",
-      icon: <GoMail className="inline-block w-5 h-auto" />,
-    },
-  ],
-};
-
+// app navigation bar
 export default function Navbar() {
   const [is_open, set_is_open] = useState(false);
+
+  // programmatic navigation
+  const router = useRouter();
+
+  // auth drop-down
+  const auth_drop_down_props = {
+    label: "Sign In",
+    class_names: {
+      drop_down: "color-secondary color-secondary-content",
+      toggle_btn: "color-secondary color-secondary-content ",
+    },
+    drop_down_links: [
+      {
+        label: "Sign Up",
+        navigate_func: () => {
+          router.push("/auth/signup");
+        },
+        icon: <FaUserPlus className="inline-block w-5 h-auto" />,
+      },
+      {
+        label: "Sign In",
+        navigate_func: () => {
+          router.push("/auth/signin");
+        },
+        icon: <GoSignIn className="inline-block w-5 h-auto" />,
+      },
+      {
+        label: "Sign Out",
+        navigate_func: () => {
+          router.push("/auth/signout");
+        },
+        icon: <GoSignOut className="inline-block w-5 h-auto" />,
+      },
+    ],
+  };
+
+  // socials drop-down
+  const socials_drop_down_props = {
+    label: "Socials",
+    class_names: {
+      drop_down: "color-secondary color-secondary-content ",
+      toggle_btn: "color-secondary color-secondary-content ",
+    },
+    drop_down_links: [
+      {
+        label: "GitHub",
+        navigate_func: () => {
+          router.push("https://github.com/AakrshitThakur");
+        },
+        icon: <FaGithub className="inline-block w-5 h-auto" />,
+      },
+      {
+        label: "LinkedIn",
+        navigate_func: () => {
+          router.push("https://www.linkedin.com/in/aakrshit-thakur-14433627b/");
+        },
+        icon: <FaLinkedin className="inline-block w-5 h-auto" />,
+      },
+      {
+        label: "X - ",
+        navigate_func: () => {
+          router.push("https://x.com/AakrshitThakur");
+        },
+        icon: <FaSquareXTwitter className="inline-block w-5 h-auto" />,
+      },
+      {
+        label: "Email - ",
+        navigate_func: () => {
+          router.push("thakurraakrshitt@gmail.com");
+        },
+        icon: <IoMdMail className="inline-block w-5 h-auto" />,
+      },
+    ],
+  };
+
   return (
-    <nav
-      id="navbar"
-      className="color-neutral color-neutral-content sticky top-1 z-50 p-3 mx-3 rounded-full"
-    >
+    <nav id="navbar" className="color-neutral color-neutral-content sticky top-1 z-50 p-3 mx-3 rounded-full">
       {/* desktop navbar */}
       <div className="flex justify-around items-center">
         {/* logo */}
-        <div className="h-10 w-auto rounded-sm overflow-hidden">
-          <img
-            className="w-full h-full"
-            src="/logo.png"
-            alt="Sketch Grid Logo"
-          />
-        </div>
+        <Link href="/">
+          <div className="h-10 w-auto rounded-sm overflow-hidden">
+            <img className="w-full h-full" src="/logo.png" alt="Sketch Grid Logo" />
+          </div>
+        </Link>
 
         {/* navigation links */}
-        <div className="hidden md:flex gap-1 items-center">
+        <div className="hidden md:flex gap-2 items-center">
           <Button type="secondary" size="md" text="About" />
           <Button type="secondary" size="md" text="Contact" />
-          <DropDownLinks {...drop_down_props} />
+          <DropDownLinks {...socials_drop_down_props} />
         </div>
 
         {/* cto and other navigations */}
-        <div className="hidden md:flex gap-1 items-center">
+        <div className="hidden md:flex gap-2 items-center">
           <ToggleMode />
+          <DropDownLinks {...auth_drop_down_props} />
           <Button type="success" size="md" text="Get Started" />
         </div>
 
         {/* Mobile menu button */}
         <div className="md:hidden flex justify-center items-center color-base-200 color-base-content rounded-full p-2">
-          <button
-            onClick={() => set_is_open(!is_open)}
-            className="inline-flex items-center justify-center"
-          >
+          <button onClick={() => set_is_open(!is_open)} className="inline-flex items-center justify-center">
             <span className="sr-only">Open main menu</span>
             {is_open ? (
-              <TfiClose
-                className="h-auto w-5 cursor-pointer"
-                aria-hidden="true"
-              />
+              <TfiClose className="h-auto w-5 cursor-pointer" aria-hidden="true" />
             ) : (
-              <CiMenuBurger
-                className="h-auto w-5 cursor-pointer"
-                aria-hidden="true"
-              />
+              <CiMenuBurger className="h-auto w-5 cursor-pointer" aria-hidden="true" />
             )}
           </button>
         </div>
@@ -93,21 +130,12 @@ export default function Navbar() {
         {/* Mobile menu */}
         {is_open && (
           <div className="md:hidden">
-            <div
-              className="fixed inset-0 z-49 bg-[rgba(0,0,0,0.85)]"
-              onClick={() => set_is_open(false)}
-            />
+            <div className="fixed inset-0 z-49 bg-[rgba(0,0,0,0.85)]" onClick={() => set_is_open(false)} />
             <div className="color-neutral color-neutral-content fixed right-0 top-0 z-50 h-full w-[300px] p-1">
               <div className="solid-border-b flex h-16 items-center justify-between">
                 <span className="text-lg font-semibold">Menu</span>
-                <button
-                  onClick={() => set_is_open(false)}
-                  className="rounded-md p-2 cursor-pointer"
-                >
-                  <TfiClose
-                    className="h-auto w-5 cursor-pointer"
-                    aria-hidden="true"
-                  />
+                <button onClick={() => set_is_open(false)} className="rounded-md p-2 cursor-pointer">
+                  <TfiClose className="h-auto w-5 cursor-pointer" aria-hidden="true" />
                 </button>
               </div>
               {/* navigation links */}
@@ -115,8 +143,9 @@ export default function Navbar() {
                 <Button type="secondary" size="md" text="About" />
                 <Button type="secondary" size="md" text="Contact" />
                 <ToggleMode />
+                <DropDownLinks {...socials_drop_down_props} />
+                <DropDownLinks {...auth_drop_down_props} />
                 <Button type="success" size="md" text="Get Started" />
-                <DropDownLinks {...drop_down_props} />
               </div>
             </div>
           </div>

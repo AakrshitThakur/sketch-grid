@@ -1,2 +1,4 @@
 1. Always configure the Turborepo build so that all applications can import compiled ts (i.e. js) code from packages directory.
 2. Think of type as “what kind of envelope is this?” and action as “what should the application do with the envelope?”
+3. The .env file typically contains default values that could be applied across multiple environments like development, staging, and production. On the other hand, .env.local overrides these values specifically for local development, giving you a safer way to experiment. 
+4. If you don’t use __dirname, your paths will be relative to where you run the Node.js process, not to where your file is located.

@@ -18,7 +18,7 @@ const Hero: React.FC<HeroSectionProps> = ({
   return (
     <section className="flex items-center justify-center bg-linear-to-b to-gray-500 overflow-hidden">
       {/* Content container */}
-      <div className="px-3 py-5 sm:px-7 sm:py-11 md:px-7 md:py-13">
+      <div className="px-5 py-7 sm:px-7 sm:py-11 md:px-7 md:py-13">
         <div className="space-y-7 text-center">
           {/* Headline */}
           <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold leading-tight">

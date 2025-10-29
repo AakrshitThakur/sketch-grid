@@ -6,7 +6,7 @@ function useFetch<T>(props: InputFetch): ResponseFetch<T> {
   const [states, set_states] = useState<ResponseFetch<T>>({
     data: null,
     error: null,
-    loading: true,
+    loading: false,
   });
 
   // to abort previous running api call
@@ -41,9 +41,11 @@ function useFetch<T>(props: InputFetch): ResponseFetch<T> {
         return;
       }
 
+      console.log(JSON.stringify(res.headers.getSetCookie()));
+
       // success response
       const json = await res.json();
-      set_states({ data: json.data, error: null, loading: false });
+      set_states({ data: json, error: null, loading: false });
     } catch (error) {
       if (error instanceof DOMException && error.name === "AbortError") {
         console.error(error.message);
