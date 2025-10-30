@@ -5,4 +5,11 @@ interface ReturnPrismaResponse<T> {
   payload: T | null;
 }
 
-export type { ReturnPrismaResponse };
+interface RoomTable {
+  id: number;
+  slug: string;
+  createdAt: Date;
+  admin_id: string;
+}
+
+export type { ReturnPrismaResponse, RoomTable };

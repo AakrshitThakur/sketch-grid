@@ -14,9 +14,6 @@ async function signin_controller(req: Request, res: Response) {
     const credentials = req.body;
     const v_credentials = signin_zod_schema.parse(credentials);
 
-    console.log("ENVIRONMENT", ENVIRONMENT);
-    console.log("JWT", JWT_SECRET);
-
     // get user record from email field
     const user_obj = await get_user_record({ email: v_credentials.email });
     if (user_obj.status === "error") {

@@ -1,7 +1,6 @@
-import type { Response } from "express";
 import { prisma_client } from "@repo/db/connect";
 import { catch_general_exception } from "@repo/utils/exceptions";
-import type { ReturnPrismaResponse } from "@repo/types/prisma.types.d";
+import type { ReturnPrismaResponse } from "@repo/types/index";
 
 interface GetUserAuthRecords {
   id: string;

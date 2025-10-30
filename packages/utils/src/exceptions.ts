@@ -1,10 +1,4 @@
-import type { Response } from "express";
 import { ZodError } from "zod/v4";
-
-interface ReturnExceptionResponse {
-  status_code: number;
-  message: string;
-}
 
 function catch_general_exception(error: Error) {
   if (error instanceof Error) {

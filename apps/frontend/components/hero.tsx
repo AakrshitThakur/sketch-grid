@@ -1,5 +1,6 @@
 "use client";
 import React from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@repo/ui/index";
 
 interface HeroSectionProps {
@@ -15,6 +16,12 @@ const Hero: React.FC<HeroSectionProps> = ({
   cta_text = "Get Started Today",
   on_cta_click = () => console.info("CTA clicked"),
 }) => {
+  const router = useRouter();
+
+  // navigate
+  function navigate(to: string) {
+    router.push(to);
+  }
   return (
     <section className="flex items-center justify-center bg-linear-to-b to-gray-500 overflow-hidden">
       {/* Content container */}
@@ -25,8 +32,7 @@ const Hero: React.FC<HeroSectionProps> = ({
             {/* color last 2 words of heading */}
             {headline.split(" ").map((word, index) => (
               <span key={index}>
-                {index === headline.split(" ").length - 2 ||
-                index === headline.split(" ").length - 1 ? (
+                {index === headline.split(" ").length - 2 || index === headline.split(" ").length - 1 ? (
                   <span className="bg-linear-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
                     {word + " "}
                   </span>
@@ -38,13 +44,11 @@ const Hero: React.FC<HeroSectionProps> = ({
           </h1>
 
           {/* Subheading */}
-          <p className="text-base sm:text-lg md:text-xl max-w-3xl mx-auto leading-relaxed">
-            {subheading}
-          </p>
+          <p className="text-base sm:text-lg md:text-xl max-w-3xl mx-auto leading-relaxed">{subheading}</p>
 
           {/* CTA Button */}
           <div className="flex flex-col sm:flex-row gap-3 justify-center items-center">
-            <Button type="success" size="lg" text="Get Started" />
+            <Button type="success" size="lg" text="Get Started" on_click={() => navigate("/rooms")} />
             <Button type="primary" size="lg" text="Learn More" />
           </div>
         </div>

@@ -6,10 +6,12 @@ import useFetch from "@/hooks/use-fetch";
 import { FaSignInAlt, FaUser, FaLock } from "react-icons/fa";
 import { IoMdMail } from "react-icons/io";
 import { BsEyeFill, BsEyeSlashFill } from "react-icons/bs";
-import { success_notification, error_notification, info_notification } from "@/utils/toast.utils";
-import { signin_zod_schema } from "@repo/zod/auth.zod";
+import { IoPersonAdd } from "react-icons/io5";
+import { success_notification, error_notification } from "@/utils/toast.utils";
+import { signup_zod_schema } from "@repo/zod/auth.zod";
 
 interface FormValidationErrors {
+  username?: string;
   email?: string;
   password?: string;
 }
@@ -21,7 +23,7 @@ interface CallApi {
 // constants
 const HTTP_BACKEND_BASE_URL = process.env.NEXT_PUBLIC_HTTP_BACKEND_BASE_URL;
 
-const URL = HTTP_BACKEND_BASE_URL + "/api/v1/auth/signin";
+const URL = HTTP_BACKEND_BASE_URL + "/api/v1/auth/signup";
 
 const OPTIONS: RequestInit = {
   method: "POST",
@@ -33,6 +35,7 @@ const OPTIONS: RequestInit = {
 
 export default function Signin() {
   const [form_data, set_form_data] = useState({
+    username: "",
     email: "",
     password: "",
   });
@@ -57,7 +60,7 @@ export default function Signin() {
     e.preventDefault();
 
     // check validation errors
-    const check = signin_zod_schema.safeParse(form_data);
+    const check = signup_zod_schema.safeParse(form_data);
 
     // catch validation errors
     if (!check.success) {
@@ -69,7 +72,7 @@ export default function Signin() {
     }
 
     // no validation errors
-    set_v_errors({ email: "", password: "" });
+    set_v_errors({ username: "", email: "", password: "" });
 
     // call custom use-fetch hook
     set_call_api({
@@ -95,7 +98,7 @@ export default function Signin() {
 
   return (
     <div
-      id="signin"
+      id="signup"
       className="color-base-100 color-base-content bg-linear-to-b to-green-500 overflow-hidden p-5 sm:p-7 md:p-9"
     >
       <div className="flex flex-col items-center justify-center overflow-hidden">
@@ -103,25 +106,49 @@ export default function Signin() {
           {/* header */}
           <div className="text-center space-y-2">
             <div className="flex justify-center">
-              <div className="color-primary p-3 rounded-full">
-                <FaSignInAlt className="h-8 w-8 color-primary-content" />
+              <div className="color-primary color-primary-content p-3 rounded-full">
+                <IoPersonAdd className="h-8 w-8" />
               </div>
             </div>
             <h3 className="text-3xl font-bold">SketchGrid</h3>
           </div>
 
-          <div className="color-base-200 color-base-content rounded-xl">
+          <div className="color-base-300 color-base-content rounded-xl">
             {/* card-header */}
             <div className="space-y-1 px-5 pt-3">
-              <h2 className="text-2xl font-semibold text-center">Sign In</h2>
-              <p className="text-base text-center">Enter your credentials to access the admin panel</p>
+              <h2 className="text-2xl font-semibold text-center">Sign Up</h2>
+              <p className="text-base text-center">Enter your credentials to create a new account</p>
             </div>
 
+            {/* card-content */}
             <form onSubmit={handle_on_submit}>
-              {/* card-content */}
               <div className="px-6 py-4 space-y-3">
                 <div className="space-y-2">
-                  {/* email-field */}
+                  {/* username-field */}
+                  <label htmlFor="username" className="block text-sm font-medium">
+                    Email
+                  </label>
+                  <div className="relative text-base">
+                    <FaUser className="absolute left-3 top-3 h-4 w-4" />
+                    <input
+                      id="username"
+                      name="username"
+                      type="text"
+                      placeholder="John Doe"
+                      value={form_data.username}
+                      onChange={handle_on_change}
+                      className="w-full px-10 pr-3 py-2 border rounded-md"
+                    />
+                  </div>
+                  {v_errors.username && (
+                    <p id="username-validation-error" className="text-xs text-red-500" role="alert">
+                      {v_errors.username}
+                    </p>
+                  )}
+                </div>
+
+                {/* email-field */}
+                <div className="space-y-2">
                   <label htmlFor="email" className="block text-sm font-medium">
                     Email
                   </label>
@@ -144,7 +171,7 @@ export default function Signin() {
                   )}
                 </div>
 
-                {/* Password Field */}
+                {/* password-field */}
                 <div className="space-y-2">
                   <label htmlFor="password" className="block text-sm font-medium">
                     Password
@@ -187,31 +214,31 @@ export default function Signin() {
                   type="submit"
                   className="w-full color-success color-success-content font-medium py-2 px-4 rounded-md cursor-pointer"
                   disabled={loading}
-                  aria-describedby="signin-button-description"
+                  aria-describedby="signup-button-description"
                 >
                   {loading ? (
                     <div className="flex items-center justify-center">
                       <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                      Signing In...
+                      Signing Up...
                     </div>
                   ) : (
-                    "Sign In"
+                    "Sign Up"
                   )}
                 </button>
 
-                <p id="signin-button-description" className="text-sm sr-only">
-                  Click to sign-in to your account
+                <p id="signup-button-description" className="text-sm sr-only">
+                  Click to sign-up to your account
                 </p>
 
-                {/* registration-link */}
+                {/* Registration Link */}
                 <div className="text-center text-sm">
-                  Don't have an account?&nbsp;
+                  Already have an account?&nbsp;
                   <button
                     type="button"
                     className="text-blue-500 font-medium cursor-pointer"
-                    onClick={() => router.push("/auth/signup")}
+                    onClick={() => router.push("/auth/signin")}
                   >
-                    Sign Up
+                    Sign In
                   </button>
                 </div>
               </div>

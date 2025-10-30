@@ -14,9 +14,7 @@ async function create_room_controller(req: Request, res: Response) {
     // get user-cred
     const user_credentials = req.user_credentials;
     if (!user_credentials || !user_credentials.id) {
-      res
-        .status(401)
-        .json({ message: "Please sign in or create an account to continue" });
+      res.status(401).json({ message: "Please sign in or create an account to continue" });
       return;
     }
 
@@ -55,21 +53,6 @@ async function create_room_controller(req: Request, res: Response) {
 // get all rooms from Room table
 async function get_all_rooms_controller(req: Request, res: Response) {
   try {
-    // get user-cred
-    const user_credentials = req.user_credentials;
-    if (!user_credentials || !user_credentials.id) {
-      res
-        .status(401)
-        .json({ message: "Please sign in or create an account to continue" });
-      return;
-    }
-
-    const user_obj = await get_user_record({ id: user_credentials.id });
-    if (user_obj.status === "error" || !user_obj.payload) {
-      res.status(user_obj.status_code).json({ message: user_obj.message });
-      return;
-    }
-
     // get all rooms
     const rooms_obj = await get_room_records({});
     if (rooms_obj.status === "error") {
@@ -100,9 +83,7 @@ async function get_room_by_id_controller(req: Request, res: Response) {
     // get user-id
     const user_credentials = req.user_credentials;
     if (!user_credentials || !user_credentials.id) {
-      res
-        .status(401)
-        .json({ message: "Please sign in or create an account to continue" });
+      res.status(401).json({ message: "Please sign in or create an account to continue" });
       return;
     }
 
@@ -147,9 +128,7 @@ async function delete_room_controller(req: Request, res: Response) {
     // get user-cred
     const user_credentials = req.user_credentials;
     if (!user_credentials || !user_credentials.id) {
-      res
-        .status(401)
-        .json({ message: "Please sign in or create an account to continue" });
+      res.status(401).json({ message: "Please sign in or create an account to continue" });
       return;
     }
 
@@ -185,18 +164,11 @@ async function delete_room_controller(req: Request, res: Response) {
     }
 
     // success
-    res
-      .status(200)
-      .json({ message: `Room (ID: ${room_id}) successfully deleted` });
+    res.status(200).json({ message: `Room (ID: ${room_id}) successfully deleted` });
   } catch (error) {
     const { status_code, message } = catch_general_exception(error as Error);
     res.status(status_code).json({ message });
   }
 }
 
-export {
-  create_room_controller,
-  get_room_by_id_controller,
-  get_all_rooms_controller,
-  delete_room_controller,
-};
+export { create_room_controller, get_room_by_id_controller, get_all_rooms_controller, delete_room_controller };

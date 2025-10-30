@@ -29,23 +29,17 @@ export default function Navbar() {
     drop_down_links: [
       {
         label: "Sign Up",
-        navigate_func: () => {
-          router.push("/auth/signup");
-        },
+        navigate_func: () => router.push("/auth/signup"),
         icon: <FaUserPlus className="inline-block w-5 h-auto" />,
       },
       {
         label: "Sign In",
-        navigate_func: () => {
-          router.push("/auth/signin");
-        },
+        navigate_func: () => router.push("/auth/signin"),
         icon: <GoSignIn className="inline-block w-5 h-auto" />,
       },
       {
         label: "Sign Out",
-        navigate_func: () => {
-          router.push("/auth/signout");
-        },
+        navigate_func: () => router.push("/auth/signout"),
         icon: <GoSignOut className="inline-block w-5 h-auto" />,
       },
     ],
@@ -61,30 +55,22 @@ export default function Navbar() {
     drop_down_links: [
       {
         label: "GitHub",
-        navigate_func: () => {
-          router.push("https://github.com/AakrshitThakur");
-        },
+        navigate_func: () => router.push("https://github.com/AakrshitThakur"),
         icon: <FaGithub className="inline-block w-5 h-auto" />,
       },
       {
         label: "LinkedIn",
-        navigate_func: () => {
-          router.push("https://www.linkedin.com/in/aakrshit-thakur-14433627b/");
-        },
+        navigate_func: () => router.push("https://www.linkedin.com/in/aakrshit-thakur-14433627b/"),
         icon: <FaLinkedin className="inline-block w-5 h-auto" />,
       },
       {
         label: "X - ",
-        navigate_func: () => {
-          router.push("https://x.com/AakrshitThakur");
-        },
+        navigate_func: () => router.push("https://x.com/AakrshitThakur"),
         icon: <FaSquareXTwitter className="inline-block w-5 h-auto" />,
       },
       {
         label: "Email - ",
-        navigate_func: () => {
-          router.push("thakurraakrshitt@gmail.com");
-        },
+        navigate_func: () => router.push("thakurraakrshitt@gmail.com"),
         icon: <IoMdMail className="inline-block w-5 h-auto" />,
       },
     ],

@@ -11,10 +11,11 @@
   "dependencies": {
     "react": "19.2.0",
     "react-dom": "19.2.0",
-    "next": "16.0.0", 
-    "@repo/ui": "*", 
-    "@repo/styles": "*", 
-    "@repo/zod": "*"
+    "next": "16.0.0",
+    "@repo/ui": "*",
+    "@repo/styles": "*",
+    "@repo/zod": "*",
+    "@repo/types": "*"
   },
   "devDependencies": {
     "typescript": "^5",

@@ -41,7 +41,7 @@ function useFetch<T>(props: InputFetch): ResponseFetch<T> {
         return;
       }
 
-      console.log(JSON.stringify(res.headers.getSetCookie()));
+      console.info(JSON.stringify("cookies", res.headers.getSetCookie()));
 
       // success response
       const json = await res.json();
