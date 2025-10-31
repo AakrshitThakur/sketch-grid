@@ -2,11 +2,9 @@ import type { ReactNode } from "react";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import useFetch from "@/hooks/use-fetch";
+import { Loading } from "@repo/ui/index";
 import { error_notification } from "@/utils/toast.utils";
 
-interface CheckUserAuthProps {
-  children: ReactNode;
-}
 interface CallApi {
   url: string;
   options: RequestInit;
@@ -15,7 +13,7 @@ interface CallApi {
 // constants
 const HTTP_BACKEND_BASE_URL = process.env.NEXT_PUBLIC_HTTP_BACKEND_BASE_URL;
 
-const URL = HTTP_BACKEND_BASE_URL + "/api/v1/auth/check-user-auth";
+const URL = HTTP_BACKEND_BASE_URL + "/api/v1/auth/is-user-authenticated";
 
 const OPTIONS: RequestInit = {
   method: "GET",
@@ -25,7 +23,7 @@ const OPTIONS: RequestInit = {
   credentials: "include",
 };
 
-export default function CheckUserAuth(props: CheckUserAuthProps) {
+export default function CheckUserAuth({ children }: { children: ReactNode }) {
   const [call_api, set_call_api] = useState<CallApi>({ url: URL, options: OPTIONS });
 
   // hook for navigations
@@ -38,13 +36,13 @@ export default function CheckUserAuth(props: CheckUserAuthProps) {
   useEffect(() => {
     if (error) {
       error_notification(error);
-      router.push("/");
+      router.push("/auth/signin");
     }
   }, [data, error]);
 
   if (!loading && data) {
-    return props.children;
+    return children;
   } else {
-    return <div>Loading...</div>;
+    return <Loading size="lg" />;
   }
 }

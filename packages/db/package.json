@@ -8,8 +8,8 @@
   "scripts": {
     "init": "npx prisma init",
     "migrate": "npx prisma migrate dev",
-    "generate": "npx prisma generate", 
-    "build": "npm run migrate && npm run generate && npx tsc -b", 
+    "generate": "npx prisma generate",
+    "build": "npm run migrate && npm run generate && npx tsc -b",
     "build:src": "npx tsc -b"
   },
   "keywords": [],
@@ -20,9 +20,9 @@
     "@prisma/client": "^6.17.1"
   },
   "devDependencies": {
-    "@repo/typescript-config": "*", 
-    "@repo/utils": "*", 
-    "@repo/db": "*", 
+    "@repo/typescript-config": "*",
+    "@repo/utils": "*",
+    "@repo/db": "*",
     "@repo/types": "*"
   }
 }

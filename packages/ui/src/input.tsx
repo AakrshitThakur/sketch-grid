@@ -18,7 +18,7 @@ function capitalize_first_char(text: string): string{
 export function TextInputMd(props: TextInputProps) {
   return (
     <section id="text-input" className="space-y-2">
-      {/* email-field */}
+      {/* field */}
       <label htmlFor={props.title} className={`block text-sm font-medium ${props.class_names?.label}`}>
         {capitalize_first_char(props.title)}
       </label>

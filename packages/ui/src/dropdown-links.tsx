@@ -47,7 +47,7 @@ export default function DropDownLinks(props: DropDownLinksProps) {
           onClick={() => set_open((prev) => !prev)}
           className="w-full rounded-lg flex justify-center items-center p-1"
         >
-          {props.label && <label className="font-medium pr-1">{props.label}</label>}
+          {props.label && <label className="font-medium cursor-pointer pr-1">{props.label}</label>}
           {open ? <IoIosArrowUp /> : <IoIosArrowDown />}
         </button>
 
@@ -62,7 +62,8 @@ export default function DropDownLinks(props: DropDownLinksProps) {
                 }}
                 className="flex justify-center items-center gap-1 cursor-pointer px-3 py-2"
               >
-                <span>{link.label}</span> {link.icon}
+                <span>{link.label}</span>
+                <span className="inline-block w-5 h-auto">{link.icon}</span>
               </div>
             ))}
           </div>

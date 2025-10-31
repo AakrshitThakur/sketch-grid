@@ -1,7 +1,8 @@
 import type { Request, Response } from "express";
+import bcrypt from "bcrypt";
 import { get_user_record } from "@repo/db/auth";
 import { get_room_record, get_room_records } from "@repo/db/room";
-import { create_room_zod_schema } from "@repo/zod/room.zod";
+import { create_room_zod_schema } from "@repo/zod/index";
 import { catch_general_exception } from "@repo/utils/exceptions";
 import { prisma_client } from "@repo/db/connect";
 
@@ -25,10 +26,14 @@ async function create_room_controller(req: Request, res: Response) {
       return;
     }
 
+    // hash password
+    const h_password = await bcrypt.hash(v_credentials.password, 10);
+
     // create new room
     const new_room = await prisma_client.room.create({
       data: {
         slug: v_credentials.slug,
+        password: h_password,
         admin_id: user_credentials.id,
       },
     });
@@ -40,7 +45,7 @@ async function create_room_controller(req: Request, res: Response) {
     // success
     res.status(200).json({
       message: "Room successfully created",
-      room_id: user_obj.payload.id,
+      room_id: new_room.id,
     });
     return;
   } catch (error) {

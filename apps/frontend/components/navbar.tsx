@@ -7,8 +7,10 @@ import { TfiClose } from "react-icons/tfi";
 import { FaGithub, FaLinkedin } from "react-icons/fa";
 import { FaSquareXTwitter } from "react-icons/fa6";
 import { IoMdMail } from "react-icons/io";
-import { GoSignIn, GoSignOut } from "react-icons/go";
-import { FaUserPlus } from "react-icons/fa6";
+import { GoSignIn, GoSignOut, GoSearch } from "react-icons/go";
+import { FaUserPlus, FaUserGroup } from "react-icons/fa6";
+import { MdDelete } from "react-icons/md";
+import { BsRocketTakeoffFill } from "react-icons/bs";
 import { Button, DropDownLinks } from "@repo/ui/index";
 import ToggleMode from "./toggle-mode";
 
@@ -30,17 +32,17 @@ export default function Navbar() {
       {
         label: "Sign Up",
         navigate_func: () => router.push("/auth/signup"),
-        icon: <FaUserPlus className="inline-block w-5 h-auto" />,
+        icon: <FaUserPlus className="w-full h-full" />,
       },
       {
         label: "Sign In",
         navigate_func: () => router.push("/auth/signin"),
-        icon: <GoSignIn className="inline-block w-5 h-auto" />,
+        icon: <GoSignIn className="w-full h-full" />,
       },
       {
         label: "Sign Out",
         navigate_func: () => router.push("/auth/signout"),
-        icon: <GoSignOut className="inline-block w-5 h-auto" />,
+        icon: <GoSignOut className="w-full h-full" />,
       },
     ],
   };
@@ -56,22 +58,53 @@ export default function Navbar() {
       {
         label: "GitHub",
         navigate_func: () => router.push("https://github.com/AakrshitThakur"),
-        icon: <FaGithub className="inline-block w-5 h-auto" />,
+        icon: <FaGithub className="w-full h-full" />,
       },
       {
         label: "LinkedIn",
         navigate_func: () => router.push("https://www.linkedin.com/in/aakrshit-thakur-14433627b/"),
-        icon: <FaLinkedin className="inline-block w-5 h-auto" />,
+        icon: <FaLinkedin className="w-full h-full" />,
       },
       {
         label: "X - ",
         navigate_func: () => router.push("https://x.com/AakrshitThakur"),
-        icon: <FaSquareXTwitter className="inline-block w-5 h-auto" />,
+        icon: <FaSquareXTwitter className="w-full h-full" />,
       },
       {
         label: "Email - ",
         navigate_func: () => router.push("thakurraakrshitt@gmail.com"),
-        icon: <IoMdMail className="inline-block w-5 h-auto" />,
+        icon: <IoMdMail className="w-full h-full" />,
+      },
+    ],
+  };
+
+  // rooms-related links
+  const rooms_drop_down_links = {
+    label: "Rooms",
+    class_names: {
+      drop_down: "color-secondary color-secondary-content ",
+      toggle_btn: "color-secondary color-secondary-content ",
+    },
+    drop_down_links: [
+      {
+        label: "View Rooms",
+        navigate_func: () => router.push("/rooms/create"),
+        icon: <GoSearch className="w-full h-full" />,
+      },
+      {
+        label: "Join Room",
+        navigate_func: () => router.push("/rooms/join"),
+        icon: <BsRocketTakeoffFill className="w-full h-full" />,
+      },
+      {
+        label: "Create Room",
+        navigate_func: () => router.push("/rooms/create"),
+        icon: <FaUserGroup className="w-full h-full" />,
+      },
+      {
+        label: "Delete Room",
+        navigate_func: () => router.push("/rooms/delete"),
+        icon: <MdDelete className="w-full h-full" />,
       },
     ],
   };
@@ -98,6 +131,7 @@ export default function Navbar() {
         <div className="hidden md:flex gap-2 items-center">
           <ToggleMode />
           <DropDownLinks {...auth_drop_down_props} />
+          <DropDownLinks {...rooms_drop_down_links} />
           <Button type="success" size="md" text="Get Started" />
         </div>
 

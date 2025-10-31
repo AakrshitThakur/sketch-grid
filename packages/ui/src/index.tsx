@@ -4,3 +4,4 @@ export { default as Heading } from "./heading";
 export { default as DropDownLinks } from "./dropdown-links";
 export { default as Card } from "./card";
 export * from "./input";
+export { default as Loading } from "./loading";

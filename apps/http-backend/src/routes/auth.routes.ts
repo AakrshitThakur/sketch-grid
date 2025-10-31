@@ -12,6 +12,6 @@ const router = express.Router();
 router.post("/signin", signin_controller);
 router.post("/signup", signup_controller);
 router.delete("/signout", check_user_auth, signout_controller);
-router.get("/check-authentication", is_user_authenticated_controller);
+router.get("/is-user-authenticated", is_user_authenticated_controller);
 
 export default router;

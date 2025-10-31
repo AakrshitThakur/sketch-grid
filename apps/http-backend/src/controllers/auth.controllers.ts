@@ -2,7 +2,7 @@ import type { Request, Response } from "express";
 import jsonwebtoken from "jsonwebtoken";
 import bcrypt from "bcrypt";
 import { prisma_client } from "@repo/db/connect";
-import { signin_zod_schema, signup_zod_schema } from "@repo/zod/auth.zod";
+import { signin_zod_schema, signup_zod_schema } from "@repo/zod/index";
 import { JWT_SECRET, ENVIRONMENT } from "@repo/configs/index";
 import { AUTH_COOKIE_OPTIONS } from "../configs/constants.js";
 import { get_user_record } from "@repo/db/auth";

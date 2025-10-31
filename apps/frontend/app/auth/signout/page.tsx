@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import useFetch from "@/hooks/use-fetch";
 import { FaSignOutAlt } from "react-icons/fa";
 import { success_notification, error_notification } from "@/utils/toast.utils";
-import { Button } from "@repo/ui/index";
+import { Button, Card } from "@repo/ui/index";
 
 interface CallApi {
   url: string;
@@ -69,7 +69,7 @@ export default function Signout() {
       className="color-base-100 color-base-content min-h-[75vh] flex justify-center items-center bg-linear-to-b to-red-500 overflow-hidden p-5 sm:p-7 md:p-9"
     >
       <div className="flex flex-col items-center justify-center overflow-hidden">
-        <div className="color-accent color-accent-content w-full max-w-md h-auto space-y-5 p-5 rounded-2xl">
+        <Card size="md" class_name="color-accent color-accent-content w-full h-auto space-y-5 p-5 rounded-2xl">
           {/* header */}
           <div className="text-center space-y-2">
             <div className="flex justify-center">
@@ -80,17 +80,16 @@ export default function Signout() {
             <h3 className="text-3xl font-bold">SketchGrid</h3>
           </div>
 
-          <div className="color-base-200 color-base-content rounded-xl">
+          <div className="color-base-200 color-base-content rounded-xl space-y-2 p-3 sm:p-4 md:p-5">
             {/* card-header */}
-            <div className="space-y-1 px-5 pt-3">
+            <div className="space-y-1 sm:space-y-2">
               <h2 className="text-2xl font-semibold text-center">Sign Out</h2>
               <p className="text-base text-center">Are you sure you want to sign out?</p>
             </div>
-
             {/* card-content */}
-            <div className="flex justify-center items-center gap-2 p-3">
+            <div className="flex justify-center items-center gap-2">
               <button
-                type="button" 
+                type="button"
                 onClick={sign_out}
                 className="color-error color-error-content font-medium text-sm px-2 py-1 rounded-md cursor-pointer"
                 disabled={loading}
@@ -108,7 +107,7 @@ export default function Signout() {
               <Button type="neutral" size="md" text="Go Back" on_click={go_back} />
             </div>
           </div>
-        </div>
+        </Card>
       </div>
     </div>
   );
