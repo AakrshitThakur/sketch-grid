@@ -132,7 +132,7 @@ export default function Navbar() {
           <ToggleMode />
           <DropDownLinks {...auth_drop_down_props} />
           <DropDownLinks {...rooms_drop_down_links} />
-          <Button type="success" size="md" text="Get Started" />
+          <Button type="success" size="md" text="Get Started" on_click={() => router.push("/rooms")} />
         </div>
 
         {/* Mobile menu button */}
@@ -165,7 +165,7 @@ export default function Navbar() {
                 <ToggleMode />
                 <DropDownLinks {...socials_drop_down_props} />
                 <DropDownLinks {...auth_drop_down_props} />
-                <Button type="success" size="md" text="Get Started" />
+                <Button type="success" size="md" text="Get Started" on_click={() => router.push("/rooms")} />
               </div>
             </div>
           </div>

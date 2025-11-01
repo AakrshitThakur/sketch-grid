@@ -98,7 +98,7 @@ export default function Signin() {
   return (
     <div
       id="create-room"
-      className="color-base-100 color-base-content min-h-[75vh] flex justify-center items-center bg-linear-to-b to-green-500 overflow-hidden p-5 sm:p-7 md:p-9"
+      className="color-base-100 color-base-content min-h-[65vh] flex justify-center items-center bg-linear-to-b to-green-500 overflow-hidden p-5 sm:p-7 md:p-9"
     >
       <CheckUserAuth>
         <div className="flex flex-col items-center justify-center overflow-hidden">

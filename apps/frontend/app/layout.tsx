@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Playwrite_AU_QLD } from "next/font/google";
 import { ToastContainer } from "react-toastify";
 import Navbar from "@/components/navbar";
@@ -9,6 +9,11 @@ const playwrite_au_qld = Playwrite_AU_QLD({
   variable: "--playwrite-au-qld",
   weight: "200",
 });
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+};
 
 export const metadata: Metadata = {
   title: "SketchGrid - Collaborate Visually. Design Intuitively. Create Without Limits.",
@@ -25,9 +30,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${playwrite_au_qld.className}`}>
-      <body className="color-base-100 color-base-content flex justify-center items-center p-1">
-        <div id="app" className="max-w-7x">
+    <html lang="en" className={`${playwrite_au_qld.className} flex justify-center items-center`}>
+      <body className="color-base-100 color-base-content max-w-7xl p-1">
+        <div id="app" className="max-w-dvw">
           <ToastContainer />
           <Navbar />
           {children}

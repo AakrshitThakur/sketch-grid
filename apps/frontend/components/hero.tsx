@@ -23,34 +23,35 @@ const Hero: React.FC<HeroSectionProps> = ({
     router.push(to);
   }
   return (
-    <section className="flex items-center justify-center bg-linear-to-b to-gray-500 overflow-hidden">
+    <section
+      id="hero"
+      className="flex items-center justify-center bg-linear-to-b to-gray-500 overflow-hidden p-5 sm:p-7 md:p-9"
+    >
       {/* Content container */}
-      <div className="px-5 py-7 sm:px-7 sm:py-11 md:px-7 md:py-13">
-        <div className="space-y-7 text-center">
-          {/* Headline */}
-          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold leading-tight">
-            {/* color last 2 words of heading */}
-            {headline.split(" ").map((word, index) => (
-              <span key={index}>
-                {index === headline.split(" ").length - 2 || index === headline.split(" ").length - 1 ? (
-                  <span className="bg-linear-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-                    {word + " "}
-                  </span>
-                ) : (
-                  <span>{word + " "}</span>
-                )}
-              </span>
-            ))}
-          </h1>
+      <div className="space-y-7 text-center">
+        {/* Headline */}
+        <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold leading-tight">
+          {/* color last 2 words of heading */}
+          {headline.split(" ").map((word, index) => (
+            <span key={index}>
+              {index === headline.split(" ").length - 2 || index === headline.split(" ").length - 1 ? (
+                <span className="bg-linear-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+                  {word + " "}
+                </span>
+              ) : (
+                <span>{word + " "}</span>
+              )}
+            </span>
+          ))}
+        </h1>
 
-          {/* Subheading */}
-          <p className="text-base sm:text-lg md:text-xl max-w-3xl mx-auto leading-relaxed">{subheading}</p>
+        {/* Subheading */}
+        <p className="text-base sm:text-lg md:text-xl max-w-3xl mx-auto leading-relaxed">{subheading}</p>
 
-          {/* CTA Button */}
-          <div className="flex flex-col sm:flex-row gap-3 justify-center items-center">
-            <Button type="success" size="lg" text="Get Started" on_click={() => navigate("/rooms")} />
-            <Button type="primary" size="lg" text="Learn More" />
-          </div>
+        {/* CTA Button */}
+        <div className="flex flex-col sm:flex-row gap-3 justify-center items-center">
+          <Button type="success" size="lg" text="Get Started" on_click={() => navigate("/rooms")} />
+          <Button type="primary" size="lg" text="Learn More" />
         </div>
       </div>
     </section>

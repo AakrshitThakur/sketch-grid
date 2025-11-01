@@ -54,7 +54,7 @@ export default function Rooms() {
   return (
     <div
       id="rooms"
-      className="color-base-100 color-base-content min-h-[75vh] flex justify-center items-center bg-linear-to-b to-blue-500 p-5 sm:p-7 md:p-9"
+      className="color-base-100 color-base-content min-h-[65vh] flex justify-center items-center bg-linear-to-b to-blue-500 p-5 sm:p-7 md:p-9"
     >
       {!loading && data ? (
         <Card class_name="color-accent color-accent-content items-center space-y-1 p-3 sm:p-4 md:p-5 rounded-xl" size="xl">
