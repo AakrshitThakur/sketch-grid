@@ -19,6 +19,7 @@ model User {
   email      String   @unique
   password   String
   rooms      Room[]
+  geometries Geometry[]
 }
 
 model Room {
@@ -28,4 +29,19 @@ model Room {
   createdAt   DateTime   @default(now())
   admin_id    String
   admin       User       @relation(fields: [admin_id], references: [id])
+  geometries  Geometry[]
   }
+
+ enum Type{
+  BOX
+  CIRCLE
+ } 
+
+ model Geometry{
+  id          Int         @id               @default(autoincrement())
+  type        Type                          @default(BOX)
+  room_id     Int
+  room        Room        @relation(fields: [room_id], references: [id])
+  admin_id    String
+  admin       User        @relation(fields: [admin_id], references: [id])
+ } 
