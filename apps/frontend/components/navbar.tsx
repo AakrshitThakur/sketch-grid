@@ -11,6 +11,7 @@ import { GoSignIn, GoSignOut, GoSearch } from "react-icons/go";
 import { FaUserPlus, FaUserGroup } from "react-icons/fa6";
 import { MdDelete } from "react-icons/md";
 import { BsRocketTakeoffFill } from "react-icons/bs";
+import Profile from "./profile";
 import { Button, DropDownLinks } from "@repo/ui/index";
 import ToggleMode from "./toggle-mode";
 
@@ -132,6 +133,7 @@ export default function Navbar() {
           <ToggleMode />
           <DropDownLinks {...auth_drop_down_props} />
           <DropDownLinks {...rooms_drop_down_links} />
+          <Profile class_names={{drop_down_link: "color-secondary color-secondary-content"}} />
           <Button type="success" size="md" text="Get Started" on_click={() => router.push("/rooms")} />
         </div>
 

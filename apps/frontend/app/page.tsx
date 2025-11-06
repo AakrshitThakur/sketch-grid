@@ -7,7 +7,7 @@ import "@repo/styles/global";
 
 export default function Home() {
   return (
-    <div id="home" className="">
+    <div id="home">
       <HeroSection />
       <Collaborate />
       <CallToAction />
