@@ -41,15 +41,13 @@ function useFetch<T>(props: InputFetch): ResponseFetch<T> {
         return;
       }
 
-      console.info(JSON.stringify("cookies", res.headers.getSetCookie()));
-
       // success response
       const json = await res.json();
       set_states({ data: json, error: null, loading: false });
     } catch (error) {
       if (error instanceof DOMException && error.name === "AbortError") {
         console.error(error.message);
-        set_states({ data: null, error: error.message, loading: false });
+        // ignore abort errors (intentional cancellations)
       } else if (error instanceof Error) {
         console.error(error.message);
         set_states({ data: null, error: error.message, loading: false });

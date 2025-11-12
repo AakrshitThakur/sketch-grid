@@ -89,7 +89,7 @@ export default function Navbar() {
     drop_down_links: [
       {
         label: "View Rooms",
-        navigate_func: () => router.push("/rooms/create"),
+        navigate_func: () => router.push("/rooms"),
         icon: <GoSearch className="w-full h-full" />,
       },
       {
@@ -133,8 +133,8 @@ export default function Navbar() {
           <ToggleMode />
           <DropDownLinks {...auth_drop_down_props} />
           <DropDownLinks {...rooms_drop_down_links} />
-          <Profile class_names={{drop_down_link: "color-secondary color-secondary-content"}} />
           <Button type="success" size="md" text="Get Started" on_click={() => router.push("/rooms")} />
+          <Profile class_names={{drop_down_link: "color-secondary color-secondary-content"}} />
         </div>
 
         {/* Mobile menu button */}

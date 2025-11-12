@@ -68,6 +68,7 @@ export default function Signin() {
       set_v_errors({
         [check.error?.issues[0]?.path[0]]: check.error?.issues[0]?.message,
         [check.error?.issues[1]?.path[0]]: check.error?.issues[1]?.message,
+        [check.error?.issues[2]?.path[0]]: check.error?.issues[2]?.message,
       });
       return;
     }

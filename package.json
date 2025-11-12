@@ -2,6 +2,7 @@
   "name": "sketch-grid",
   "private": true,
   "scripts": {
+    "init:tsc": "npx tsc --init",
     "build": "turbo run build",
     "dev": "turbo run dev",
     "lint": "turbo run lint",

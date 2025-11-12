@@ -59,7 +59,7 @@ export default function Signin() {
     e.preventDefault();
 
     // check validation errors
-    const check = create_room_zod_schema.safeParse({ slug: form_data.room_name, ...form_data });
+    const check = create_room_zod_schema.safeParse({ slug: form_data.room_name, password: form_data.password });
 
     // catch validation errors
     if (!check.success) {
@@ -76,7 +76,7 @@ export default function Signin() {
     // call custom use-fetch hook
     set_call_api({
       url: URL,
-      options: { ...OPTIONS, body: JSON.stringify(form_data) },
+      options: { ...OPTIONS, body: JSON.stringify({ slug: form_data.room_name, password: form_data.password }) },
     });
   }
 
