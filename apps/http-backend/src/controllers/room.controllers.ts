@@ -1,10 +1,8 @@
 import type { Request, Response } from "express";
 import bcrypt from "bcrypt";
-import { get_user_record } from "@repo/db/auth";
-import { get_room_record, get_room_records } from "@repo/db/room";
 import { create_room_zod_schema } from "@repo/zod/index";
 import { catch_general_exception } from "@repo/utils/exceptions";
-import { prisma_client } from "@repo/db/connect";
+import { prisma_client, get_user_record, get_room_record, get_room_records } from "@repo/db/index";
 
 // create a new room
 async function create_room_controller(req: Request, res: Response) {

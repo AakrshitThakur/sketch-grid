@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "main": "dist/index.js",
   "exports": {
-    "./*": "./dist/*.js"
+    "./index": "./dist/index.js"
   },
   "scripts": {
     "init": "npx prisma init",

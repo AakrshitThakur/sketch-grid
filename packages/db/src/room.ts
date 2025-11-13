@@ -1,4 +1,4 @@
-import { prisma_client } from "@repo/db/connect";
+import { prisma_client } from "./index";
 import { catch_general_exception } from "@repo/utils/exceptions";
 import type { ReturnPrismaResponse } from "@repo/types/index";
 

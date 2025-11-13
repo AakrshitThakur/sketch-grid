@@ -8,7 +8,6 @@ interface UserConnsState {
 }
 
 interface JoinRoomParams {
-  user_id: string;
   room_id: string;
   ws: WebSocket;
 }
@@ -32,10 +31,7 @@ const user_conns: UserConns = {
     this.user_id++;
   },
   push_new_user(ws: WebSocket) {
-    this.user_conns_state[this.user_id] = {
-      rooms: [],
-      ws,
-    };
+    this.user_conns_state[this.user_id] = { rooms: [], ws };
   },
   join_room(params: JoinRoomParams) {
     if (!params.ws.id) return false;
@@ -62,12 +58,10 @@ const user_conns: UserConns = {
     if (!user_conn_details) return false;
 
     // check if user already joined the room
-    if (user_conn_details.rooms.includes(params.room_id)) return false;
+    if (!user_conn_details.rooms.includes(params.room_id)) return false;
 
     // leave specific room
-    user_conn_details.rooms = user_conn_details.rooms.filter(
-      (r) => r !== params.room_id
-    );
+    user_conn_details.rooms = user_conn_details.rooms.filter((r) => r !== params.room_id);
 
     return true;
   },
