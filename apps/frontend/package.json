@@ -2,6 +2,7 @@
   "name": "frontend",
   "version": "0.1.0",
   "private": true,
+  "description": "Sketch Grid is a collaborative whiteboard for creating visual elements that help teams work more efficiently",
   "scripts": {
     "dev": "next dev --webpack",
     "build": "next build --webpack",

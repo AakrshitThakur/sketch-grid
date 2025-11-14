@@ -44,10 +44,8 @@ const Hero: React.FC<HeroSectionProps> = ({
             </span>
           ))}
         </h1>
-
-        {/* Subheading */}
+        {/* Sub-heading */}
         <p className="text-base sm:text-lg md:text-xl max-w-3xl mx-auto leading-relaxed">{subheading}</p>
-
         {/* CTA Button */}
         <div className="flex flex-col sm:flex-row gap-3 justify-center items-center">
           <Button type="success" size="lg" text="Get Started" on_click={() => navigate("/rooms")} />

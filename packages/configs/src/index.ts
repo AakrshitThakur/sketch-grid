@@ -3,5 +3,7 @@ import path from "path";
 
 dotenv.config({ path: path.resolve(__dirname, "../.env") });
 
-export const JWT_SECRET = process.env.JWT_SECRET || "";
-export const ENVIRONMENT = process.env.ENVIRONMENT || "";
+const JWT_SECRET = process.env.JWT_SECRET || "";
+const ENVIRONMENT = process.env.ENVIRONMENT || "";
+
+export { JWT_SECRET, ENVIRONMENT };

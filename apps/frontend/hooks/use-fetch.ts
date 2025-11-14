@@ -1,4 +1,4 @@
-import { useState, useEffect, useContext, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import type { InputFetch, ResponseFetch } from "@/types/hooks.types";
 
 function useFetch<T>(props: InputFetch): ResponseFetch<T> {

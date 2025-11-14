@@ -1,7 +1,7 @@
 import type { Request, Response } from "express";
 import bcrypt from "bcrypt";
 import { create_room_zod_schema } from "@repo/zod/index";
-import { catch_general_exception } from "@repo/utils/exceptions";
+import { catch_general_exception } from "@repo/utils/index";
 import { prisma_client, get_user_record, get_room_record, get_room_records } from "@repo/db/index";
 
 // create a new room

@@ -3,9 +3,9 @@ import jsonwebtoken from "jsonwebtoken";
 import bcrypt from "bcrypt";
 import { prisma_client, get_user_record } from "@repo/db/index";
 import { signin_zod_schema, signup_zod_schema } from "@repo/zod/index";
-import { JWT_SECRET, ENVIRONMENT } from "@repo/configs/index";
+import { JWT_SECRET } from "@repo/configs/index";
 import { AUTH_COOKIE_OPTIONS } from "../configs/constants.js";
-import { catch_general_exception, catch_auth_exception } from "@repo/utils/exceptions";
+import { catch_general_exception, catch_auth_exception } from "@repo/utils/index";
 
 // sign-in
 async function signin_controller(req: Request, res: Response) {
@@ -53,7 +53,7 @@ async function signin_controller(req: Request, res: Response) {
   }
 }
 
-// sign-up
+// sign-up controller
 async function signup_controller(req: Request, res: Response) {
   try {
     const credentials = req.body;

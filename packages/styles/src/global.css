@@ -130,9 +130,21 @@ html {
   border: var(--border);
 }
 
+/* The gradient creates diagonal lines at 45deg by starting transparent (0px), remaining transparent until 25px to create spacing, then abruptly switching to white color at 25px with a hard color stop, staying white until 26px to form a 1px-thick line, and then repeating this 51px pattern infinitely to produce evenly-spaced diagonal grid lines across the element. */
 .grid-lines-light {
   background-image:
-    linear-gradient(rgba(255, 255, 255, 0.1) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.1) 1px, transparent 1px);
-  background-size: 30px 30px;
+    repeating-linear-gradient(
+      45deg,
+      transparent,
+      transparent 25px,
+      rgba(255, 255, 255, 0.15) 25px,
+      rgba(255, 255, 255, 0.15) 26px
+    ),
+    repeating-linear-gradient(
+      -45deg,
+      transparent,
+      transparent 25px,
+      rgba(255, 255, 255, 0.15) 25px,
+      rgba(255, 255, 255, 0.15) 26px
+    );
 }

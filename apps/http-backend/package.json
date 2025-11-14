@@ -11,7 +11,7 @@
   "keywords": [],
   "author": "Aakrshit Thakur",
   "license": "ISC",
-  "description": "",
+  "description": "Sketch Grid is a collaborative whiteboard for creating visual elements that help teams work more efficiently",
   "dependencies": {
     "@types/express": "^5.0.3",
     "dotenv": "^17.2.3",
@@ -20,8 +20,8 @@
   },
   "devDependencies": {
     "@repo/zod": "*",
-    "@repo/db": "*", 
-    "@repo/configs": "*", 
-    "@repo/utils": "*" 
+    "@repo/db": "*",
+    "@repo/configs": "*",
+    "@repo/utils": "*"
   }
 }

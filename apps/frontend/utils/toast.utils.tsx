@@ -3,7 +3,7 @@ import { FaCheckCircle, FaInfoCircle } from "react-icons/fa";
 import { MdError } from "react-icons/md";
 import { TOAST_UI } from "@/constants/toast.constants";
 
-// className property will be applied to Toastify__toast class
+// className property will be applied to .Toastify__toast class
 function success_notification(text: string) {
   toast(
     <div className="flex justify-center items-center gap-1">
@@ -25,8 +25,7 @@ function error_notification(text: string) {
       <p className="inline">{text}</p>
     </div>,
     {
-      className:
-        "apply-font color-error color-error-content border text-sm leading-tight",
+      className: `apply-font color-error color-error-content border text-sm leading-tight`,
       ariaLabel: "Error notification",
       ...TOAST_UI,
     }

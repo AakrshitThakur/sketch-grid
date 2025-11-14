@@ -1,11 +1,11 @@
 import express from "express";
+import { check_user_auth } from "../middlewares/auth.middlewares.js";
 import {
   signin_controller,
   signup_controller,
   signout_controller,
   is_user_authenticated_controller,
 } from "../controllers/auth.controllers.js";
-import { check_user_auth } from "../middlewares/auth.middlewares.js";
 
 const router = express.Router();
 

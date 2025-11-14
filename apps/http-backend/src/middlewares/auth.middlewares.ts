@@ -1,7 +1,7 @@
 import type { Request, Response, NextFunction } from "express";
 import jsonwebtoken from "jsonwebtoken";
 import { JWT_SECRET } from "@repo/configs/index";
-import { catch_general_exception } from "@repo/utils/exceptions";
+import { catch_general_exception } from "@repo/utils/index";
 
 interface JwtPayload {
   id: string;

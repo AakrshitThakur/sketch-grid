@@ -1,7 +1,7 @@
 import { CookieOptions } from "express";
 import { ENVIRONMENT } from "@repo/configs/index";
 
-export const AUTH_COOKIE_OPTIONS: CookieOptions = {
+const AUTH_COOKIE_OPTIONS: CookieOptions = {
   httpOnly: true,
   secure: ENVIRONMENT === "production",
   sameSite: ENVIRONMENT === "production" ? "none" : "lax",
@@ -9,7 +9,9 @@ export const AUTH_COOKIE_OPTIONS: CookieOptions = {
   maxAge: 24 * 3600000,
 };
 
-export const CORS_OPTIONS = {
+const CORS_OPTIONS = {
   origin: ["http://localhost:3000"],
   credentials: true,
 };
+
+export { AUTH_COOKIE_OPTIONS, CORS_OPTIONS };

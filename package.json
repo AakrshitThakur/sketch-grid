@@ -1,6 +1,7 @@
 {
   "name": "sketch-grid",
   "private": true,
+  "description": "Sketch Grid is a collaborative whiteboard for creating visual elements that help teams work more efficiently",
   "scripts": {
     "init:tsc": "npx tsc --init",
     "build": "turbo run build",

@@ -1,11 +1,11 @@
 import express from "express";
+import { check_user_auth } from "../middlewares/auth.middlewares.js";
 import {
   create_room_controller,
   get_room_by_id_controller,
   get_all_rooms_controller,
   delete_room_controller,
 } from "../controllers/room.controllers.js";
-import { check_user_auth } from "../middlewares/auth.middlewares.js";
 
 const router = express.Router();
 
