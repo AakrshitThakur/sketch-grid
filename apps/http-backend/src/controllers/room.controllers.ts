@@ -81,7 +81,7 @@ async function get_all_rooms_controller(req: Request, res: Response) {
 async function get_room_by_id_controller(req: Request, res: Response) {
   try {
     // get room-id from path-params
-    const room_id = parseInt(req.params.room_id as string);
+    const room_id = req.params.room_id as string;
 
     // get user-id
     const user_credentials = req.user_credentials;
@@ -122,7 +122,7 @@ async function get_room_by_id_controller(req: Request, res: Response) {
 // delete room by room-id
 async function delete_room_controller(req: Request, res: Response) {
   try {
-    const room_id = parseInt(req.params.room_id as string);
+    const room_id = req.params.room_id as string;
     if (!room_id) {
       res.status(400).json({ message: "Invalid Room ID provided" });
       return;

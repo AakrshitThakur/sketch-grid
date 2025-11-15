@@ -2,7 +2,7 @@ import WebSocket, { WebSocketServer } from "ws";
 import jsonwebtoken from "jsonwebtoken";
 import { user_conns } from "./states/user.states.js";
 import { JWT_SECRET } from "@repo/configs/index";
-import { join_room } from "./sockets/room.socket.js";
+import { join_room, leave_room } from "./sockets/room.socket.js";
 import { send_ws_response } from "./utils/websocket.utils.js";
 import { catch_general_exception } from "./utils/exceptions.utils.js";
 
@@ -50,30 +50,43 @@ wss.on("connection", async function connection(ws, request) {
     //   return;
     // }
 
+    console.info("New client successfully connected to web-socket server");
+
     // push user to global conn state
-    user_conns.push_new_user(ws);
-
     // store user-id for message event
-    ws.id = user_conns.user_id.toString();
-
-    // increment user-id
-    user_conns.increment_user_id();
+    ws.id = user_conns.push_new_user(ws);
 
     console.info(user_conns);
 
+    // on-message event
     ws.on("message", function incoming(message) {
-      // convert: raw-date -> string -> object
-      const parsed_message = JSON.parse(message.toString());
+      try {
+        // convert: raw-date -> string -> object
+        const parsed_message = JSON.parse(message.toString());
 
-      if (parsed_message.type === "join-room") {
-        join_room(parsed_message.payload.room_id, ws);
-        console.info(user_conns.user_conns_state);
+        if (parsed_message.type === "join-room") {
+          join_room(parsed_message.payload.room_id, ws);
+          console.info(user_conns.user_conns_state);
+          return;
+        } else if (parsed_message.type === "leave-room") {
+          leave_room(parsed_message.payload.room_id, ws);
+          console.info(user_conns.user_conns_state);
+          return;
+        }
+
+        // invalid incoming message type
+        send_ws_response<null>(
+          { status: "error", message: "Please provide a valid incoming message type", payload: null },
+          ws
+        );
+      } catch (error) {
+        catch_general_exception(error, ws);
         return;
       }
-
-      // invalid incoming message type
-      send_ws_response<null>({ status: "error", message: "Provide a valid incoming message type", payload: null }, ws);
     });
+
+    // on-close event
+    ws.on("close", () => console.info(`The client with ID (${ws.id}) has disconnected from the web-socket server.`));
   } catch (error) {
     catch_general_exception(error, ws);
     return;

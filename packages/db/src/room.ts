@@ -3,7 +3,7 @@ import { catch_general_exception } from "@repo/utils/exceptions";
 import type { ReturnPrismaResponse } from "@repo/types/index";
 
 interface GetRoomRecords {
-  id?: number;
+  id?: string;
   slug?: string;
   admin_id?: string;
 }

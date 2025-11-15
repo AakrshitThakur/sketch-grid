@@ -23,7 +23,7 @@ model User {
 }
 
 model Room {
-  id         Int        @id @default(autoincrement())
+  id         String     @id @default(uuid())
   slug       String     @unique
   password   String
   createdAt  DateTime   @default(now())
@@ -41,7 +41,7 @@ model Geometry {
   id       Int    @id @default(autoincrement())
   type     Type   @default(BOX)
   data     Json
-  room_id  Int
+  room_id  String
   room     Room   @relation(fields: [room_id], references: [id])
   admin_id String
   admin    User   @relation(fields: [admin_id], references: [id])

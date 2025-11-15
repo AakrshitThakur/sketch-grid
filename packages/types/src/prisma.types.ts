@@ -6,7 +6,7 @@ interface ReturnPrismaResponse<T> {
 }
 
 interface RoomTable {
-  id: number;
+  id: string;
   slug: string;
   createdAt: Date;
   admin_id: string;

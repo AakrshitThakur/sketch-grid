@@ -1,1 +1,1 @@
-{"root":["./src/index.ts","./src/sockets/room.socket.ts","./src/states/user.states.ts","./src/types/index.d.ts","./src/types/websocket.d.ts"],"version":"5.9.2"}
+{"root":["./src/index.ts","./src/sockets/room.socket.ts","./src/states/user.states.ts","./src/types/index.d.ts","./src/types/websocket.d.ts","./src/utils/exceptions.utils.ts","./src/utils/websocket.utils.ts"],"version":"5.9.2"}
