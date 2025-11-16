@@ -3,6 +3,7 @@ import jsonwebtoken from "jsonwebtoken";
 import { user_conns } from "./states/user.states.js";
 import { JWT_SECRET } from "@repo/configs/index";
 import { join_room, leave_room } from "./sockets/room.socket.js";
+import { draw } from "./sockets/draw.socket.js";
 import { send_ws_response } from "./utils/websocket.utils.js";
 import { catch_general_exception } from "./utils/exceptions.utils.js";
 
@@ -11,38 +12,62 @@ interface DecodedPayload {
 }
 
 // verifing provided jwt
-async function verify_jwt(jwt: string): Promise<string | null> {
+async function verify_jwt(jwt: string): Promise<string> {
   return new Promise((resolve, reject) => {
     jsonwebtoken.verify(jwt, JWT_SECRET, (error: any, decoded_payload: unknown) => {
       // jwt is invalid
       if (error) {
-        console.error(`Token verification failed: ${error as string}`);
-        reject(null);
+        reject(`JWT verification failed: ${error as string}`);
         return;
       } else if (decoded_payload && typeof decoded_payload === "object") {
-        resolve((decoded_payload as DecodedPayload).id || null);
+        resolve((decoded_payload as DecodedPayload).id || "");
         return;
       }
-      reject(null);
+      reject("JWT verification failed");
     });
   });
 }
 
-// Token verification failed
-const wss = new WebSocketServer({ port: 5000 });
+const wss = new WebSocketServer({ port: 5001 });
 
-wss.on("connection", async function connection(ws, request) {
+wss.on("connection", async function connection(ws, req) {
   try {
     // get web-socket url
-    const url = request.url;
-    if (!url) return;
+    const url = req.url;
+    if (!url) {
+      send_ws_response({ status: "error", message: "Invalid web-socket url", payload: null }, ws);
+      ws.close();
+      return;
+    }
 
     // get jwt from search params
     const search_params = new URLSearchParams(url.split("?")[1]);
-    const jwt_token = search_params.get("jwt");
+    const jwt = search_params.get("jwt");
 
-    // // check jwt
-    // const user_id = await verify_jwt(jwt_token || "");
+    // get user-id from parsed jwt
+    let user_id = "";
+
+    // check jwt
+    verify_jwt(jwt || "")
+      .then((s: string) => {
+        user_id = s;
+      })
+      .catch((e: string) => {
+        console.error(e);
+        send_ws_response({ status: "error", message: e, payload: null }, ws);
+        ws.close();
+        return;
+      });
+
+    // cookie logic if needed in future
+    // const cookies = req.headers.cookie;
+    // if (!cookies) {
+    //   send_ws_response({ status: "error", message: "JWT token not found", payload: null }, ws);
+    //   ws.close();
+    //   return;
+    // }
+    // // Object.fromEntries() method is used to transform a list of key-value pairs (like an array or map) into an object
+    // const cookies_obj = Object.fromEntries(cookies.split("; ").map((c) => c.split("=")));
 
     // // jwt verification failed - close connection
     // if (!user_id) {
@@ -59,17 +84,21 @@ wss.on("connection", async function connection(ws, request) {
     console.info(user_conns);
 
     // on-message event
-    ws.on("message", function incoming(message) {
+    ws.on("message", async function incoming(message) {
       try {
         // convert: raw-date -> string -> object
         const parsed_message = JSON.parse(message.toString());
 
         if (parsed_message.type === "join-room") {
-          join_room(parsed_message.payload.room_id, ws);
+          await join_room(parsed_message.payload.room_id, ws);
           console.info(user_conns.user_conns_state);
           return;
         } else if (parsed_message.type === "leave-room") {
-          leave_room(parsed_message.payload.room_id, ws);
+          await leave_room(parsed_message.payload.room_id, ws);
+          console.info(user_conns.user_conns_state);
+          return;
+        } else if (parsed_message.type === "draw") {
+          // await draw(parsed_message.payload.room_id, ws);
           console.info(user_conns.user_conns_state);
           return;
         }

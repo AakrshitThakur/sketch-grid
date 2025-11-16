@@ -22,7 +22,7 @@ interface UserConns {
   user_conns_state: UserConnsState;
   push_new_user: (ws: WebSocket) => string;
   join_room: (params: JoinRoomParams) => Promise<boolean>;
-  leave_room: (params: LeaveRoomParams) => boolean;
+  leave_room: (params: LeaveRoomParams) => Promise<boolean>;
 }
 
 // global variable to manage ws:conn user state
@@ -63,22 +63,40 @@ const user_conns: UserConns = {
     // connect user to specific room
     user_conn_details.rooms.push(params.room_id);
 
+    // success
+    send_ws_response(
+      { status: "success", message: `User has successfully joined the room (ID: ${params.room_id})`, payload: null },
+      params.ws
+    );
     return true;
   },
-  leave_room(params: LeaveRoomParams) {
-    if (!params.ws.id) return false;
+  async leave_room(params: LeaveRoomParams) {
+    if (!params.ws.id) {
+      send_ws_response<null>({ status: "error", message: "User not found", payload: null }, params.ws);
+      return false;
+    }
 
     // get user ws:conn details
     const user_conn_details = this.user_conns_state[params.ws.id];
-
-    if (!user_conn_details) return false;
+    if (!user_conn_details) {
+      send_ws_response<null>({ status: "error", message: "User not found", payload: null }, params.ws);
+      return false;
+    }
 
     // check if user already joined the room
-    if (!user_conn_details.rooms.includes(params.room_id)) return false;
+    if (!user_conn_details.rooms.includes(params.room_id)) {
+      send_ws_response({ status: "error", message: `Room with ID ${params.room_id} not found`, payload: null }, params.ws);
+      return false;
+    }
 
     // leave specific room
     user_conn_details.rooms = user_conn_details.rooms.filter((r) => r !== params.room_id);
 
+    // success
+    send_ws_response<null>(
+      { status: "error", message: `User has successfully left the room (ID: ${params.room_id})`, payload: null },
+      params.ws
+    );
     return true;
   },
 };

@@ -1,12 +1,15 @@
-// interface WebSocketMessage {
-//   type: "join-room";
-//   payload: {};
-// }
-
 interface WebSocketResponse<T> {
   status: "success" | "error";
   message: string;
   payload: T;
 }
 
-export type { WebSocketResponse };
+type Point = { x: number; y: number };
+
+type GeometryData = {
+  type: "BOX" | "CIRCLE";
+  points?: Point[];
+  radius?: number;
+};
+
+export type { WebSocketResponse, GeometryData };

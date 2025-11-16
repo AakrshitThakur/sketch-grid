@@ -14,47 +14,37 @@ function check_user_auth(req: Request, res: Response, next: NextFunction) {
     const cookies = req.headers.cookie;
 
     if (!cookies) {
-      res
-        .status(401)
-        .json({ message: "Please sign in or create an account to continue" });
+      res.status(401).json({ message: "Please sign in or create an account to continue" });
       return;
     }
 
     // Object.fromEntries() method is used to transform a list of key-value pairs (like an array or map) into an object
-    const cookies_obj = Object.fromEntries(
-      cookies.split("; ").map((c) => c.split("="))
-    );
+    const cookies_obj = Object.fromEntries(cookies.split("; ").map((c) => c.split("=")));
 
     // get jwt
     const jwt = cookies_obj.jwt;
     if (!jwt) {
-      res
-        .status(401)
-        .json({ message: "Please sign in or create an account to continue" });
+      res.status(401).json({ message: "Please sign in or create an account to continue" });
       return;
     }
 
     // verify jwt
-    jsonwebtoken.verify(
-      jwt,
-      JWT_SECRET,
-      (error: any, decoded_payload: unknown) => {
-        // token is invalid
-        if (error) {
-          res.status(400).json({ message: "Token verification failed", error });
-          return;
-        }
-        // token is valid
-        if (decoded_payload && typeof decoded_payload === "object") {
-          req.user_credentials = decoded_payload as JwtPayload;
-          next();
-          return;
-        }
-        // error
-        res.status(401).json({ message: "Invalid token payload" });
+    jsonwebtoken.verify(jwt, JWT_SECRET, (error: any, decoded_payload: unknown) => {
+      // token is invalid
+      if (error) {
+        res.status(400).json({ message: "Token verification failed", error });
         return;
       }
-    );
+      // token is valid
+      if (decoded_payload && typeof decoded_payload === "object") {
+        req.user_credentials = decoded_payload as JwtPayload;
+        next();
+        return;
+      }
+      // error
+      res.status(401).json({ message: "Invalid token payload" });
+      return;
+    });
   } catch (error) {
     const { status_code, message } = catch_general_exception(error as Error);
     res.status(status_code).json({ message });
