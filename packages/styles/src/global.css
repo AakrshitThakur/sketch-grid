@@ -100,6 +100,9 @@ html {
 .color-error {
   background-color: var(--color-error);
 }
+.color-warning {
+  background-color: var(--color-warning);
+}
 
 .color-base-content {
   color: var(--color-base-content);
@@ -124,6 +127,9 @@ html {
 }
 .color-error-content {
   color: var(--color-error-content);
+}
+.color-warning-content {
+  color: var(--color-warning-content);
 }
 
 .solid-border {

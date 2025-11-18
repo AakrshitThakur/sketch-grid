@@ -9,8 +9,9 @@ const AUTH_COOKIE_OPTIONS: CookieOptions = {
   maxAge: 24 * 3600000,
 };
 
+// "http://localhost:3000",
 const CORS_OPTIONS = {
-  origin: ["http://localhost:3000"],
+  origin: ["*", "http://localhost:3000"],
   credentials: true,
 };
 

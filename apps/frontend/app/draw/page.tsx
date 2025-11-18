@@ -1,8 +1,15 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
 import { SiGoogleclassroom } from "react-icons/si";
+import { FaCircle } from "react-icons/fa";
+import { RiCheckboxBlankFill } from "react-icons/ri";
+import { HiOutlineArrowRight } from "react-icons/hi2";
+import { IoText } from "react-icons/io5";
+import { BiSolidPencil } from "react-icons/bi";
+import { BsCursorFill, BsEraserFill } from "react-icons/bs";
 import CheckUserAuth from "@/wrappers/check-user-auth";
-import BtnsCanvas from "../canvas/btns-canvas";
+import BtnDrawCanvas from "../canvas/btn-draw-canvas";
+import mouse_move_draw_canvas from "../canvas/mouse-move-draw-canvas";
 import { Card, Heading, Loading } from "@repo/ui/index";
 import { success_notification, error_notification } from "@/utils/toast.utils";
 
@@ -17,13 +24,23 @@ import { success_notification, error_notification } from "@/utils/toast.utils";
 //           ↑
 //       x = 10 coordinate
 
-function DrawCanvas() {
+const BTNS_CANVAS = [
+  { id: "cursor", icon: <BsCursorFill className="w-full h-full" /> },
+  { id: "circle", icon: <FaCircle className="w-full h-full" /> },
+  { id: "box", icon: <RiCheckboxBlankFill className="w-full h-full" /> },
+  { id: "arrow", icon: <HiOutlineArrowRight className="w-full h-full" /> },
+  { id: "text", icon: <IoText className="w-full h-full" /> },
+  { id: "pencil", icon: <BiSolidPencil className="w-full h-full" /> },
+  { id: "eraser", icon: <BsEraserFill className="w-full h-full" /> },
+];
+
+function DrawCanvas({ selected_btn_id }: { selected_btn_id: string | null }) {
   const canvas_ref = useRef<HTMLCanvasElement | null>(null);
   const [start_point, set_start_point] = useState<{ x: number; y: number } | null>(null);
   const [is_drawing, set_is_drawing] = useState(false);
   const [canvas_styles, set_canvas_styles] = useState({
     fill_style: "oklch(50% 0.15 30)",
-    stroke_style: "white",
+    stroke_style: "oklch(50% 0.15 30)",
   });
 
   useEffect(() => {
@@ -55,8 +72,6 @@ function DrawCanvas() {
     const current_x = Math.floor((e.clientX - canvas_pos.left) * scale_x) + 0.5;
     const current_y = Math.floor((e.clientY - canvas_pos.top) * scale_y) + 0.5;
 
-    console.info(current_x, current_y);
-
     set_start_point({ x: current_x, y: current_y });
     set_is_drawing(true);
   }
@@ -84,12 +99,15 @@ function DrawCanvas() {
     const end_x = Math.floor((e.clientX - canvas_pos.left) * scale_x) + 0.5;
     const end_y = Math.floor((e.clientY - canvas_pos.top) * scale_y) + 0.5;
 
-    const width = end_x - start_point.x;
-    const height = end_y - start_point.y;
+    console.info(selected_btn_id);
 
-    ctx.strokeStyle = canvas_styles.stroke_style;
     ctx.lineWidth = 0.5;
-    ctx.strokeRect(start_point.x, start_point.y, width, height);
+    ctx.strokeStyle = canvas_styles.stroke_style;
+    mouse_move_draw_canvas({ selected_btn_id, start_point, end_point: { x: end_x, y: end_y }, ctx });
+
+    // const width = end_x - start_point.x;
+    // const height = end_y - start_point.y;
+    // ctx.strokeRect(start_point.x, start_point.y, width, height);
   }
 
   function handle_mouse_up(e: React.MouseEvent<HTMLCanvasElement>) {
@@ -122,18 +140,37 @@ function DrawCanvas() {
 }
 
 export default function Draw() {
+  const [selected_btn_id, set_selected_btn_id] = useState<string | null>(null);
   return (
     <div
       id="rooms"
       className="color-base-100 color-base-content shrink-0 min-h-[95vh] flex flex-col justify-center items-center gap-2 sm:gap-3 bg-linear-to-b to-blue-500 p-3 sm:p-5 md:p-7"
     >
       <CheckUserAuth>
-        <div className="flex justify-center items-center gap-2">
-          <Heading size="h3" text="Whiteboard" />
-          <SiGoogleclassroom className="inline-block w-9 h-auto" />
+        <div className="color-info color-info-content shrink-0 flex flex-col justify-center items-center gap-2 sm:gap-3 w-full h-full p-3 sm:p-4 md:p-5 rounded-xl">
+          <div className="flex justify-center items-center gap-2">
+            <Heading size="h3" text="Whiteboard" class_name="underline" />
+            <SiGoogleclassroom className="inline-block w-9 h-auto" />
+          </div>
+          {/* <BtnsDrawCanvas /> */}
+          <div
+            id="btns-draw-canvas"
+            className="color-accent color-accent-content w-full h-auto flex justify-center items-center gap-5 sm:gap-7 md:gap-9 lg:gap-11 shrink-0 rounded-full overflow-hidden p-1 sm:p-1.5 md:p-2"
+          >
+            {BTNS_CANVAS.map((btn) => (
+              <BtnDrawCanvas
+                id={btn.id}
+                selected_btn_id={selected_btn_id}
+                icon={btn.icon}
+                on_click={() => set_selected_btn_id(btn.id)}
+              />
+            ))}
+          </div>
+          <DrawCanvas selected_btn_id={selected_btn_id} />
+          <div className="shrink-0 color-warning color-warning-content min-h-[25vh] w-full flex flex-col justify-start items-center gap-2 rounded-xl p-1 sm:p-2 md:p-3">
+            <Heading size="h3" text="Live logs" class_name="underline" />
+          </div>
         </div>
-        <BtnsCanvas />
-        <DrawCanvas />
       </CheckUserAuth>
     </div>
   );
