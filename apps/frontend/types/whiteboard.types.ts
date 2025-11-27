@@ -30,12 +30,23 @@ interface ArrowShape extends BaseShape {
   };
 }
 
-interface PencilShape extends BaseShape{
-     type: "pencil", 
-     points: Point[]
+interface DiamondShape extends BaseShape {
+  type: "diamond";
+  points: {
+    start: Point;
+    end: Point;
+  };
 }
 
-type Shape = CircleShape | BoxShape | ArrowShape;
+interface PencilShape extends BaseShape {
+  type: "pencil";
+  points: {
+    from: Point;
+    to: Point;
+  }[];
+}
+
+type Shape = CircleShape | BoxShape | ArrowShape | PencilShape | DiamondShape;
 type Shapes = Shape[];
 
 export type { BaseShape, CircleShape, BoxShape, ArrowShape, Shape, Shapes };

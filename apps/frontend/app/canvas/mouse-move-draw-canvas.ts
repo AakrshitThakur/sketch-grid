@@ -6,6 +6,7 @@ interface Props {
   start_point: { x: number; y: number };
   end_point: { x: number; y: number };
   handle_set_curr_shape: (shape: Shape) => void;
+  handle_set_start_point: (x: number, y: number) => void;
   ctx: CanvasRenderingContext2D;
 }
 
@@ -78,6 +79,56 @@ export default function mouse_move_draw_canvas(props: Props) {
       props.handle_set_curr_shape({
         id: nanoid(),
         type: "arrow",
+        points: {
+          start: { x: props.start_point.x, y: props.start_point.y },
+          end: { x: props.end_point.x, y: props.end_point.y },
+        },
+      });
+      break;
+    }
+    case "pencil": {
+      props.ctx.beginPath();
+      // draw a tiny line
+      props.ctx.moveTo(props.start_point.x, props.start_point.y);
+      props.ctx.lineTo(props.end_point.x, props.end_point.y);
+      props.ctx.stroke();
+
+      // save points to global shapes
+      props.handle_set_curr_shape({
+        id: nanoid(),
+        type: "pencil",
+        points: [
+          {
+            from: { x: props.start_point.x, y: props.start_point.y },
+            to: { x: props.end_point.x, y: props.end_point.y },
+          },
+        ],
+      });
+      props.handle_set_start_point(props.end_point.x, props.end_point.y);
+      break;
+    }
+    case "diamond": {
+      // find center of straight line forming from starting and ending coordinates
+      const center_x = (props.start_point.x + props.end_point.x) / 2;
+      const center_y = (props.start_point.y + props.end_point.y) / 2;
+
+      // calc width & height
+      const width = Math.abs(props.end_point.x - props.start_point.x);
+      const height = Math.abs(props.end_point.y - props.start_point.y);
+
+      // drawing all the four vertices from the center
+      props.ctx.beginPath();
+      props.ctx.moveTo(center_x, center_y - height);
+      props.ctx.lineTo(center_x + width, center_y);
+      props.ctx.lineTo(center_x, center_y + height);
+      props.ctx.lineTo(center_x - width, center_y);
+      props.ctx.closePath();
+      props.ctx.stroke();
+
+      // set current shape being drawn
+      props.handle_set_curr_shape({
+        id: nanoid(),
+        type: "diamond",
         points: {
           start: { x: props.start_point.x, y: props.start_point.y },
           end: { x: props.end_point.x, y: props.end_point.y },

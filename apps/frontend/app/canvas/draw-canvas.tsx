@@ -20,7 +20,29 @@ export default function DrawCanvas({ selected_btn_id }: { selected_btn_id: strin
   });
 
   function handle_set_curr_shape(shape: Shape) {
+    // // pencil logic
+    // if (shape.type === "pencil" && !curr_shape) {
+    //   // pushing initial pencil coordinates if newly selected-btn is "pencil"
+    //   set_curr_shape(shape);
+    //   return;
+    // } else if (shape.type === "pencil" && curr_shape) {
+    //   // pushing pencil coordinates if already selected-btn is "pencil"
+    //   set_curr_shape((curr) => {
+    //     return {
+    //       id: shape.id,
+    //       type: shape.type,
+    //       // @ts-ignore
+    //       points: [...curr.points, shape.points[0]],
+    //     };
+    //   });
+    //   return;
+    // }
+    // push coordinates for types other than "pencil"
     set_curr_shape(shape);
+  }
+
+  function handle_set_start_point(x: number, y: number) {
+    set_start_point({ x, y });
   }
 
   useEffect(() => {
@@ -69,9 +91,11 @@ export default function DrawCanvas({ selected_btn_id }: { selected_btn_id: strin
     if (!ctx) return;
 
     // clear canvas screen to avoid overlapping
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    // re-drawing all the canvas-shapes
-    draw_all_shapes(shapes, ctx);
+    if (selected_btn_id !== "pencil") {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      // re-drawing all the canvas-shapes
+      draw_all_shapes(shapes, ctx);
+    }
 
     // When clicking on canvas element, the mouse event (e) gives coordinates relative to the entire browser viewport (the visible window area). However, the canvas needs coordinates relative to its own top-left corner (0, 0).
     // The Element.getBoundingClientRect() method returns a position relative to the viewport.
@@ -85,7 +109,14 @@ export default function DrawCanvas({ selected_btn_id }: { selected_btn_id: strin
 
     ctx.lineWidth = 0.75;
     ctx.strokeStyle = canvas_styles.stroke_style;
-    mouse_move_draw_canvas({ selected_btn_id, start_point, end_point: { x: end_x, y: end_y }, handle_set_curr_shape, ctx });
+    mouse_move_draw_canvas({
+      selected_btn_id,
+      start_point,
+      end_point: { x: end_x, y: end_y },
+      handle_set_curr_shape,
+      handle_set_start_point,
+      ctx,
+    });
   }
 
   function handle_mouse_up(e: React.MouseEvent<HTMLCanvasElement>) {
@@ -103,6 +134,7 @@ export default function DrawCanvas({ selected_btn_id }: { selected_btn_id: strin
     console.info(shapes);
 
     set_start_point(null);
+    set_curr_shape(null);
     set_is_drawing(false);
   }
 
@@ -113,7 +145,7 @@ export default function DrawCanvas({ selected_btn_id }: { selected_btn_id: strin
     // @example - The shape drew at (20, 20) on the internal grid **appears at (40, 40)** on screen because everything is **2x bigger**!
     <canvas
       ref={canvas_ref}
-      className="shrink-0 color-neutral color-neutral-content w-full h-full rounded-xl"
+      className="color-neutral color-neutral-content shrink-0 w-full rounded-xl"
       onMouseDown={handle_mouse_down}
       onMouseMove={handle_mouse_move}
       onMouseUp={handle_mouse_up}

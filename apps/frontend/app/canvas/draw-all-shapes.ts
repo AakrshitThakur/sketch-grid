@@ -46,6 +46,36 @@ export default function draw_all_shapes(shapes: Shapes, ctx: CanvasRenderingCont
           shape.points.end.y - head_length * Math.sin(angle + Math.PI / 6)
         );
         ctx.stroke();
+        break;
+      }
+      case "pencil": {
+        // @ts-ignore
+        shape.points.forEach((p) => {
+          ctx.beginPath();
+          ctx.moveTo(p.from.x, p.from.y);
+          ctx.lineTo(p.to.x, p.to.y);
+          ctx.stroke();
+        });
+        break;
+      }
+      case "diamond": {
+        // find center of straight line forming from starting and ending coordinates
+        const center_x = (shape.points.start.x + shape.points.end.x) / 2;
+        const center_y = (shape.points.start.y + shape.points.end.y) / 2;
+
+        // calc width & height
+        const width = Math.abs(shape.points.end.x - shape.points.start.x);
+        const height = Math.abs(shape.points.end.y - shape.points.start.y);
+
+        // drawing all the four vertices from the center
+        ctx.beginPath();
+        ctx.moveTo(center_x, center_y - height);
+        ctx.lineTo(center_x + width, center_y);
+        ctx.lineTo(center_x, center_y + height);
+        ctx.lineTo(center_x - width, center_y);
+        ctx.closePath();
+        ctx.stroke();
+        break;
       }
     }
   });

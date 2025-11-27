@@ -36,7 +36,7 @@ const BTNS_CANVAS = [
   { id: "box", icon: <RiCheckboxBlankFill className="w-full h-full" /> },
   { id: "arrow", icon: <FaArrowRightLong className="w-full h-full" /> },
   { id: "text", icon: <BsChatTextFill className="w-full h-full" /> },
-  { id: "pencil", icon: <BiSolidPencil className="w-full h-full" /> },
+  { id: "diamond", icon: <BiSolidPencil className="w-full h-full" /> },
   { id: "eraser", icon: <BsEraserFill className="w-full h-full" /> },
 ];
 
