@@ -48,6 +48,11 @@ export default function draw_all_shapes(shapes: Shapes, ctx: CanvasRenderingCont
         ctx.stroke();
         break;
       }
+      case "text": {
+        ctx.font = `30px Cursive`;
+        ctx.strokeText(shape.text, shape.points.start.x, shape.points.start.y);
+        break;
+      }
       case "pencil": {
         // @ts-ignore
         shape.points.forEach((p) => {

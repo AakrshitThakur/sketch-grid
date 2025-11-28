@@ -1,16 +1,25 @@
 import { nanoid } from "nanoid";
 import type { Shape, Shapes } from "@/types/whiteboard.types";
+import { space } from "postcss/lib/list";
+import { GiPointySword } from "react-icons/gi";
 
 interface Props {
   selected_btn_id: string | null;
   start_point: { x: number; y: number };
   end_point: { x: number; y: number };
+  all_shapes: {
+    shapes: Shapes;
+    push_new_curr_shape: (curr_shape: Shape) => void;
+    delete_shape_by_id: (id: string) => void;
+  };
   handle_set_curr_shape: (shape: Shape) => void;
   handle_set_start_point: (x: number, y: number) => void;
   ctx: CanvasRenderingContext2D;
 }
 
 export default function mouse_move_draw_canvas(props: Props) {
+  const start = { x: props.start_point.x, y: props.start_point.y };
+  const end = { x: props.end_point.x, y: props.end_point.y };
   switch (props.selected_btn_id) {
     case "circle": {
       const radius = Math.sqrt(
@@ -135,6 +144,52 @@ export default function mouse_move_draw_canvas(props: Props) {
         },
       });
       break;
+    }
+    case "eraser": {
+      for (let shape of props.all_shapes.shapes) {
+        switch (shape.type) {
+          case "box": {
+            if (
+              end.x >= shape.point.x &&
+              end.x <= shape.point.x + shape.width &&
+              end.y >= shape.point.y &&
+              end.y <= shape.point.y + shape.height
+            ) {
+              props.all_shapes.delete_shape_by_id(shape.id);
+            }
+            break;
+          }
+          case "circle": {
+            if (Math.pow(shape.center.x - end.x, 2) + Math.pow(shape.center.y - end.y, 2) <= Math.pow(shape.radius, 2)) {
+              props.all_shapes.delete_shape_by_id(shape.id);
+            }
+            break;
+          }
+          case "arrow": {
+            const point = { x: props.end_point.x, y: props.end_point.y };
+
+            // Compute 2D cross product of vectors AP and AB.
+            // if the result is 0 (or very close), then point P lies on the infinite line through A → B.
+            // AP = (px - ax, py - ay) & AB = (bx - ax, by - ay)
+            // cross = (AP.x * AB.y) - (AP.y * AB.x)
+            const ux_vy = (point.x - start.x) * (end.y - start.y);
+            const vx_uy = (point.y - start.y) * (end.x - start.x);
+            const cross_product = ux_vy - vx_uy;
+
+            // check if collinear (allowing small floating error)
+            if (Math.abs(cross_product) > 1e-10) return;
+
+            const within_x_min = point.x >= Math.min(start.x, end.x);
+            const within_x_max = point.x <= Math.max(start.x, end.x);
+            const within_y_min = point.y >= Math.min(start.y, end.y);
+            const within_y_max = point.y <= Math.max(start.y, end.y);
+
+            if (within_x_min && within_x_max && within_y_min && within_y_max) {
+              props.all_shapes.delete_shape_by_id(shape.id);
+            }
+          }
+        }
+      }
     }
   }
 }
