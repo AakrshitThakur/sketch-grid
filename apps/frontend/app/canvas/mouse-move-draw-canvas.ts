@@ -1,7 +1,5 @@
 import { nanoid } from "nanoid";
 import type { Shape, Shapes } from "@/types/whiteboard.types";
-import { space } from "postcss/lib/list";
-import { GiPointySword } from "react-icons/gi";
 
 interface Props {
   selected_btn_id: string | null;
@@ -149,11 +147,12 @@ export default function mouse_move_draw_canvas(props: Props) {
       for (let shape of props.all_shapes.shapes) {
         switch (shape.type) {
           case "box": {
+            const box_start = { x: shape.point.x, y: shape.point.y };
             if (
-              end.x >= shape.point.x &&
-              end.x <= shape.point.x + shape.width &&
-              end.y >= shape.point.y &&
-              end.y <= shape.point.y + shape.height
+              end.x >= Math.min(box_start.x, box_start.x + shape.width) &&
+              end.x <= Math.max(box_start.x, box_start.x + shape.width) &&
+              end.y >= Math.min(box_start.y, box_start.y + shape.height) &&
+              end.y <= Math.max(box_start.y, box_start.y + shape.height)
             ) {
               props.all_shapes.delete_shape_by_id(shape.id);
             }
@@ -166,27 +165,90 @@ export default function mouse_move_draw_canvas(props: Props) {
             break;
           }
           case "arrow": {
-            const point = { x: props.end_point.x, y: props.end_point.y };
+            // const point = { x: end.x, y: end.y };
+            // const A = { x: shape.points.start.x, y: shape.points.start.y };
+            // const B = { x: shape.points.end.x, y: shape.points.end.y };
 
-            // Compute 2D cross product of vectors AP and AB.
-            // if the result is 0 (or very close), then point P lies on the infinite line through A → B.
-            // AP = (px - ax, py - ay) & AB = (bx - ax, by - ay)
-            // cross = (AP.x * AB.y) - (AP.y * AB.x)
-            const ux_vy = (point.x - start.x) * (end.y - start.y);
-            const vx_uy = (point.y - start.y) * (end.x - start.x);
-            const cross_product = ux_vy - vx_uy;
+            // // Compute 2D cross product of vectors AP and AB.
+            // // if the result is 0 (or very close), then point P lies on the infinite line through A → B.
+            // // AP = (px - ax, py - ay) & AB = (bx - ax, by - ay)
+            // // cross = (AP.x * AB.y) - (AP.y * AB.x)
+            // const ux_vy = (point.x - A.x) * (B.y - A.y);
+            // const vx_uy = (point.y - A.y) * (B.x - A.x);
+            // const cross_product = ux_vy - vx_uy;
 
-            // check if collinear (allowing small floating error)
-            if (Math.abs(cross_product) > 1e-10) return;
+            // // check if collinear (allowing small floating error)
+            // // something wrong with this, will debug it later
+            // if (Math.abs(cross_product) > 500) return;
 
-            const within_x_min = point.x >= Math.min(start.x, end.x);
-            const within_x_max = point.x <= Math.max(start.x, end.x);
-            const within_y_min = point.y >= Math.min(start.y, end.y);
-            const within_y_max = point.y <= Math.max(start.y, end.y);
+            // const within_x_min = point.x >= Math.min(A.x, B.x);
+            // const within_x_max = point.x <= Math.max(A.x, B.x);
+            // const within_y_min = point.y >= Math.min(A.y, B.y);
+            // const within_y_max = point.y <= Math.max(A.y, B.y);
+            // if (within_x_min && within_x_max && within_y_min && within_y_max) {
+            //   props.all_shapes.delete_shape_by_id(shape.id);
+            // }
+            // break;
 
-            if (within_x_min && within_x_max && within_y_min && within_y_max) {
+            const line_start = { x: shape.points.start.x, y: shape.points.start.y };
+            const line_end = { x: shape.points.end.x, y: shape.points.end.y };
+
+            const line_segment = new Path2D();
+            line_segment.moveTo(line_start.x, line_start.y);
+            line_segment.lineTo(line_end.x, line_end.y);
+            line_segment.closePath();
+
+            if (props.ctx.isPointInStroke(line_segment, end.x, end.y)) {
               props.all_shapes.delete_shape_by_id(shape.id);
             }
+            break;
+          }
+          case "text": {
+            const start_text = { x: shape.points.start.x, y: shape.points.start.y };
+            const end_text = { x: shape.points.end.x, y: shape.points.end.y };
+
+            console.info("Hello", start_text.x, start_text.y, start_text.x + 30, start_text.y + 30);
+            console.info("check", end);
+
+            // const within_x = end.x >= start_text.x && end.x <= end_text.x;
+            // const within_y = end.y >= start_text.y && end.y <= end_text.y;
+
+            // if (within_x && within_y) {
+            //   props.all_shapes.delete_shape_by_id(shape.id);
+            // }
+            // break;
+
+            const box = new Path2D();
+            box.rect(start_text.x, start_text.y, end_text.x - start_text.x, end_text.y - start_text.y);
+            box.closePath();
+
+            if (props.ctx.isPointInPath(box, end.x, end.y)) {
+              props.all_shapes.delete_shape_by_id(shape.id);
+            }
+            break;
+          }
+          case "diamond": {
+            const diamond_start = { x: shape.points.start.x, y: shape.points.start.y };
+            const diamond_end = { x: shape.points.end.x, y: shape.points.end.y };
+
+            const center_x = (diamond_start.x + diamond_end.x) / 2;
+            const center_y = (diamond_start.y + diamond_end.y) / 2;
+
+            const height = Math.abs(diamond_end.y - diamond_start.y);
+            const width = Math.abs(diamond_end.x - diamond_start.x);
+
+            const diamond = new Path2D();
+            diamond.moveTo(diamond_start.x, diamond_start.y);
+            diamond.lineTo(center_x, center_y - height);
+            diamond.lineTo(center_x + width, center_y);
+            diamond.lineTo(center_x + width, center_y + height);
+            diamond.lineTo(center_x - width, center_y);
+            diamond.closePath();
+
+            if (props.ctx.isPointInPath(diamond, end.x, end.y)) {
+              props.all_shapes.delete_shape_by_id(shape.id);
+            }
+            break;
           }
         }
       }

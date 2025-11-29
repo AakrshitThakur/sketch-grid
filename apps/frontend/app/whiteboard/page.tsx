@@ -95,7 +95,9 @@ export default function Draw() {
         <SiGoogleclassroom className="inline-block w-9 h-auto" />
       </div>
       {/* functionality btns of draw-canvas */}
-      <section className={`relative shrink-0 w-full ${selected_btn_id !== "cursor" && "cursor-crosshair"}`}>
+      <section
+        className={`relative shrink-0 w-full ${selected_btn_id && selected_btn_id !== "cursor" && "cursor-crosshair"}`}
+      >
         <div
           id="btns-draw-canvas"
           className="color-base-300 color-base-content absolute top-2 sm:top-3 left-1/2 -translate-x-1/2 shrink-0 w-full max-w-[90%] sm:max-w-lg md:max-w-xl h-auto flex justify-center items-center gap-5 sm:gap-7 md:gap-9 lg:gap-11 rounded-full overflow-hidden p-1 sm:p-1.5"
@@ -123,9 +125,9 @@ export default function Draw() {
         />
       </section>
       {/* Live logs */}
-      <div className="shrink-0 color-warning color-warning-content min-h-[25vh] w-full flex flex-col justify-start items-center gap-2 rounded-xl p-1 sm:p-2 md:p-3">
+      {/* <div className="shrink-0 color-warning color-warning-content min-h-[25vh] w-full flex flex-col justify-start items-center gap-2 rounded-xl p-1 sm:p-2 md:p-3">
         <Heading size="h3" text="Live logs" class_name="underline" />
-      </div>
+      </div> */}
       {/* </CheckUserAuth> */}
     </div>
   );

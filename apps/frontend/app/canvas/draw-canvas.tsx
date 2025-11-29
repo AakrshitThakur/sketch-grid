@@ -31,7 +31,7 @@ export default function DrawCanvas(props: DrawCanvasProps) {
     stroke_style: "oklch(50% 0.15 30)",
   });
 
-  console.info(props.selected_btn.selected_btn_id);
+  console.info(is_drawing, start_point, curr_shape);
 
   function handle_set_curr_shape(shape: Shape) {
     // // pencil logic
@@ -109,14 +109,17 @@ export default function DrawCanvas(props: DrawCanvasProps) {
           end: { x: current_x + font_size, y: current_y + font_size },
         },
       });
-
-      // back to cursor
+      // set to initial state values
       props.selected_btn.handle_set_selected_btn_id("cursor");
+      set_start_point(null);
+      set_is_drawing(false);
       return;
     }
 
-    set_start_point({ x: current_x, y: current_y });
-    set_is_drawing(true);
+    if (props.selected_btn.selected_btn_id && props.selected_btn.selected_btn_id !== "cursor") {
+      set_start_point({ x: current_x, y: current_y });
+      set_is_drawing(true);
+    }
   }
 
   function handle_mouse_move(e: React.MouseEvent<HTMLCanvasElement>) {

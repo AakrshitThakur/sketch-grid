@@ -8,7 +8,7 @@ interface ModalProps {
   children?: React.ReactNode;
 }
 
-export default function Modal(props: ModalProps) {
+export default function InputModal(props: ModalProps) {
   const modal_ref = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
