@@ -10,9 +10,9 @@ interface TextInputProps {
   };
 }
 
-function capitalize_first_char(text: string): string{
-    if(!text) return "";
-    return text.charAt(0).toUpperCase() + text.slice(1);
+function capitalize_first_char(text: string): string {
+  if (!text) return "";
+  return text.charAt(0).toUpperCase() + text.slice(1);
 }
 
 export function TextInputMd(props: TextInputProps) {

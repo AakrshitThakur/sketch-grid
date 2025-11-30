@@ -12,18 +12,38 @@ export default function Heading(props: HeadingProps) {
   switch (props.size) {
     case "h1":
       add_css_to_heading += "text-3xl sm:text-4xl md:text-5xl lg:text-6xl";
-      return <h1 className={add_css_to_heading}>{props.text || "Heading-1"}</h1>;
+      return (
+        <h1 id="h1" className={add_css_to_heading}>
+          {props.text || "Heading-1"}
+        </h1>
+      );
     case "h2":
       add_css_to_heading += "text-2xl sm:text-3xl md:text-4xl lg:text-5xl";
-      return <h2 className={add_css_to_heading}>{props.text || "Heading-2"}</h2>;
+      return (
+        <h2 id="h2" className={add_css_to_heading}>
+          {props.text || "Heading-2"}
+        </h2>
+      );
     case "h3":
       add_css_to_heading += "text-xl sm:text-2xl md:text-3xl lg:text-4xl";
-      return <h3 className={add_css_to_heading}>{props.text || "Heading-3"}</h3>;
+      return (
+        <h3 id="h3" className={add_css_to_heading}>
+          {props.text || "Heading-3"}
+        </h3>
+      );
     case "h4":
       add_css_to_heading += "text-lg sm:text-xl md:text-2xl lg:text-3xl";
-      return <h3 className={add_css_to_heading}>{props.text || "Heading-3"}</h3>;
+      return (
+        <h3 id="h4" className={add_css_to_heading}>
+          {props.text || "Heading-3"}
+        </h3>
+      );
     default:
       add_css_to_heading += "text-3xl sm:text-4xl md:text-5xl lg:text-6xl";
-      return <h1 className={add_css_to_heading}>{props.text || "Heading-1"}</h1>;
+      return (
+        <h1 id="h1" className={add_css_to_heading}>
+          {props.text || "Heading-1"}
+        </h1>
+      );
   }
 }

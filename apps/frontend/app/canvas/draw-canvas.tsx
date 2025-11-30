@@ -23,7 +23,9 @@ export default function DrawCanvas(props: DrawCanvasProps) {
   // reference to canvas
   const canvas_ref = useRef<HTMLCanvasElement | null>(null);
   // canvas related states
-  const [start_point, set_start_point] = useState<{ x: number; y: number } | null>(null);
+  const [start_point, set_start_point] = useState<{ x: number; y: number } | null>(
+    null
+  );
   const [is_drawing, set_is_drawing] = useState(false);
   const [curr_shape, set_curr_shape] = useState<Shape | null>(null);
   const [canvas_styles, set_canvas_styles] = useState({
@@ -116,7 +118,10 @@ export default function DrawCanvas(props: DrawCanvasProps) {
       return;
     }
 
-    if (props.selected_btn.selected_btn_id && props.selected_btn.selected_btn_id !== "cursor") {
+    if (
+      props.selected_btn.selected_btn_id &&
+      props.selected_btn.selected_btn_id !== "cursor"
+    ) {
       set_start_point({ x: current_x, y: current_y });
       set_is_drawing(true);
     }

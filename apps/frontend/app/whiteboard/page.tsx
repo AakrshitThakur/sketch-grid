@@ -96,7 +96,7 @@ export default function Draw() {
       </div>
       {/* functionality btns of draw-canvas */}
       <section
-        className={`relative shrink-0 w-full ${selected_btn_id && selected_btn_id !== "cursor" && "cursor-crosshair"}`}
+        className={`relative shrink-0 w-full h-auto ${selected_btn_id && selected_btn_id !== "cursor" && "cursor-crosshair"}`}
       >
         <div
           id="btns-draw-canvas"

@@ -1,7 +1,7 @@
 import { ReactNode } from "react";
 
 interface CardProps {
-  size: "sm" | "md" | "lg" | "xl";
+  size: "sm" | "md" | "lg" | "xl" | "2xl" | "3xl";
   class_name?: string;
   children: ReactNode;
 }
@@ -23,7 +23,17 @@ export default function Card(props: CardProps) {
     case "xl":
       add_css_to_card += "w-auto sm:w-lg md:w-xl";
       break;
+    case "2xl":
+      add_css_to_card += "w-auto sm:w-xl md:w-2xl";
+      break;
+    case "3xl":
+      add_css_to_card += "w-auto sm:w-2xl md:w-3xl";
+      break;
   }
 
-  return <section className={add_css_to_card}>{props.children}</section>;
+  return (
+    <section id="card" className={add_css_to_card}>
+      {props.children}
+    </section>
+  );
 }

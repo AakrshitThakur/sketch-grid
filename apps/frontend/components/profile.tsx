@@ -49,7 +49,7 @@ export default function Profile(props: ProfileProps) {
       {/* all dropdown links */}
       {open && (
         <div
-          className={`absolute z-10 p-1 top-9 right-1/2 rounded-md text-sm ${props.class_names?.drop_down_links}`}
+          className={`absolute z-10 p-1 top-[105%] left-[50%] -translate-x-[50%] rounded-md text-sm ${props.class_names?.drop_down_links}`}
         >
           {DROPDOWN_LINKS.map((link) => (
             <div

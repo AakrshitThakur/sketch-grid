@@ -53,7 +53,9 @@ export default function DropDownLinks(props: DropDownLinksProps) {
 
         {/* dropdown options */}
         {open && (
-          <div className={`absolute z-10 p-1 top-9 rounded-md ${props.class_names?.drop_down}`}>
+          <div
+            className={`absolute z-10 p-1 top-[105%] left-[50%] -translate-x-[50%] rounded-md ${props.class_names?.drop_down}`}
+          >
             {props.drop_down_links.map((link) => (
               <div
                 onClick={() => {

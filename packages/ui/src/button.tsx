@@ -47,7 +47,7 @@ export default function Button(props: ButtonParams) {
   }
 
   return (
-    <button onClick={props.on_click} className={add_css_to_btn}>
+    <button id="button" onClick={props.on_click} className={add_css_to_btn}>
       {props.text || "Click Me"}
     </button>
   );

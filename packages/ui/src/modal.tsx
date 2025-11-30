@@ -30,7 +30,12 @@ export default function InputModal(props: ModalProps) {
       className="fixed inset-0 z-50 flex justify-center items-center bg-[rgba(0,0,0,0.85)] p-3 sm:p-4 md:p-5"
       onClick={handle_backdrop_click}
     >
-      <div ref={modal_ref} className="relative color-base-300 color-base-content shrink-0 w-full max-w-md h-auto" role="dialog" aria-modal={true}>
+      <div
+        ref={modal_ref}
+        className="relative color-base-300 color-base-content shrink-0 w-full max-w-md h-auto"
+        role="dialog"
+        aria-modal={true}
+      >
         <button onClick={props.on_close} className="absolute right-1 top-1">
           <AiOutlineClose className="w-full h-full" />
         </button>
