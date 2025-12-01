@@ -58,6 +58,15 @@ export default function Draw() {
     set_shapes(shapes.filter((shape) => shape.id !== id));
   }
 
+  // alter existing shape properties in existing shapes state
+  function alter_shape_properties(shape: Shape) {
+    const altered_shapes = shapes.map((s) => {
+      if (shape.id === s.id) return shape;
+      return s;
+    });
+    set_shapes(altered_shapes);
+  }
+
   // delete all the shapes
   function delete_all_shapes() {
     const check = prompt("Kindly confirm the deletion of all shapes. (yes/no)");
@@ -121,7 +130,7 @@ export default function Draw() {
         {/* draw canvas whiteboard */}
         <DrawCanvas
           selected_btn={{ selected_btn_id, handle_set_selected_btn_id }}
-          all_shapes={{ shapes, push_new_curr_shape, delete_shape_by_id }}
+          all_shapes={{ shapes, push_new_curr_shape, delete_shape_by_id, alter_shape_properties }}
         />
       </section>
       {/* Live logs */}

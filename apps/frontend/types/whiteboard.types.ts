@@ -58,4 +58,4 @@ interface PencilShape extends BaseShape {
 type Shape = CircleShape | BoxShape | ArrowShape | TextShape | PencilShape | DiamondShape;
 type Shapes = Shape[];
 
-export type { BaseShape, CircleShape, BoxShape, ArrowShape, TextShape, Shape, Shapes };
+export type { BaseShape, CircleShape, BoxShape, ArrowShape, TextShape, Shape, Shapes, Point };

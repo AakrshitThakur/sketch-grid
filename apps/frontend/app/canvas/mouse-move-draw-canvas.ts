@@ -20,44 +20,34 @@ export default function mouse_move_draw_canvas(props: Props) {
   const end = { x: props.end_point.x, y: props.end_point.y };
   switch (props.selected_btn_id) {
     case "circle": {
-      const radius = Math.sqrt(
-        Math.pow(props.end_point.x - props.start_point.x, 2) +
-          Math.pow(props.end_point.y - props.start_point.y, 2)
-      );
+      const radius = Math.sqrt(Math.pow(end.x - start.x, 2) + Math.pow(end.y - start.y, 2));
       // A path = the shape you describe with drawing commands. It won’t appear until you stroke() or fill() it. Path2D lets you build a shape once and reuse it.
       // beginPath() -> Forget all previous lines and start fresh
       props.ctx.beginPath();
       // print shape on canvas
-      props.ctx.arc(
-        props.start_point.x,
-        props.start_point.y,
-        radius,
-        0,
-        2 * Math.PI,
-        false
-      );
+      props.ctx.arc(start.x, start.y, radius, 0, 2 * Math.PI, false);
       props.ctx.stroke();
 
       // push box to global shapes array
       props.handle_set_curr_shape({
         id: nanoid(),
         type: "circle",
-        center: { x: props.start_point.x, y: props.start_point.y },
+        center: { x: start.x, y: start.y },
         radius,
       });
       break;
     }
     case "box": {
-      const width = props.end_point.x - props.start_point.x;
-      const height = props.end_point.y - props.start_point.y;
+      const width = end.x - start.x;
+      const height = end.y - start.y;
       // print shape on canvas
-      props.ctx.strokeRect(props.start_point.x, props.start_point.y, width, height);
+      props.ctx.strokeRect(start.x, start.y, width, height);
 
       // push box to global shapes array
       props.handle_set_curr_shape({
         id: nanoid(),
         type: "box",
-        point: { x: props.start_point.x, y: props.start_point.y },
+        point: { x: start.x, y: start.y },
         width,
         height,
       });
@@ -66,30 +56,27 @@ export default function mouse_move_draw_canvas(props: Props) {
     case "arrow": {
       props.ctx.beginPath();
       // print shape on canvas
-      props.ctx.moveTo(props.start_point.x, props.start_point.y);
-      props.ctx.lineTo(props.end_point.x, props.end_point.y);
+      props.ctx.moveTo(start.x, start.y);
+      props.ctx.lineTo(end.x, end.y);
       props.ctx.stroke();
 
       // Math.atan2() static method returns the angle in the plane (in radians) between the positive x-axis and the ray from (0, 0) to the point (x, y), for Math.atan2(y, x).
       // Note: With atan2(), the y coordinate is passed as the first argument and the x coordinate is passed as the second argument.
-      const angle = Math.atan2(
-        props.end_point.y - props.start_point.y,
-        props.end_point.x - props.start_point.x
-      );
+      const angle = Math.atan2(end.y - start.y, end.x - start.x);
       const head_length = 15;
 
       // drawing 2 lines forming arrow-head
       // haven't understood it
       props.ctx.beginPath();
-      props.ctx.moveTo(props.end_point.x, props.end_point.y);
+      props.ctx.moveTo(end.x, end.y);
       props.ctx.lineTo(
-        props.end_point.x - head_length * Math.cos(angle - Math.PI / 6),
-        props.end_point.y - head_length * Math.sin(angle - Math.PI / 6)
+        end.x - head_length * Math.cos(angle - Math.PI / 6),
+        end.y - head_length * Math.sin(angle - Math.PI / 6)
       );
-      props.ctx.moveTo(props.end_point.x, props.end_point.y);
+      props.ctx.moveTo(end.x, end.y);
       props.ctx.lineTo(
-        props.end_point.x - head_length * Math.cos(angle + Math.PI / 6),
-        props.end_point.y - head_length * Math.sin(angle + Math.PI / 6)
+        end.x - head_length * Math.cos(angle + Math.PI / 6),
+        end.y - head_length * Math.sin(angle + Math.PI / 6)
       );
       props.ctx.stroke();
 
@@ -98,8 +85,8 @@ export default function mouse_move_draw_canvas(props: Props) {
         id: nanoid(),
         type: "arrow",
         points: {
-          start: { x: props.start_point.x, y: props.start_point.y },
-          end: { x: props.end_point.x, y: props.end_point.y },
+          start: { x: start.x, y: start.y },
+          end: { x: end.x, y: end.y },
         },
       });
       break;
@@ -107,8 +94,8 @@ export default function mouse_move_draw_canvas(props: Props) {
     case "pencil": {
       props.ctx.beginPath();
       // draw a tiny line
-      props.ctx.moveTo(props.start_point.x, props.start_point.y);
-      props.ctx.lineTo(props.end_point.x, props.end_point.y);
+      props.ctx.moveTo(start.x, start.y);
+      props.ctx.lineTo(end.x, end.y);
       props.ctx.stroke();
 
       // save points to global shapes
@@ -117,22 +104,22 @@ export default function mouse_move_draw_canvas(props: Props) {
         type: "pencil",
         points: [
           {
-            from: { x: props.start_point.x, y: props.start_point.y },
-            to: { x: props.end_point.x, y: props.end_point.y },
+            from: { x: start.x, y: start.y },
+            to: { x: end.x, y: end.y },
           },
         ],
       });
-      props.handle_set_start_point(props.end_point.x, props.end_point.y);
+      props.handle_set_start_point(end.x, end.y);
       break;
     }
     case "diamond": {
       // find center of straight line forming from starting and ending coordinates
-      const center_x = (props.start_point.x + props.end_point.x) / 2;
-      const center_y = (props.start_point.y + props.end_point.y) / 2;
+      const center_x = (start.x + end.x) / 2;
+      const center_y = (start.y + end.y) / 2;
 
       // calc width & height
-      const width = Math.abs(props.end_point.x - props.start_point.x);
-      const height = Math.abs(props.end_point.y - props.start_point.y);
+      const width = Math.abs(end.x - start.x);
+      const height = Math.abs(end.y - start.y);
 
       // drawing all the four vertices from the center
       props.ctx.beginPath();
@@ -148,8 +135,8 @@ export default function mouse_move_draw_canvas(props: Props) {
         id: nanoid(),
         type: "diamond",
         points: {
-          start: { x: props.start_point.x, y: props.start_point.y },
-          end: { x: props.end_point.x, y: props.end_point.y },
+          start: { x: start.x, y: start.y },
+          end: { x: end.x, y: end.y },
         },
       });
       break;
@@ -170,11 +157,7 @@ export default function mouse_move_draw_canvas(props: Props) {
             break;
           }
           case "circle": {
-            if (
-              Math.pow(shape.center.x - end.x, 2) +
-                Math.pow(shape.center.y - end.y, 2) <=
-              Math.pow(shape.radius, 2)
-            ) {
+            if (Math.pow(shape.center.x - end.x, 2) + Math.pow(shape.center.y - end.y, 2) <= Math.pow(shape.radius, 2)) {
               props.all_shapes.delete_shape_by_id(shape.id);
             }
             break;
@@ -222,13 +205,7 @@ export default function mouse_move_draw_canvas(props: Props) {
             const start_text = { x: shape.points.start.x, y: shape.points.start.y };
             const end_text = { x: shape.points.end.x, y: shape.points.end.y };
 
-            console.info(
-              "Hello",
-              start_text.x,
-              start_text.y,
-              start_text.x + 30,
-              start_text.y + 30
-            );
+            console.info("Hello", start_text.x, start_text.y, start_text.x + 30, start_text.y + 30);
             console.info("check", end);
 
             // const within_x = end.x >= start_text.x && end.x <= end_text.x;
@@ -240,12 +217,7 @@ export default function mouse_move_draw_canvas(props: Props) {
             // break;
 
             const box = new Path2D();
-            box.rect(
-              start_text.x,
-              start_text.y,
-              end_text.x - start_text.x,
-              end_text.y - start_text.y
-            );
+            box.rect(start_text.x, start_text.y, end_text.x - start_text.x, end_text.y - start_text.y);
             box.closePath();
 
             if (props.ctx.isPointInPath(box, end.x, end.y)) {
