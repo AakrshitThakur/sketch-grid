@@ -1,3 +1,4 @@
+"use client";
 import { useRef, useState, useEffect } from "react";
 import { nanoid } from "nanoid";
 import fix_dpi from "./fix_dpi";
@@ -5,8 +6,6 @@ import mouse_move_draw_canvas from "./mouse-move-draw-canvas";
 import mouse_move_drag_canvas from "./mouse-move-drag-canvas";
 import draw_all_shapes from "./draw-all-shapes";
 import type { Shape, Shapes } from "@/types/whiteboard.types";
-
-// const shapes: Shapes = [];
 
 interface DrawCanvasProps {
   selected_btn: {
@@ -82,8 +81,15 @@ export default function DrawCanvas(props: DrawCanvasProps) {
       if (!text) return;
 
       // make text on canvas
+      ctx.textAlign = "left";
+      ctx.textBaseline = "top";
       ctx.font = `${font_size}px Cursive`;
-      ctx.strokeText(text.trim(), current_x, current_y);
+      // The HTML Canvas actualBoundingBoxAscent property of TextMetrics interface is a read-only method which returns a double value giving the distance from horizontal line indicated by the text baseline of CanvasRenderingContext2D interface context object to the "top" of the bounding rectangle box in which the text is rendered. The double value is given in CSS pixels.
+      // The HTML Canvas actualBoundingBoxDescent property of TextMetrics interface is a read-only method which returns a double value giving the distance from horizontal line indicated by the text baseline of CanvasRenderingContext2D interface context object to the "bottom" of the bounding rectangle box in which the text is rendered. The double value is given in CSS pixels.
+      const metrics = ctx.measureText(text.trim());
+      const top_left_x = current_x;
+      const top_left_y = current_y - metrics.actualBoundingBoxAscent;
+      ctx.fillText(text.trim(), top_left_x, top_left_y);
 
       // push new curr-shape to shapes state
       props.all_shapes.push_new_curr_shape({
@@ -91,14 +97,18 @@ export default function DrawCanvas(props: DrawCanvasProps) {
         text: text.trim(),
         type: "text",
         points: {
-          start: { x: current_x, y: current_y },
-          end: { x: current_x + font_size, y: current_y + font_size },
+          start: { x: top_left_x, y: top_left_y },
+          end: {
+            x: top_left_x + metrics.width,
+            y: top_left_y + metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent,
+          },
         },
       });
       // set to initial state values
       props.selected_btn.handle_set_selected_btn_id("cursor");
       set_start_point(null);
       set_is_drawing(false);
+      set_is_dragging(false);
       return;
     } else if (props.selected_btn.selected_btn_id === "cursor") {
       // unable user to drag existing shapes
@@ -151,13 +161,12 @@ export default function DrawCanvas(props: DrawCanvasProps) {
     // draw specific shape on mouse-move
     // drag specific shape
     if (is_dragging) {
-      console.error("under is-dragging");
       mouse_move_drag_canvas({
         start_point,
-        end_point: { x: end_x, y: end_y }, 
+        end_point: { x: end_x, y: end_y },
         is_dragging,
-        all_shapes: props.all_shapes, 
-        handle_set_start_point, 
+        all_shapes: props.all_shapes,
+        handle_set_start_point,
         ctx,
       });
       return;
@@ -206,7 +215,7 @@ export default function DrawCanvas(props: DrawCanvasProps) {
     <canvas
       id="whiteboard-canvas"
       ref={canvas_ref}
-      className="color-neutral color-neutral-content shrink-0 w-full rounded-xl"
+      className="color-neutral color-neutral-content shrink-0 w-full rounded-xl touch-none"
       onMouseDown={handle_mouse_down}
       onMouseMove={handle_mouse_move}
       onMouseUp={handle_mouse_up}

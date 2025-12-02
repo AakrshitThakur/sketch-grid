@@ -56,68 +56,76 @@ export default function mouse_move_drag_canvas(params: Params) {
         line_segment.lineTo(line_end.x, line_end.y);
         line_segment.closePath();
 
-        if (params.ctx.isPointInStroke(line_segment, end.x, end.y)) {
+        if (
+          params.ctx.isPointInStroke(line_segment, end.x, end.y) ||
+          params.ctx.isPointInPath(line_segment, end.x - 5, end.y - 5) ||
+          params.ctx.isPointInPath(line_segment, end.x + 5, end.y + 5)
+        ) {
           params.all_shapes.alter_shape_properties({
             ...shape,
             points: {
               start: { x: shape.points.start.x + (end.x - start.x), y: shape.points.start.y + (end.y - start.y) },
-              end: { x: shape.points.start.x + (end.x - start.x) + 30, y: shape.points.start.y + (end.y - start.y) + 30 },
+              end: { x: shape.points.end.x + (end.x - start.x), y: shape.points.end.y + (end.y - start.y) },
             },
           });
           params.handle_set_start_point(end.x, end.y);
         }
         break;
       }
-      //  case "text": {
-      //    const start_text = { x: shape.points.start.x, y: shape.points.start.y };
-      //    const end_text = { x: shape.points.end.x, y: shape.points.end.y };
+      case "text": {
+        const start_text = { x: shape.points.start.x, y: shape.points.start.y };
+        const end_text = { x: shape.points.end.x, y: shape.points.end.y };
 
-      //    console.info("Hello", start_text.x, start_text.y, start_text.x + 30, start_text.y + 30);
-      //    console.info("check", end);
+        const box = new Path2D();
+        box.rect(start_text.x, start_text.y, end_text.x - start_text.x, end_text.y - start_text.y);
+        box.closePath();
 
-      //    // const within_x = end.x >= start_text.x && end.x <= end_text.x;
-      //    // const within_y = end.y >= start_text.y && end.y <= end_text.y;
+        // checking if point lies between the text-box or not
+        if (params.ctx.isPointInPath(box, start.x, start.y)) {
+          params.all_shapes.alter_shape_properties({
+            ...shape,
+            points: {
+              start: { x: shape.points.start.x + (end.x - start.x), y: shape.points.start.y + (end.y - start.y) },
+              end: { x: shape.points.end.x + (end.x - start.x), y: shape.points.end.y + (end.y - start.y) },
+            },
+          });
+          params.handle_set_start_point(end.x, end.y);
+        }
+        break;
+      }
+      case "diamond": {
+        const diamond_start = {
+          x: shape.points.start.x,
+          y: shape.points.start.y,
+        };
+        const diamond_end = { x: shape.points.end.x, y: shape.points.end.y };
 
-      //    // if (within_x && within_y) {
-      //    //   props.all_shapes.delete_shape_by_id(shape.id);
-      //    // }
-      //    // break;
+        const center_x = (diamond_start.x + diamond_end.x) / 2;
+        const center_y = (diamond_start.y + diamond_end.y) / 2;
 
-      //    const box = new Path2D();
-      //    box.rect(start_text.x, start_text.y, end_text.x - start_text.x, end_text.y - start_text.y);
-      //    box.closePath();
+        const height = Math.abs(diamond_end.y - diamond_start.y);
+        const width = Math.abs(diamond_end.x - diamond_start.x);
 
-      //    if (props.ctx.isPointInPath(box, end.x, end.y)) {
-      //      props.all_shapes.delete_shape_by_id(shape.id);
-      //    }
-      //    break;
-      //  }
-      //  case "diamond": {
-      //    const diamond_start = {
-      //      x: shape.points.start.x,
-      //      y: shape.points.start.y,
-      //    };
-      //    const diamond_end = { x: shape.points.end.x, y: shape.points.end.y };
+        const diamond = new Path2D();
+        diamond.moveTo(diamond_start.x, diamond_start.y);
+        diamond.lineTo(center_x, center_y - height);
+        diamond.lineTo(center_x + width, center_y);
+        diamond.lineTo(center_x + width, center_y + height);
+        diamond.lineTo(center_x - width, center_y);
+        diamond.closePath();
 
-      //    const center_x = (diamond_start.x + diamond_end.x) / 2;
-      //    const center_y = (diamond_start.y + diamond_end.y) / 2;
-
-      //    const height = Math.abs(diamond_end.y - diamond_start.y);
-      //    const width = Math.abs(diamond_end.x - diamond_start.x);
-
-      //    const diamond = new Path2D();
-      //    diamond.moveTo(diamond_start.x, diamond_start.y);
-      //    diamond.lineTo(center_x, center_y - height);
-      //    diamond.lineTo(center_x + width, center_y);
-      //    diamond.lineTo(center_x + width, center_y + height);
-      //    diamond.lineTo(center_x - width, center_y);
-      //    diamond.closePath();
-
-      //    if (props.ctx.isPointInPath(diamond, end.x, end.y)) {
-      //      props.all_shapes.delete_shape_by_id(shape.id);
-      //    }
-      //    break;
-      //  }
+        if (params.ctx.isPointInPath(diamond, end.x, end.y)) {
+          params.all_shapes.alter_shape_properties({
+            ...shape,
+            points: {
+              start: { x: shape.points.start.x + (end.x - start.x), y: shape.points.start.y + (end.y - start.y) },
+              end: { x: shape.points.end.x + (end.x - start.x), y: shape.points.end.y + (end.y - start.y) },
+            },
+          });
+          params.handle_set_start_point(end.x, end.y);
+        }
+        break;
+      }
     }
   }
 }

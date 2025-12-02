@@ -122,7 +122,7 @@ export default function Draw() {
           ))}
         </div>
         <div
-          className="absolute bottom-2.5 sm:top-2.5 right-2.5 color-error color-error-content shrink-0 w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7 rounded-full overflow-hidden cursor-pointer p-1"
+          className="absolute bottom-2.5 md:top-2.5 right-2.5 color-error color-error-content shrink-0 w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7 rounded-full overflow-hidden cursor-pointer p-1"
           onClick={delete_all_shapes}
         >
           <FaTrash className="w-full h-full" />
