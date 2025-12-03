@@ -8,7 +8,7 @@
   "scripts": {
     "build": "npx tsc -b"
   },
-  "devDependencies": {
+  "dependencies": {
     "@repo/typescript-config": "*"
   },
   "keywords": [],

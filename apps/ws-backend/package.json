@@ -10,9 +10,7 @@
   },
   "dependencies": {
     "@types/ws": "^8.18.1",
-    "ws": "^8.18.3"
-  },
-  "devDependencies": {
+    "ws": "^8.18.3",
     "@repo/typescript-config": "*",
     "@repo/configs": "*",
     "@repo/db": "*"

@@ -17,12 +17,10 @@
   "license": "ISC",
   "description": "Sketch Grid is a collaborative whiteboard for creating visual elements that help teams work more efficiently",
   "dependencies": {
-    "@prisma/client": "^6.17.1"
-  },
-  "devDependencies": {
+    "@prisma/client": "^6.17.1",
     "@repo/typescript-config": "*",
     "@repo/utils": "*",
-    "@repo/db": "*",
     "@repo/types": "*"
-  }
+  },
+  "devDependencies": {}
 }
