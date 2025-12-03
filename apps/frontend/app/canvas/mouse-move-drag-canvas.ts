@@ -22,13 +22,73 @@ export default function mouse_move_drag_canvas(params: Params) {
   for (let shape of params.all_shapes.shapes) {
     switch (shape.type) {
       case "box": {
+        // const box_start = { x: shape.point.x, y: shape.point.y };
+
+        // if (
+        //   start.x >= Math.min(box_start.x, box_start.x + shape.width) &&
+        //   start.x <= Math.max(box_start.x, box_start.x + shape.width) &&
+        //   start.y >= Math.min(box_start.y, box_start.y + shape.height) &&
+        //   start.y <= Math.max(box_start.y, box_start.y + shape.height)
+        // ) {
+        //   params.all_shapes.alter_shape_properties({
+        //     ...shape,
+        //     point: { x: shape.point.x + (end.x - start.x), y: shape.point.y + (end.y - start.y) },
+        //   });
+        //   params.handle_set_start_point(end.x, end.y);
+        // }
+        // break;
+
         const box_start = { x: shape.point.x, y: shape.point.y };
+
         if (
+          start.x >= Math.min(box_start.x, box_start.x + shape.width) - 5 &&
+          start.x <= Math.min(box_start.x, box_start.x + shape.width) + 5
+        ) {
+          // Increase or shrink width of box current to left
+          params.all_shapes.alter_shape_properties({
+            ...shape,
+            point: { x: shape.point.x + (end.x - start.x), y: shape.point.y },
+            width: shape.width + (start.x - end.x),
+          });
+          params.handle_set_start_point(end.x, end.y);
+        } else if (
+          start.x >= Math.max(box_start.x, box_start.x + shape.width) - 5 &&
+          start.x <= Math.max(box_start.x, box_start.x + shape.width) + 5
+        ) {
+          // Increase or shrink width of box current to right
+          params.all_shapes.alter_shape_properties({
+            ...shape,
+            width: shape.width + (end.x - start.x),
+          });
+          params.handle_set_start_point(end.x, end.y);
+        } else if (
+          start.y >= Math.min(box_start.y, box_start.y + shape.height) - 5 &&
+          start.y <= Math.min(box_start.y, box_start.y + shape.height) + 5
+        ) {
+          // Increase or shrink height of box current to top
+          params.all_shapes.alter_shape_properties({
+            ...shape,
+            point: { x: shape.point.x, y: shape.point.y + (end.y - start.y) },
+            height: shape.height + (start.y - end.y),
+          });
+          params.handle_set_start_point(end.x, end.y);
+        } else if (
+          start.y >= Math.max(box_start.y, box_start.y + shape.height) - 5 &&
+          start.y <= Math.max(box_start.y, box_start.y + shape.height) + 5
+        ) {
+          // Increase or shrink height of box current to bottom
+          params.all_shapes.alter_shape_properties({
+            ...shape,
+            height: shape.height + (end.y - start.y),
+          });
+          params.handle_set_start_point(end.x, end.y);
+        } else if (
           start.x >= Math.min(box_start.x, box_start.x + shape.width) &&
           start.x <= Math.max(box_start.x, box_start.x + shape.width) &&
           start.y >= Math.min(box_start.y, box_start.y + shape.height) &&
           start.y <= Math.max(box_start.y, box_start.y + shape.height)
         ) {
+          // change the position of box
           params.all_shapes.alter_shape_properties({
             ...shape,
             point: { x: shape.point.x + (end.x - start.x), y: shape.point.y + (end.y - start.y) },
@@ -38,7 +98,17 @@ export default function mouse_move_drag_canvas(params: Params) {
         break;
       }
       case "circle": {
-        if (Math.pow(shape.center.x - end.x, 2) + Math.pow(shape.center.y - end.y, 2) <= Math.pow(shape.radius, 2)) {
+        const start_to_center_distance = Math.pow(
+          Math.pow(shape.center.x - start.x, 2) + Math.pow(shape.center.y - start.y, 2),
+          0.5
+        );
+        if (start_to_center_distance - 250 <= shape.radius && start_to_center_distance + 250 >= shape.radius) {
+          params.all_shapes.alter_shape_properties({ ...shape, radius: shape.radius + (end.x - start.x) });
+          params.handle_set_start_point(end.x, end.y);
+        } else if (
+          Math.pow(shape.center.x - start.x, 2) + Math.pow(shape.center.y - start.y, 2) <=
+          Math.pow(shape.radius, 2)
+        ) {
           params.all_shapes.alter_shape_properties({
             ...shape,
             center: { x: shape.center.x + (end.x - start.x), y: shape.center.y + (end.y - start.y) },
