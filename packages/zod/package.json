@@ -7,7 +7,6 @@
     "./index": "./dist/index.js"
   },
   "scripts": {
-    "dev": "npx tsc --watch",
     "build": "npx tsc -b"
   },
   "dependencies": {
