@@ -49,7 +49,7 @@ export default function draw_all_shapes(shapes: Shapes, ctx: CanvasRenderingCont
         break;
       }
       case "text": {
-        ctx.font = `30px Cursive`;
+        ctx.font = `${shape.font.font_size}px Cursive`;
         ctx.strokeText(shape.text, shape.points.start.x, shape.points.start.y);
         break;
       }
@@ -65,19 +65,18 @@ export default function draw_all_shapes(shapes: Shapes, ctx: CanvasRenderingCont
       }
       case "diamond": {
         // find center of straight line forming from starting and ending coordinates
-        const center_x = (shape.points.start.x + shape.points.end.x) / 2;
-        const center_y = (shape.points.start.y + shape.points.end.y) / 2;
+        const center = shape.center;
 
         // calc width & height
-        const width = Math.abs(shape.points.end.x - shape.points.start.x);
-        const height = Math.abs(shape.points.end.y - shape.points.start.y);
+        const width = shape.width;
+        const height = shape.height;
 
         // drawing all the four vertices from the center
         ctx.beginPath();
-        ctx.moveTo(center_x, center_y - height);
-        ctx.lineTo(center_x + width, center_y);
-        ctx.lineTo(center_x, center_y + height);
-        ctx.lineTo(center_x - width, center_y);
+        ctx.moveTo(center.x, center.y - height);
+        ctx.lineTo(center.x + width, center.y);
+        ctx.lineTo(center.x, center.y + height);
+        ctx.lineTo(center.x - width, center.y);
         ctx.closePath();
         ctx.stroke();
         break;

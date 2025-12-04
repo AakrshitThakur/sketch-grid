@@ -96,6 +96,9 @@ export default function DrawCanvas(props: DrawCanvasProps) {
         id: nanoid(),
         text: text.trim(),
         type: "text",
+        font: {
+          font_size,
+        },
         points: {
           start: { x: top_left_x, y: top_left_y },
           end: {
@@ -137,6 +140,10 @@ export default function DrawCanvas(props: DrawCanvasProps) {
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
+    // setting canvas pre-requisites
+    ctx.lineWidth = 1.25;
+    ctx.strokeStyle = canvas_styles.stroke_style;
+
     // clear canvas screen to avoid overlapping
     if (props.selected_btn.selected_btn_id !== "pencil") {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -153,10 +160,6 @@ export default function DrawCanvas(props: DrawCanvasProps) {
 
     const end_x = Math.floor((e.clientX - canvas_pos.left) * scale_x) + 0.5;
     const end_y = Math.floor((e.clientY - canvas_pos.top) * scale_y) + 0.5;
-
-    // setting canvas pre-requisites
-    ctx.lineWidth = 0.75;
-    ctx.strokeStyle = canvas_styles.stroke_style;
 
     // draw specific shape on mouse-move
     // drag specific shape

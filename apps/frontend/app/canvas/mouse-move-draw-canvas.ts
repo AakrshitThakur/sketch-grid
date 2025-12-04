@@ -130,14 +130,22 @@ export default function mouse_move_draw_canvas(props: Props) {
       props.ctx.closePath();
       props.ctx.stroke();
 
-      // set current shape being drawn
+      // // set current shape being drawn
+      // props.handle_set_curr_shape({
+      //   id: nanoid(),
+      //   type: "diamond",
+      //   points: {
+      //     start: { x: start.x, y: start.y },
+      //     end: { x: end.x, y: end.y },
+      //   },
+      // });
+
       props.handle_set_curr_shape({
         id: nanoid(),
         type: "diamond",
-        points: {
-          start: { x: start.x, y: start.y },
-          end: { x: end.x, y: end.y },
-        },
+        center: { x: center_x, y: center_y },
+        width,
+        height,
       });
       break;
     }
@@ -205,17 +213,6 @@ export default function mouse_move_draw_canvas(props: Props) {
             const start_text = { x: shape.points.start.x, y: shape.points.start.y };
             const end_text = { x: shape.points.end.x, y: shape.points.end.y };
 
-            console.info("Hello", start_text.x, start_text.y, start_text.x + 30, start_text.y + 30);
-            console.info("check", end);
-
-            // const within_x = end.x >= start_text.x && end.x <= end_text.x;
-            // const within_y = end.y >= start_text.y && end.y <= end_text.y;
-
-            // if (within_x && within_y) {
-            //   props.all_shapes.delete_shape_by_id(shape.id);
-            // }
-            // break;
-
             const box = new Path2D();
             box.rect(start_text.x, start_text.y, end_text.x - start_text.x, end_text.y - start_text.y);
             box.closePath();
@@ -226,24 +223,17 @@ export default function mouse_move_draw_canvas(props: Props) {
             break;
           }
           case "diamond": {
-            const diamond_start = {
-              x: shape.points.start.x,
-              y: shape.points.start.y,
-            };
-            const diamond_end = { x: shape.points.end.x, y: shape.points.end.y };
+            // get diamond-data from global shapes state
+            const center = shape.center;
+            const height = shape.height;
+            const width = shape.width;
 
-            const center_x = (diamond_start.x + diamond_end.x) / 2;
-            const center_y = (diamond_start.y + diamond_end.y) / 2;
-
-            const height = Math.abs(diamond_end.y - diamond_start.y);
-            const width = Math.abs(diamond_end.x - diamond_start.x);
-
+            // Make a diamond but do not print it on the canvas whiteboard
             const diamond = new Path2D();
-            diamond.moveTo(diamond_start.x, diamond_start.y);
-            diamond.lineTo(center_x, center_y - height);
-            diamond.lineTo(center_x + width, center_y);
-            diamond.lineTo(center_x + width, center_y + height);
-            diamond.lineTo(center_x - width, center_y);
+            diamond.moveTo(center.x, center.y - height);
+            diamond.lineTo(center.x + width, center.y);
+            diamond.lineTo(center.x, center.y + height);
+            diamond.lineTo(center.x - width, center.y);
             diamond.closePath();
 
             if (props.ctx.isPointInPath(diamond, end.x, end.y)) {

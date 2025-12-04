@@ -33,6 +33,9 @@ interface ArrowShape extends BaseShape {
 interface TextShape extends BaseShape {
   type: "text";
   text: string;
+  font: {
+    font_size: number;
+  };
   points: {
     start: Point;
     end: Point;
@@ -41,10 +44,13 @@ interface TextShape extends BaseShape {
 
 interface DiamondShape extends BaseShape {
   type: "diamond";
-  points: {
-    start: Point;
-    end: Point;
-  };
+  // points: {
+  //   start: Point;
+  //   end: Point;
+  // };
+  center: Point;
+  width: number;
+  height: number;
 }
 
 interface PencilShape extends BaseShape {

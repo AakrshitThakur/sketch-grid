@@ -103,12 +103,14 @@ export default function mouse_move_drag_canvas(params: Params) {
           0.5
         );
         if (start_to_center_distance - 250 <= shape.radius && start_to_center_distance + 250 >= shape.radius) {
+          // Increase or decrease radius of circle
           params.all_shapes.alter_shape_properties({ ...shape, radius: shape.radius + (end.x - start.x) });
           params.handle_set_start_point(end.x, end.y);
         } else if (
           Math.pow(shape.center.x - start.x, 2) + Math.pow(shape.center.y - start.y, 2) <=
           Math.pow(shape.radius, 2)
         ) {
+          // change the position of circle
           params.all_shapes.alter_shape_properties({
             ...shape,
             center: { x: shape.center.x + (end.x - start.x), y: shape.center.y + (end.y - start.y) },
@@ -146,12 +148,62 @@ export default function mouse_move_drag_canvas(params: Params) {
         const start_text = { x: shape.points.start.x, y: shape.points.start.y };
         const end_text = { x: shape.points.end.x, y: shape.points.end.y };
 
+        params.ctx.lineWidth = 10;
         const box = new Path2D();
         box.rect(start_text.x, start_text.y, end_text.x - start_text.x, end_text.y - start_text.y);
         box.closePath();
 
-        // checking if point lies between the text-box or not
-        if (params.ctx.isPointInPath(box, start.x, start.y)) {
+        const left_to_right = new Path2D();
+        left_to_right.moveTo(start_text.x, start_text.y);
+        left_to_right.lineTo(end_text.x, start_text.y);
+
+        const top_to_bottom = new Path2D();
+        top_to_bottom.moveTo(end_text.x, start_text.y);
+        top_to_bottom.lineTo(end_text.x, end_text.y);
+
+        const right_to_left = new Path2D();
+        right_to_left.moveTo(end_text.x, end_text.y);
+        right_to_left.lineTo(start_text.x, end_text.y);
+
+        const bottom_to_top = new Path2D();
+        bottom_to_top.moveTo(start_text.x, end_text.y);
+        bottom_to_top.lineTo(start_text.x, start_text.y);
+
+        params.ctx.stroke(left_to_right);
+
+        if (params.ctx.isPointInStroke(left_to_right, start.x, start.y)) {
+          // checking if point lies on the stroke or edge of text-box or not
+          let font_size = 0;
+          if (end.y - start.y >= 0) font_size = shape.font.font_size - (end.y - start.y);
+          else font_size = shape.font.font_size - (end.y - start.y);
+
+          // make text on canvas
+          params.ctx.textAlign = "left";
+          params.ctx.textBaseline = "top";
+          params.ctx.font = `${font_size}px Cursive`;
+          // The HTML Canvas actualBoundingBoxAscent property of TextMetrics interface is a read-only method which returns a double value giving the distance from horizontal line indicated by the text baseline of CanvasRenderingContext2D interface context object to the "top" of the bounding rectangle box in which the text is rendered. The double value is given in CSS pixels.
+          // The HTML Canvas actualBoundingBoxDescent property of TextMetrics interface is a read-only method which returns a double value giving the distance from horizontal line indicated by the text baseline of CanvasRenderingContext2D interface context object to the "bottom" of the bounding rectangle box in which the text is rendered. The double value is given in CSS pixels.
+          const metrics = params.ctx.measureText(shape.text.trim());
+          const top_left_x = shape.points.start.x;
+          const top_left_y = shape.points.start.y - metrics.actualBoundingBoxAscent;
+
+          // push new curr-shape to shapes state
+          params.all_shapes.alter_shape_properties({
+            ...shape,
+            font: {
+              font_size,
+            },
+            points: {
+              start: { x: top_left_x, y: top_left_y },
+              end: {
+                x: top_left_x + metrics.width,
+                y: top_left_y + metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent,
+              },
+            },
+          });
+          params.handle_set_start_point(end.x, end.y);
+        } else if (params.ctx.isPointInPath(box, start.x, start.y)) {
+          // checking if point lies inside the text-box or not
           params.all_shapes.alter_shape_properties({
             ...shape,
             points: {
@@ -164,32 +216,65 @@ export default function mouse_move_drag_canvas(params: Params) {
         break;
       }
       case "diamond": {
-        const diamond_start = {
-          x: shape.points.start.x,
-          y: shape.points.start.y,
-        };
-        const diamond_end = { x: shape.points.end.x, y: shape.points.end.y };
+        // get diamond-data from global shapes state
+        const center = shape.center;
+        const width = shape.width;
+        const height = shape.height;
 
-        const center_x = (diamond_start.x + diamond_end.x) / 2;
-        const center_y = (diamond_start.y + diamond_end.y) / 2;
-
-        const height = Math.abs(diamond_end.y - diamond_start.y);
-        const width = Math.abs(diamond_end.x - diamond_start.x);
-
+        // Make a diamond but do not print it on the canvas whiteboard
         const diamond = new Path2D();
-        diamond.moveTo(diamond_start.x, diamond_start.y);
-        diamond.lineTo(center_x, center_y - height);
-        diamond.lineTo(center_x + width, center_y);
-        diamond.lineTo(center_x + width, center_y + height);
-        diamond.lineTo(center_x - width, center_y);
-        diamond.closePath();
+        params.ctx.lineWidth = 10;
+        diamond.moveTo(center.x, center.y - height);
+        diamond.lineTo(center.x + width, center.y);
+        diamond.lineTo(center.x, center.y + height);
+        // diamond.lineTo(center.x - width, center.y);
+        // diamond.closePath();
+        params.ctx.stroke(diamond);
 
-        if (params.ctx.isPointInPath(diamond, end.x, end.y)) {
+        if (params.ctx.isPointInStroke(diamond, start.x, start.y)) {
+          console.error("Point is on stroke");
+          if (end.x - start.x >= 0) {
+            // Δx is +ve
+            if (end.y - start.y >= 0) {
+              // Δx and Δy both are +ve
+              params.all_shapes.alter_shape_properties({
+                ...shape,
+                width: shape.width + 2 * (end.x - start.x),
+                height: shape.height + 2 * (end.y - start.y),
+              });
+            } else {
+              // Δx is +ve but Δy is -ve
+              params.all_shapes.alter_shape_properties({
+                ...shape,
+                width: shape.width + 2 * (end.x - start.x),
+                height: shape.height + 2 * (start.y - end.y),
+              });
+            }
+          } else {
+            // Δx is -ve
+            if (end.y - start.y >= 0) {
+              // Δx is -ve but Δy is +ve
+              params.all_shapes.alter_shape_properties({
+                ...shape,
+                width: shape.width + 2 * (end.x - start.x),
+                height: shape.height + 2 * (start.y - end.y),
+              });
+            } else {
+              // Δx and Δy both are -ve
+              params.all_shapes.alter_shape_properties({
+                ...shape,
+                width: shape.width + 2 * (end.x - start.x),
+                height: shape.height + 2 * (end.y - start.y),
+              });
+            }
+          }
+          params.handle_set_start_point(end.x, end.y);
+        } else if (params.ctx.isPointInPath(diamond, start.x, start.y)) {
           params.all_shapes.alter_shape_properties({
             ...shape,
-            points: {
-              start: { x: shape.points.start.x + (end.x - start.x), y: shape.points.start.y + (end.y - start.y) },
-              end: { x: shape.points.end.x + (end.x - start.x), y: shape.points.end.y + (end.y - start.y) },
+            center: {
+              x: center.x + (end.x - start.x),
+              y: center.y + (end.y - start.y),
             },
           });
           params.handle_set_start_point(end.x, end.y);
