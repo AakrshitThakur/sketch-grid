@@ -33,8 +33,6 @@ export default function DrawCanvas(props: DrawCanvasProps) {
     stroke_style: "oklch(50% 0.15 30)",
   });
 
-  console.warn(is_dragging);
-
   function handle_set_curr_shape(shape: Shape) {
     set_curr_shape(shape);
   }
@@ -51,29 +49,6 @@ export default function DrawCanvas(props: DrawCanvasProps) {
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    fix_dpi(canvas);
-
-    ctx.strokeStyle = canvas_styles.fill_style;
-  }, []);
-
-  function handle_mouse_down(e: React.MouseEvent<HTMLCanvasElement>) {
-    const canvas = canvas_ref.current;
-    if (!canvas) return;
-
-    // using 2d-canvas context
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-
-    // When clicking on canvas element, the mouse event (e) gives coordinates relative to the entire browser viewport (the visible window area). However, the canvas needs coordinates relative to its own top-left corner (0, 0).
-    // The Element.getBoundingClientRect() method returns a position relative to the viewport.
-    const canvas_pos = canvas.getBoundingClientRect();
-
-    const scale_x = canvas.width / canvas_pos.width;
-    const scale_y = canvas.height / canvas_pos.height;
-
-    const current_x = Math.floor((e.clientX - canvas_pos.left) * scale_x) + 0.5;
-    const current_y = Math.floor((e.clientY - canvas_pos.top) * scale_y) + 0.5;
-
     // setting different modes on different selected btns
     if (props.selected_btn.selected_btn_id === "text") {
       const font_size = 30;
@@ -87,8 +62,8 @@ export default function DrawCanvas(props: DrawCanvasProps) {
       // The HTML Canvas actualBoundingBoxAscent property of TextMetrics interface is a read-only method which returns a double value giving the distance from horizontal line indicated by the text baseline of CanvasRenderingContext2D interface context object to the "top" of the bounding rectangle box in which the text is rendered. The double value is given in CSS pixels.
       // The HTML Canvas actualBoundingBoxDescent property of TextMetrics interface is a read-only method which returns a double value giving the distance from horizontal line indicated by the text baseline of CanvasRenderingContext2D interface context object to the "bottom" of the bounding rectangle box in which the text is rendered. The double value is given in CSS pixels.
       const metrics = ctx.measureText(text.trim());
-      const top_left_x = current_x;
-      const top_left_y = current_y - metrics.actualBoundingBoxAscent;
+      const top_left_x = canvas.width / 2;
+      const top_left_y = canvas.height / 2 - metrics.actualBoundingBoxAscent;
       ctx.fillText(text.trim(), top_left_x, top_left_y);
 
       // push new curr-shape to shapes state
@@ -113,7 +88,43 @@ export default function DrawCanvas(props: DrawCanvasProps) {
       set_is_drawing(false);
       set_is_dragging(false);
       return;
-    } else if (props.selected_btn.selected_btn_id === "cursor") {
+    }
+  }, [props.selected_btn]);
+
+  useEffect(() => {
+    const canvas = canvas_ref.current;
+    if (!canvas) return;
+
+    // using 2d-canvas context
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    fix_dpi(canvas);
+
+    // set the pre-requisite values for canvas session
+    ctx.strokeStyle = canvas_styles.stroke_style;
+    ctx.fillStyle = canvas_styles.fill_style;
+  }, []);
+
+  function handle_mouse_down(e: React.MouseEvent<HTMLCanvasElement>) {
+    const canvas = canvas_ref.current;
+    if (!canvas) return;
+
+    // using 2d-canvas context
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    // When clicking on canvas element, the mouse event (e) gives coordinates relative to the entire browser viewport (the visible window area). However, the canvas needs coordinates relative to its own top-left corner (0, 0).
+    // The Element.getBoundingClientRect() method returns a position relative to the viewport.
+    const canvas_pos = canvas.getBoundingClientRect();
+
+    const scale_x = canvas.width / canvas_pos.width;
+    const scale_y = canvas.height / canvas_pos.height;
+
+    const current_x = Math.floor((e.clientX - canvas_pos.left) * scale_x) + 0.5;
+    const current_y = Math.floor((e.clientY - canvas_pos.top) * scale_y) + 0.5;
+
+    if (props.selected_btn.selected_btn_id === "cursor") {
       // unable user to drag existing shapes
       set_is_dragging(true);
       set_start_point({ x: current_x, y: current_y });

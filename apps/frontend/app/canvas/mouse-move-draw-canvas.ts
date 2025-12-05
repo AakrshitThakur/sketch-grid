@@ -16,19 +16,23 @@ interface Props {
 }
 
 export default function mouse_move_draw_canvas(props: Props) {
+  // mouse-down coordinate
   const start = { x: props.start_point.x, y: props.start_point.y };
+  // mouse-move coordinate
   const end = { x: props.end_point.x, y: props.end_point.y };
+
   switch (props.selected_btn_id) {
     case "circle": {
       const radius = Math.sqrt(Math.pow(end.x - start.x, 2) + Math.pow(end.y - start.y, 2));
       // A path = the shape you describe with drawing commands. It won’t appear until you stroke() or fill() it. Path2D lets you build a shape once and reuse it.
       // beginPath() -> Forget all previous lines and start fresh
       props.ctx.beginPath();
-      // print shape on canvas
+      // make circle 0(pi) to 2(pi)
       props.ctx.arc(start.x, start.y, radius, 0, 2 * Math.PI, false);
+      // stroke current path
       props.ctx.stroke();
 
-      // push box to global shapes array
+      // push circle to global shapes array
       props.handle_set_curr_shape({
         id: nanoid(),
         type: "circle",
@@ -38,9 +42,11 @@ export default function mouse_move_draw_canvas(props: Props) {
       break;
     }
     case "box": {
+      // set width & height
       const width = end.x - start.x;
       const height = end.y - start.y;
-      // print shape on canvas
+
+      // print box shape on canvas
       props.ctx.strokeRect(start.x, start.y, width, height);
 
       // push box to global shapes array
@@ -55,9 +61,9 @@ export default function mouse_move_draw_canvas(props: Props) {
     }
     case "arrow": {
       props.ctx.beginPath();
-      // print shape on canvas
       props.ctx.moveTo(start.x, start.y);
       props.ctx.lineTo(end.x, end.y);
+      // stroke current path
       props.ctx.stroke();
 
       // Math.atan2() static method returns the angle in the plane (in radians) between the positive x-axis and the ray from (0, 0) to the point (x, y), for Math.atan2(y, x).
@@ -78,9 +84,10 @@ export default function mouse_move_draw_canvas(props: Props) {
         end.x - head_length * Math.cos(angle + Math.PI / 6),
         end.y - head_length * Math.sin(angle + Math.PI / 6)
       );
+      // print current stroke
       props.ctx.stroke();
 
-      // push box to global shapes array
+      // push arrow to global shapes array
       props.handle_set_curr_shape({
         id: nanoid(),
         type: "arrow",
@@ -89,27 +96,6 @@ export default function mouse_move_draw_canvas(props: Props) {
           end: { x: end.x, y: end.y },
         },
       });
-      break;
-    }
-    case "pencil": {
-      props.ctx.beginPath();
-      // draw a tiny line
-      props.ctx.moveTo(start.x, start.y);
-      props.ctx.lineTo(end.x, end.y);
-      props.ctx.stroke();
-
-      // save points to global shapes
-      props.handle_set_curr_shape({
-        id: nanoid(),
-        type: "pencil",
-        points: [
-          {
-            from: { x: start.x, y: start.y },
-            to: { x: end.x, y: end.y },
-          },
-        ],
-      });
-      props.handle_set_start_point(end.x, end.y);
       break;
     }
     case "diamond": {
@@ -130,16 +116,7 @@ export default function mouse_move_draw_canvas(props: Props) {
       props.ctx.closePath();
       props.ctx.stroke();
 
-      // // set current shape being drawn
-      // props.handle_set_curr_shape({
-      //   id: nanoid(),
-      //   type: "diamond",
-      //   points: {
-      //     start: { x: start.x, y: start.y },
-      //     end: { x: end.x, y: end.y },
-      //   },
-      // });
-
+      // push diamond to global shapes state
       props.handle_set_curr_shape({
         id: nanoid(),
         type: "diamond",
@@ -150,10 +127,12 @@ export default function mouse_move_draw_canvas(props: Props) {
       break;
     }
     case "eraser": {
+      // iterate all shapes to check if mouse-move coordinate land inside the shape
       for (let shape of props.all_shapes.shapes) {
         switch (shape.type) {
           case "box": {
             const box_start = { x: shape.point.x, y: shape.point.y };
+            // checking if point lies inside the box
             if (
               end.x >= Math.min(box_start.x, box_start.x + shape.width) &&
               end.x <= Math.max(box_start.x, box_start.x + shape.width) &&
@@ -165,45 +144,22 @@ export default function mouse_move_draw_canvas(props: Props) {
             break;
           }
           case "circle": {
+            // checking if point lies inside the circle
             if (Math.pow(shape.center.x - end.x, 2) + Math.pow(shape.center.y - end.y, 2) <= Math.pow(shape.radius, 2)) {
               props.all_shapes.delete_shape_by_id(shape.id);
             }
             break;
           }
           case "arrow": {
-            // const point = { x: end.x, y: end.y };
-            // const A = { x: shape.points.start.x, y: shape.points.start.y };
-            // const B = { x: shape.points.end.x, y: shape.points.end.y };
-
-            // // Compute 2D cross product of vectors AP and AB.
-            // // if the result is 0 (or very close), then point P lies on the infinite line through A → B.
-            // // AP = (px - ax, py - ay) & AB = (bx - ax, by - ay)
-            // // cross = (AP.x * AB.y) - (AP.y * AB.x)
-            // const ux_vy = (point.x - A.x) * (B.y - A.y);
-            // const vx_uy = (point.y - A.y) * (B.x - A.x);
-            // const cross_product = ux_vy - vx_uy;
-
-            // // check if collinear (allowing small floating error)
-            // // something wrong with this, will debug it later
-            // if (Math.abs(cross_product) > 500) return;
-
-            // const within_x_min = point.x >= Math.min(A.x, B.x);
-            // const within_x_max = point.x <= Math.max(A.x, B.x);
-            // const within_y_min = point.y >= Math.min(A.y, B.y);
-            // const within_y_max = point.y <= Math.max(A.y, B.y);
-            // if (within_x_min && within_x_max && within_y_min && within_y_max) {
-            //   props.all_shapes.delete_shape_by_id(shape.id);
-            // }
-            // break;
-
             const line_start = { x: shape.points.start.x, y: shape.points.start.y };
             const line_end = { x: shape.points.end.x, y: shape.points.end.y };
 
+            props.ctx.lineWidth = 10;
             const line_segment = new Path2D();
             line_segment.moveTo(line_start.x, line_start.y);
             line_segment.lineTo(line_end.x, line_end.y);
-            line_segment.closePath();
 
+            // checking if point lies on the edge of arrow-line
             if (props.ctx.isPointInStroke(line_segment, end.x, end.y)) {
               props.all_shapes.delete_shape_by_id(shape.id);
             }
@@ -214,9 +170,9 @@ export default function mouse_move_draw_canvas(props: Props) {
             const end_text = { x: shape.points.end.x, y: shape.points.end.y };
 
             const box = new Path2D();
-            box.rect(start_text.x, start_text.y, end_text.x - start_text.x, end_text.y - start_text.y);
-            box.closePath();
+            box.rect(start_text.x, start_text.y, Math.abs(end_text.x - start_text.x), Math.abs(end_text.y - start_text.y));
 
+            // checking if point lies inside the text-box
             if (props.ctx.isPointInPath(box, end.x, end.y)) {
               props.all_shapes.delete_shape_by_id(shape.id);
             }
@@ -228,7 +184,7 @@ export default function mouse_move_draw_canvas(props: Props) {
             const height = shape.height;
             const width = shape.width;
 
-            // Make a diamond but do not print it on the canvas whiteboard
+            // make a diamond but do not print it on the canvas whiteboard
             const diamond = new Path2D();
             diamond.moveTo(center.x, center.y - height);
             diamond.lineTo(center.x + width, center.y);
@@ -236,6 +192,7 @@ export default function mouse_move_draw_canvas(props: Props) {
             diamond.lineTo(center.x - width, center.y);
             diamond.closePath();
 
+            // checking if point lies inside the diamond
             if (props.ctx.isPointInPath(diamond, end.x, end.y)) {
               props.all_shapes.delete_shape_by_id(shape.id);
             }

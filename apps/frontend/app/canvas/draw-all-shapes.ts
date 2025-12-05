@@ -50,7 +50,7 @@ export default function draw_all_shapes(shapes: Shapes, ctx: CanvasRenderingCont
       }
       case "text": {
         ctx.font = `${shape.font.font_size}px Cursive`;
-        ctx.strokeText(shape.text, shape.points.start.x, shape.points.start.y);
+        ctx.fillText(shape.text, shape.points.start.x, shape.points.start.y);
         break;
       }
       case "pencil": {
