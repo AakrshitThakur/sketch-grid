@@ -1,8 +1,6 @@
 import { Shapes } from "@/types/whiteboard.types";
 
 export default function draw_all_shapes(shapes: Shapes, ctx: CanvasRenderingContext2D) {
-  if (!shapes || !ctx) return;
-
   // iterating shapes global array
   shapes.forEach((shape) => {
     switch (shape.type) {
@@ -22,7 +20,7 @@ export default function draw_all_shapes(shapes: Shapes, ctx: CanvasRenderingCont
       }
       case "arrow": {
         ctx.beginPath();
-        // print shape on canvas
+        // draw line
         ctx.moveTo(shape.points.start.x, shape.points.start.y);
         ctx.lineTo(shape.points.end.x, shape.points.end.y);
         ctx.stroke();
@@ -53,21 +51,11 @@ export default function draw_all_shapes(shapes: Shapes, ctx: CanvasRenderingCont
         ctx.fillText(shape.text, shape.points.start.x, shape.points.start.y);
         break;
       }
-      case "pencil": {
-        // @ts-ignore
-        shape.points.forEach((p) => {
-          ctx.beginPath();
-          ctx.moveTo(p.from.x, p.from.y);
-          ctx.lineTo(p.to.x, p.to.y);
-          ctx.stroke();
-        });
-        break;
-      }
       case "diamond": {
         // find center of straight line forming from starting and ending coordinates
         const center = shape.center;
 
-        // calc width & height
+        // calculate width & height
         const width = shape.width;
         const height = shape.height;
 

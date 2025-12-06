@@ -4,6 +4,7 @@ import { nanoid } from "nanoid";
 import fix_dpi from "./fix_dpi";
 import mouse_move_draw_canvas from "./mouse-move-draw-canvas";
 import mouse_move_drag_canvas from "./mouse-move-drag-canvas";
+import mouse_move_hover_canvas from "./mouse-move-hover-canvas";
 import draw_all_shapes from "./draw-all-shapes";
 import type { Shape, Shapes } from "@/types/whiteboard.types";
 
@@ -28,7 +29,8 @@ export default function DrawCanvas(props: DrawCanvasProps) {
   const [is_drawing, set_is_drawing] = useState(false);
   const [is_dragging, set_is_dragging] = useState(false);
   const [curr_shape, set_curr_shape] = useState<Shape | null>(null);
-  const [canvas_styles, set_canvas_styles] = useState({
+  const [canvas_default_props, set_canvas_default_props] = useState({
+    line_width: 1.25,
     fill_style: "oklch(50% 0.15 30)",
     stroke_style: "oklch(50% 0.15 30)",
   });
@@ -51,6 +53,11 @@ export default function DrawCanvas(props: DrawCanvasProps) {
 
     // setting different modes on different selected btns
     if (props.selected_btn.selected_btn_id === "text") {
+      // setting canvas pre-requisites
+      ctx.lineWidth = canvas_default_props.line_width;
+      ctx.strokeStyle = canvas_default_props.stroke_style;
+      ctx.fillStyle = canvas_default_props.fill_style;
+
       const font_size = 30;
       const text = prompt("Enter text: ");
       if (!text) return;
@@ -102,8 +109,9 @@ export default function DrawCanvas(props: DrawCanvasProps) {
     fix_dpi(canvas);
 
     // set the pre-requisite values for canvas session
-    ctx.strokeStyle = canvas_styles.stroke_style;
-    ctx.fillStyle = canvas_styles.fill_style;
+    ctx.lineWidth = canvas_default_props.line_width;
+    ctx.strokeStyle = canvas_default_props.stroke_style;
+    ctx.fillStyle = canvas_default_props.fill_style;
   }, []);
 
   function handle_mouse_down(e: React.MouseEvent<HTMLCanvasElement>) {
@@ -137,13 +145,6 @@ export default function DrawCanvas(props: DrawCanvasProps) {
   }
 
   function handle_mouse_move(e: React.MouseEvent<HTMLCanvasElement>) {
-    if (!start_point || (!is_drawing && !is_dragging)) {
-      set_start_point(null);
-      set_curr_shape(null);
-      set_is_drawing(false);
-      return;
-    }
-
     const canvas = canvas_ref.current;
     if (!canvas) return;
 
@@ -152,15 +153,9 @@ export default function DrawCanvas(props: DrawCanvasProps) {
     if (!ctx) return;
 
     // setting canvas pre-requisites
-    ctx.lineWidth = 1.25;
-    ctx.strokeStyle = canvas_styles.stroke_style;
-
-    // clear canvas screen to avoid overlapping
-    if (props.selected_btn.selected_btn_id !== "pencil") {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      // re-drawing all the canvas-shapes
-      draw_all_shapes(props.all_shapes.shapes, ctx);
-    }
+    ctx.lineWidth = canvas_default_props.line_width;
+    ctx.strokeStyle = canvas_default_props.stroke_style;
+    ctx.fillStyle = canvas_default_props.fill_style;
 
     // When clicking on canvas element, the mouse event (e) gives coordinates relative to the entire browser viewport (the visible window area). However, the canvas needs coordinates relative to its own top-left corner (0, 0).
     // The Element.getBoundingClientRect() method returns a position relative to the viewport.
@@ -172,13 +167,34 @@ export default function DrawCanvas(props: DrawCanvasProps) {
     const end_x = Math.floor((e.clientX - canvas_pos.left) * scale_x) + 0.5;
     const end_y = Math.floor((e.clientY - canvas_pos.top) * scale_y) + 0.5;
 
+    mouse_move_hover_canvas({ end_point: { x: end_x, y: end_y }, all_shapes: { shapes: props.all_shapes.shapes }, ctx });
+
+    if (!start_point || (!is_drawing && !is_dragging)) {
+      set_start_point(null);
+      set_curr_shape(null);
+      set_is_drawing(false);
+      return;
+    }
+
+    // clear canvas screen to avoid overlapping
+    if (props.selected_btn.selected_btn_id !== "pencil") {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // setting canvas pre-requisites
+      ctx.lineWidth = canvas_default_props.line_width;
+      ctx.strokeStyle = canvas_default_props.stroke_style;
+      ctx.fillStyle = canvas_default_props.fill_style;
+
+      // re-drawing all the canvas-shapes
+      draw_all_shapes(props.all_shapes.shapes, ctx);
+    }
+
     // draw specific shape on mouse-move
     // drag specific shape
     if (is_dragging) {
       mouse_move_drag_canvas({
         start_point,
         end_point: { x: end_x, y: end_y },
-        is_dragging,
         all_shapes: props.all_shapes,
         handle_set_start_point,
         ctx,

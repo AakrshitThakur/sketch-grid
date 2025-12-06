@@ -12,6 +12,22 @@
   font-family: var(--playwrite-au-qld) "cursive" !important;
 }
 
+.move {
+  cursor: move;
+}
+.n-resize {
+  cursor: n-resize;
+}
+.e-resize {
+  cursor: e-resize;
+}
+.ne-resize{
+  cursor: ne-resize;
+}
+.nw-resize{
+  cursor: nw-resize;
+}
+
 /* override default toast mobile behaviour */
 @media only screen and (max-width: 480px) {
   .Toastify__toast-container .Toastify__toast {

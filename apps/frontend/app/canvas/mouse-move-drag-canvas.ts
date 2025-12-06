@@ -1,10 +1,15 @@
 import type { Point, Shapes, Shape } from "@/types/whiteboard.types";
-import mouse_move_draw_canvas from "./mouse-move-draw-canvas";
+import {
+  ARROW_DRAG_STROKE_WIDTH,
+  BOX_DRAG_STOKE_WIDTH,
+  CIRCLE_DRAG_STOKE_WIDTH,
+  DIAMOND_DRAG_STROKE_WIDTH,
+  TEXT_BOX_DRAG_STROKE_WIDTH,
+} from "@/constants/whiteboard.constants";
 
 interface Params {
   start_point: Point;
   end_point: Point;
-  is_dragging: boolean;
   all_shapes: {
     shapes: Shapes;
     push_new_curr_shape: (curr_shape: Shape) => void;
@@ -26,6 +31,8 @@ export default function mouse_move_drag_canvas(params: Params) {
         const box_start = { x: shape.point.x, y: shape.point.y };
         const box_width = shape.width;
         const box_height = shape.height;
+
+        params.ctx.lineWidth = BOX_DRAG_STOKE_WIDTH;
 
         // left-to-right line
         const left_to_right = new Path2D();
@@ -93,7 +100,7 @@ export default function mouse_move_drag_canvas(params: Params) {
         const center = shape.center;
         const radius = shape.radius;
 
-        params.ctx.lineWidth = 15;
+        params.ctx.lineWidth = CIRCLE_DRAG_STOKE_WIDTH;
 
         // creating 2 semi-circles for validations
         const first_half_circle = new Path2D();
@@ -104,7 +111,6 @@ export default function mouse_move_drag_canvas(params: Params) {
         // creating a full-circle to check if point lies inside the circle or not
         const circle = new Path2D();
         circle.arc(center.x, center.y, radius, 0, 2 * Math.PI, false);
-        params.ctx.stroke(circle);
 
         // checking where does the point lies inside or at the edge
         if (params.ctx.isPointInStroke(first_half_circle, start.x, start.y)) {
@@ -175,8 +181,9 @@ export default function mouse_move_drag_canvas(params: Params) {
         const line_start = { x: shape.points.start.x, y: shape.points.start.y };
         const line_end = { x: shape.points.end.x, y: shape.points.end.y };
 
+        params.ctx.lineWidth = ARROW_DRAG_STROKE_WIDTH;
+
         // make an identical line-segment for validations but not printing it
-        params.ctx.lineWidth = 15;
         const line_segment = new Path2D();
         line_segment.moveTo(line_start.x, line_start.y);
         line_segment.lineTo(line_end.x, line_end.y);
@@ -190,15 +197,15 @@ export default function mouse_move_drag_canvas(params: Params) {
               end: { x: shape.points.end.x + (end.x - start.x), y: shape.points.end.y + (end.y - start.y) },
             },
           });
-          params.handle_set_start_point(end.x, end.y);
         }
+        params.handle_set_start_point(end.x, end.y);
         break;
       }
       case "text": {
         const start_text = { x: shape.points.start.x, y: shape.points.start.y };
         const end_text = { x: shape.points.end.x, y: shape.points.end.y };
 
-        params.ctx.lineWidth = 15;
+        params.ctx.lineWidth = TEXT_BOX_DRAG_STROKE_WIDTH;
 
         // box to check if point lies inside the text-box
         const box = new Path2D();
@@ -358,7 +365,7 @@ export default function mouse_move_drag_canvas(params: Params) {
         const width = shape.width;
         const height = shape.height;
 
-        params.ctx.lineWidth = 10;
+        params.ctx.lineWidth = DIAMOND_DRAG_STROKE_WIDTH;
 
         // right-diamond to check if point lies on the right edges of diamond
         const right_diamond = new Path2D();
@@ -366,7 +373,7 @@ export default function mouse_move_drag_canvas(params: Params) {
         right_diamond.lineTo(center.x + width, center.y);
         right_diamond.lineTo(center.x, center.y + height);
 
-        // right-diamond to check if point lies on the right edges of diamond
+        // left-diamond to check if point lies on the left edges of diamond
         const left_diamond = new Path2D();
         left_diamond.moveTo(center.x, center.y + height);
         left_diamond.lineTo(center.x - width, center.y);
@@ -379,7 +386,6 @@ export default function mouse_move_drag_canvas(params: Params) {
         diamond.lineTo(center.x, center.y + height);
         diamond.lineTo(center.x - width, center.y);
         diamond.closePath();
-        params.ctx.stroke(left_diamond);
 
         if (params.ctx.isPointInStroke(right_diamond, start.x, start.y)) {
           // point lies on the right-hand-side edges of diamond
