@@ -1,11 +1,14 @@
 import WebSocket, { WebSocketServer } from "ws";
 import jsonwebtoken from "jsonwebtoken";
+import dotenv from "dotenv";
 import { user_conns } from "./states/user.states.js";
 import { JWT_SECRET } from "@repo/configs/index";
 import { join_room, leave_room } from "./sockets/room.socket.js";
 import { draw } from "./sockets/draw.socket.js";
 import { send_ws_response } from "./utils/websocket.utils.js";
 import { catch_general_exception } from "./utils/exceptions.utils.js";
+
+dotenv.config();
 
 interface DecodedPayload {
   id: string;
@@ -28,7 +31,12 @@ async function verify_jwt(jwt: string): Promise<string> {
   });
 }
 
-const wss = new WebSocketServer({ port: 5001 });
+const PORT = parseInt(process.env.PORT || "3002");
+
+const wss = new WebSocketServer({ port: PORT });
+
+wss.on("error", (error) => console.error("WebSocket server error:", error.message));
+if (wss) console.info("WebSocket server is successfully running on port:", PORT);
 
 wss.on("connection", async function connection(ws, req) {
   try {
@@ -45,35 +53,7 @@ wss.on("connection", async function connection(ws, req) {
     const jwt = search_params.get("jwt");
 
     // get user-id from parsed jwt
-    let user_id = "";
-
-    // check jwt
-    verify_jwt(jwt || "")
-      .then((s: string) => {
-        user_id = s;
-      })
-      .catch((e: string) => {
-        console.error(e);
-        send_ws_response({ status: "error", message: e, payload: null }, ws);
-        ws.close();
-        return;
-      });
-
-    // cookie logic if needed in future
-    // const cookies = req.headers.cookie;
-    // if (!cookies) {
-    //   send_ws_response({ status: "error", message: "JWT token not found", payload: null }, ws);
-    //   ws.close();
-    //   return;
-    // }
-    // // Object.fromEntries() method is used to transform a list of key-value pairs (like an array or map) into an object
-    // const cookies_obj = Object.fromEntries(cookies.split("; ").map((c) => c.split("=")));
-
-    // // jwt verification failed - close connection
-    // if (!user_id) {
-    //   ws.close();
-    //   return;
-    // }
+    const user_id = await verify_jwt(jwt || "");
 
     console.info("New client successfully connected to web-socket server");
 

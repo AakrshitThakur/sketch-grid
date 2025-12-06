@@ -6,7 +6,7 @@ import { send_ws_response } from "../utils/websocket.utils.js";
 
 interface UserConnsState {
   [key: string]: {
-    rooms: string[];
+    room: string | null;
     ws: WebSocket;
   };
 }
@@ -30,7 +30,7 @@ const user_conns: UserConns = {
   user_conns_state: {},
   push_new_user(ws: WebSocket) {
     const user_id = nanoid();
-    this.user_conns_state[user_id] = { rooms: [], ws };
+    this.user_conns_state[user_id] = { room: null, ws };
     // assign new unique value to user_id
     return user_id;
   },
@@ -48,7 +48,7 @@ const user_conns: UserConns = {
     }
 
     // check if user already joined the room
-    if (user_conn_details.rooms.includes(params.room_id)) {
+    if (user_conn_details.room === params.room_id) {
       send_ws_response<null>({ status: "error", message: "User already joined the room", payload: null }, params.ws);
       return false;
     }
@@ -61,7 +61,7 @@ const user_conns: UserConns = {
     }
 
     // connect user to specific room
-    user_conn_details.rooms.push(params.room_id);
+    user_conn_details.room = params.room_id;
 
     // success
     send_ws_response(
@@ -84,13 +84,13 @@ const user_conns: UserConns = {
     }
 
     // check if user already joined the room
-    if (!user_conn_details.rooms.includes(params.room_id)) {
+    if (user_conn_details.room !== params.room_id) {
       send_ws_response({ status: "error", message: `Room with ID ${params.room_id} not found`, payload: null }, params.ws);
       return false;
     }
 
     // leave specific room
-    user_conn_details.rooms = user_conn_details.rooms.filter((r) => r !== params.room_id);
+    user_conn_details.room = null;
 
     // success
     send_ws_response<null>(
