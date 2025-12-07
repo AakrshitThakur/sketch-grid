@@ -4,7 +4,7 @@ import dotenv from "dotenv";
 import { user_conns } from "./states/user.states.js";
 import { JWT_SECRET } from "@repo/configs/index";
 import { join_room, leave_room } from "./sockets/room.socket.js";
-import { draw } from "./sockets/draw.socket.js";
+import { create_shape, delete_shape } from "./sockets/shape.socket.js";
 import { send_ws_response } from "./utils/websocket.utils.js";
 import { catch_general_exception } from "./utils/exceptions.utils.js";
 
@@ -53,15 +53,13 @@ wss.on("connection", async function connection(ws, req) {
     const jwt = search_params.get("jwt");
 
     // get user-id from parsed jwt
-    const user_id = await verify_jwt(jwt || "");
+    ws.user_id = await verify_jwt(jwt || "");
 
     console.info("New client successfully connected to web-socket server");
 
     // push user to global conn state
     // store user-id for message event
     ws.id = user_conns.push_new_user(ws);
-
-    console.info(user_conns);
 
     // on-message event
     ws.on("message", async function incoming(message) {
@@ -77,8 +75,12 @@ wss.on("connection", async function connection(ws, req) {
           await leave_room(parsed_message.payload.room_id, ws);
           console.info(user_conns.user_conns_state);
           return;
-        } else if (parsed_message.type === "draw") {
-          // await draw(parsed_message.payload.room_id, ws);
+        } else if (parsed_message.type === "create-shape") {
+          await create_shape(parsed_message.payload, ws);
+          console.info(user_conns.user_conns_state);
+          return;
+        } else if (parsed_message.type === "delete-shape") {
+          await delete_shape(parsed_message.payload, ws);
           console.info(user_conns.user_conns_state);
           return;
         }

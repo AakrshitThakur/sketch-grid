@@ -1,0 +1,29 @@
+{
+  "join-room": {
+    "type": "join-room",
+    "payload": {
+      "room_id": "room-id"
+    }
+  },
+  "leave-room": {
+    "type": "leave-room",
+    "payload": {
+      "room_id": "room-id"
+    }
+  },
+  "create-shape": {
+    "type": "create-shape",
+    "payload": {
+      "id": "shape-id",
+      "type": "circle",
+      "center": { "x": 235, "y": 355 },
+      "radius": 50
+    }
+  },
+  "delete-shape": {
+    "type": "delete-shape",
+    "payload": {
+      "shape_id": "shape-id"
+    }
+  }
+}
