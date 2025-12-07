@@ -19,7 +19,6 @@ model User {
   email      String     @unique
   password   String
   rooms      Room[]
-  geometries Geometry[]
 }
 
 model Room {
@@ -29,20 +28,12 @@ model Room {
   createdAt  DateTime   @default(now())
   admin_id   String
   admin      User       @relation(fields: [admin_id], references: [id])
-  geometries Geometry[]
+  shapes Shape[]
 }
 
-enum Type {
-  BOX
-  CIRCLE
-}
-
-model Geometry {
-  id       Int    @id @default(autoincrement())
-  type     Type   @default(BOX)
+model Shape {
+  id       String    @id @default(uuid())
   data     Json
   room_id  String
   room     Room   @relation(fields: [room_id], references: [id])
-  admin_id String
-  admin    User   @relation(fields: [admin_id], references: [id])
 }
