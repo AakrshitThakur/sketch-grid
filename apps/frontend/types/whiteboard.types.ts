@@ -44,10 +44,6 @@ interface TextShape extends BaseShape {
 
 interface DiamondShape extends BaseShape {
   type: "diamond";
-  // points: {
-  //   start: Point;
-  //   end: Point;
-  // };
   center: Point;
   width: number;
   height: number;
