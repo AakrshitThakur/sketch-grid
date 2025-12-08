@@ -25,5 +25,9 @@
     "payload": {
       "shape_id": "shape-id"
     }
+  },
+  "get-all-shapes": {
+    "type": "get-all-shapes",
+    "payload": null
   }
 }

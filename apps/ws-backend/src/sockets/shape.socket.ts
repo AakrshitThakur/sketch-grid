@@ -99,6 +99,7 @@ async function delete_shape(payload: { shape_id: string }, ws: WebSocket) {
     const deleted_shape = await prisma_client.shape.delete({
       where: {
         id: payload.shape_id,
+        room_id: user_conn_details.room,
       },
     });
 
@@ -122,4 +123,54 @@ async function delete_shape(payload: { shape_id: string }, ws: WebSocket) {
   }
 }
 
-export { create_shape, delete_shape };
+// function to get all shapes of a specific room
+async function get_all_shapes(ws: WebSocket) {
+  try {
+    if (!ws.id) {
+      send_ws_response<null>({ status: "error", message: "User not found", payload: null }, ws);
+      return false;
+    }
+
+    // get user ws:conn details
+    const user_conn_details = user_conns.user_conns_state[ws.id];
+    if (!user_conn_details) {
+      send_ws_response<null>({ status: "error", message: "User not found", payload: null }, ws);
+      return false;
+    }
+
+    // check if user already joined the room
+    if (!user_conn_details.room) {
+      send_ws_response<null>({ status: "error", message: "User has not yet joined the room", payload: null }, ws);
+      return false;
+    }
+
+    // check existence of room
+    const room_obj = await get_room_record({ id: user_conn_details.room });
+    if (room_obj.status === "error") {
+      send_ws_response({ status: "error", message: `Room with ID: ${user_conn_details.room} not found`, payload: null }, ws);
+      return false;
+    }
+
+    // get all shapes of a specific room
+    const all_shapes_obj = await get_shape_records({ room_id: user_conn_details.room });
+    if (all_shapes_obj.status === "error") {
+      send_ws_response(
+        { status: "error", message: `Shapes of Room ID: ${user_conn_details.room} not found`, payload: null },
+        ws
+      );
+      return false;
+    }
+
+    // success
+    send_ws_response(
+      { status: "success", message: "All Shapes received successfully", payload: all_shapes_obj.payload },
+      ws
+    );
+    return true;
+  } catch (error) {
+    catch_general_exception(error, ws);
+    return;
+  }
+}
+
+export { create_shape, delete_shape, get_all_shapes };

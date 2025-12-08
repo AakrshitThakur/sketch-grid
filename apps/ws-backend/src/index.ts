@@ -4,7 +4,7 @@ import dotenv from "dotenv";
 import { user_conns } from "./states/user.states.js";
 import { JWT_SECRET } from "@repo/configs/index";
 import { join_room, leave_room } from "./sockets/room.socket.js";
-import { create_shape, delete_shape } from "./sockets/shape.socket.js";
+import { create_shape, delete_shape, get_all_shapes } from "./sockets/shape.socket.js";
 import { send_ws_response } from "./utils/websocket.utils.js";
 import { catch_general_exception } from "./utils/exceptions.utils.js";
 
@@ -68,19 +68,28 @@ wss.on("connection", async function connection(ws, req) {
         const parsed_message = JSON.parse(message.toString());
 
         if (parsed_message.type === "join-room") {
+          // join a new room
           await join_room(parsed_message.payload.room_id, ws);
           console.info(user_conns.user_conns_state);
           return;
         } else if (parsed_message.type === "leave-room") {
+          // leave a room
           await leave_room(parsed_message.payload.room_id, ws);
           console.info(user_conns.user_conns_state);
           return;
         } else if (parsed_message.type === "create-shape") {
+          // create a new shape
           await create_shape(parsed_message.payload, ws);
           console.info(user_conns.user_conns_state);
           return;
         } else if (parsed_message.type === "delete-shape") {
+          // delete a shape
           await delete_shape(parsed_message.payload, ws);
+          console.info(user_conns.user_conns_state);
+          return;
+        } else if (parsed_message.type === "get-all-shapes") {
+          // get all the shapes of specific room
+          await get_all_shapes(ws);
           console.info(user_conns.user_conns_state);
           return;
         }
