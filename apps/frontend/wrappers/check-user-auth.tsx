@@ -1,3 +1,4 @@
+"use client";
 import type { ReactNode } from "react";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
@@ -30,17 +31,21 @@ export default function CheckUserAuth({ children }: { children: ReactNode }) {
   const router = useRouter();
 
   // custom use-fetch hook
-  const { data, error, loading } = useFetch<{ message: string }>(call_api);
+  const { data, error, loading } = useFetch<{ message: string; jwt: string }>(call_api);
 
   // check values from use-fetch hook
   useEffect(() => {
     if (error) {
+      // set "jwt" key's value to an empty-string in local-storage (client-side)
+      localStorage.setItem("jwt", "");
       error_notification(error);
       router.push("/auth/signin");
     }
   }, [data, error]);
 
   if (!loading && data) {
+    // set "jwt" key and it's value in local-storage (client-side)
+    localStorage.setItem("jwt", data.jwt);
     return children;
   } else {
     return <Loading size="lg" />;

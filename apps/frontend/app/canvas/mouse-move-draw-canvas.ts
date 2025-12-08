@@ -1,5 +1,5 @@
 import { nanoid } from "nanoid";
-import type { Shape, Shapes } from "@/types/whiteboard.types";
+import type { Shape, Shapes } from "@repo/types/index";
 
 interface Props {
   selected_btn_id: string | null;

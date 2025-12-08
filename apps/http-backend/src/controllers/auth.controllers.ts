@@ -133,7 +133,7 @@ async function is_user_authenticated_controller(req: Request, res: Response) {
 
     // id not-found
     if (!user_credentials) {
-      res.status(401).json({ message: "Please sign in or create an account to continue" });
+      res.status(401).json({ message: "Please sign in or create an account to continue", jwt: "" });
       return;
     }
 
@@ -146,12 +146,31 @@ async function is_user_authenticated_controller(req: Request, res: Response) {
       return;
     }
 
+    // get all cookie
+    // Cookie: jwt=jwt_string; other=other_string;
+    const cookies = req.headers.cookie;
+
+    if (!cookies) {
+      res.status(401).json({ message: "Please sign in or create an account to continue", jwt: "" });
+      return;
+    }
+
+    // Object.fromEntries() method is used to transform a list of key-value pairs (like an array or map) into an object
+    const cookies_obj = Object.fromEntries(cookies.split("; ").map((c) => c.split("=")));
+
+    // get jwt
+    const jwt = cookies_obj.jwt;
+    if (!jwt) {
+      res.status(401).json({ message: "Please sign in or create an account to continue", jwt: "" });
+      return;
+    }
+
     // success
-    res.status(200).json({ message: "User is authenticated" });
+    res.status(200).json({ message: "User is authenticated", jwt });
     return;
   } catch (error) {
     const { status_code, message } = catch_general_exception(error as Error);
-    res.status(status_code).json({ message });
+    res.status(status_code).json({ message, jwt: "" });
     return;
   }
 }

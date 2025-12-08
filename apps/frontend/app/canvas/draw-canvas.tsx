@@ -6,7 +6,7 @@ import mouse_move_draw_canvas from "./mouse-move-draw-canvas";
 import mouse_move_drag_canvas from "./mouse-move-drag-canvas";
 import mouse_move_hover_canvas from "./mouse-move-hover-canvas";
 import draw_all_shapes from "./draw-all-shapes";
-import type { Shape, Shapes } from "@/types/whiteboard.types";
+import type { Shape, Shapes } from "@repo/types/index";
 
 interface DrawCanvasProps {
   selected_btn: {

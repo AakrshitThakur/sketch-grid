@@ -1,4 +1,4 @@
-import { Shapes } from "@/types/whiteboard.types";
+import type { Shapes } from "@repo/types/index";
 
 export default function draw_all_shapes(shapes: Shapes, ctx: CanvasRenderingContext2D) {
   // iterating shapes global array

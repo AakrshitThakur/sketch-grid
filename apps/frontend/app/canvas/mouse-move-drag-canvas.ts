@@ -1,4 +1,4 @@
-import type { Point, Shapes, Shape } from "@/types/whiteboard.types";
+import type { Point, Shapes, Shape } from "@repo/types/index";
 import {
   ARROW_DRAG_STROKE_WIDTH,
   BOX_DRAG_STOKE_WIDTH,

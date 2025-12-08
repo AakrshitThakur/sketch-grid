@@ -1,6 +1,5 @@
 "use client";
-import type { Point, Shapes } from "@/types/whiteboard.types";
-import mouse_move_draw_canvas from "./mouse-move-draw-canvas";
+import type { Point, Shapes } from "@repo/types/index";
 import {
   ARROW_DRAG_STROKE_WIDTH,
   BOX_DRAG_STOKE_WIDTH,
