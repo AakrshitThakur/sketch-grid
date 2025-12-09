@@ -43,7 +43,7 @@ wss.on("connection", async function connection(ws, req) {
     // get web-socket url
     const url = req.url;
     if (!url) {
-      send_ws_response({ status: "error", message: "Invalid web-socket url", payload: null }, ws);
+      send_ws_response({ status: "error", type: "auth", message: "Invalid web-socket url", payload: null }, ws);
       ws.close();
       return;
     }
@@ -70,33 +70,33 @@ wss.on("connection", async function connection(ws, req) {
         if (parsed_message.type === "join-room") {
           // join a new room
           await join_room(parsed_message.payload.room_id, ws);
-          console.info(user_conns.user_conns_state);
+          console.info(Object.entries(user_conns.user_conns_state));
           return;
         } else if (parsed_message.type === "leave-room") {
           // leave a room
           await leave_room(parsed_message.payload.room_id, ws);
-          console.info(user_conns.user_conns_state);
+          console.info(Object.entries(user_conns.user_conns_state));
           return;
         } else if (parsed_message.type === "create-shape") {
           // create a new shape
           await create_shape(parsed_message.payload, ws);
-          console.info(user_conns.user_conns_state);
+          console.info(Object.entries(user_conns.user_conns_state));
           return;
         } else if (parsed_message.type === "delete-shape") {
           // delete a shape
           await delete_shape(parsed_message.payload, ws);
-          console.info(user_conns.user_conns_state);
+          console.info(Object.entries(user_conns.user_conns_state));
           return;
         } else if (parsed_message.type === "get-all-shapes") {
           // get all the shapes of specific room
           await get_all_shapes(ws);
-          console.info(user_conns.user_conns_state);
+          console.info(Object.entries(user_conns.user_conns_state));
           return;
         }
 
         // invalid incoming message type
         send_ws_response<null>(
-          { status: "error", message: "Please provide a valid incoming message type", payload: null },
+          { status: "error", type: "others", message: "Please provide a valid incoming message type", payload: null },
           ws
         );
       } catch (error) {
@@ -106,7 +106,17 @@ wss.on("connection", async function connection(ws, req) {
     });
 
     // on-close event
-    ws.on("close", () => console.info(`The client with ID (${ws.id}) has disconnected from the web-socket server.`));
+    ws.on("close", () => {
+      // delete user details in global user-state
+      const check_deletion = delete user_conns.user_conns_state[ws.id || ""];
+      // error
+      if (!check_deletion) {
+        console.error(`The client with ID (${ws.id}) not found in the global user-state.`);
+        return;
+      }
+      // success
+      console.info(`The client with ID (${ws.id}) has disconnected from the web-socket server.`);
+    });
   } catch (error) {
     catch_general_exception(error, ws);
     return;

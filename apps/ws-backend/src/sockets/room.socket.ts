@@ -5,7 +5,7 @@ import { send_ws_response } from "../utils/websocket.utils.js";
 // @params -> room_id to join to & ws: WebSocket instance of connected user
 async function join_room(room_id: string, ws: WebSocket) {
   if (!ws.id) {
-    send_ws_response<null>({ status: "error", message: "User not found", payload: null }, ws);
+    send_ws_response<null>({ status: "error", type: "join-room", message: "User not found", payload: null }, ws);
     return false;
   }
 
@@ -20,7 +20,7 @@ async function join_room(room_id: string, ws: WebSocket) {
 // @params -> room_id to leave to & ws: WebSocket instance of connected user
 async function leave_room(room_id: string, ws: WebSocket) {
   if (!ws.id) {
-    send_ws_response<null>({ status: "error", message: "User not found", payload: null }, ws);
+    send_ws_response<null>({ status: "error", type: "leave-room", message: "User not found", payload: null }, ws);
     return false;
   }
 

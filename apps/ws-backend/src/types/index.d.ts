@@ -1,15 +1,11 @@
+
+type WebSocketResponseType = "join-room" | "leave-room" | "create-shape" | "delete-shape" | "get-all-shapes" | "auth" | "others";
+
 interface WebSocketResponse<T> {
   status: "success" | "error";
+  type: WebSocketResponseType;
   message: string;
   payload: T;
 }
 
-type Point = { x: number; y: number };
-
-type GeometryData = {
-  type: "BOX" | "CIRCLE";
-  points?: Point[];
-  radius?: number;
-};
-
-export type { WebSocketResponse, GeometryData };
+export type { WebSocketResponse, WebSocketResponseType };

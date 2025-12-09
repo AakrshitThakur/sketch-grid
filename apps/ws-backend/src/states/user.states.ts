@@ -35,28 +35,32 @@ const user_conns: UserConns = {
     return user_id;
   },
   async join_room(params: JoinRoomParams) {
+    const type = "join-room";
     if (!params.ws.id) {
-      send_ws_response<null>({ status: "error", message: "User not found", payload: null }, params.ws);
+      send_ws_response<null>({ status: "error", type, message: "User not found", payload: null }, params.ws);
       return false;
     }
 
     // get user ws:conn details
     const user_conn_details = this.user_conns_state[params.ws.id];
     if (!user_conn_details) {
-      send_ws_response<null>({ status: "error", message: "User not found", payload: null }, params.ws);
+      send_ws_response<null>({ status: "error", type, message: "User not found", payload: null }, params.ws);
       return false;
     }
 
     // check if user already joined the room
     if (user_conn_details.room === params.room_id) {
-      send_ws_response<null>({ status: "error", message: "User already joined the room", payload: null }, params.ws);
+      send_ws_response<null>({ status: "error", type, message: "User already joined the room", payload: null }, params.ws);
       return false;
     }
 
-    // check existance of room
+    // check existence of room
     const room_obj = await get_room_record({ id: params.room_id });
     if (room_obj.status === "error") {
-      send_ws_response({ status: "error", message: `Room with ID ${params.room_id} not found`, payload: null }, params.ws);
+      send_ws_response(
+        { status: "error", type, message: `Room with ID ${params.room_id} not found`, payload: null },
+        params.ws
+      );
       return false;
     }
 
@@ -65,27 +69,31 @@ const user_conns: UserConns = {
 
     // success
     send_ws_response(
-      { status: "success", message: `User has successfully joined the room (ID: ${params.room_id})`, payload: null },
+      { status: "success", type, message: `User has successfully joined the room (ID: ${params.room_id})`, payload: null },
       params.ws
     );
     return true;
   },
   async leave_room(params: LeaveRoomParams) {
+    const type = "leave-room";
     if (!params.ws.id) {
-      send_ws_response<null>({ status: "error", message: "User not found", payload: null }, params.ws);
+      send_ws_response<null>({ status: "error", type, message: "User not found", payload: null }, params.ws);
       return false;
     }
 
     // get user ws:conn details
     const user_conn_details = this.user_conns_state[params.ws.id];
     if (!user_conn_details) {
-      send_ws_response<null>({ status: "error", message: "User not found", payload: null }, params.ws);
+      send_ws_response<null>({ status: "error", type, message: "User not found", payload: null }, params.ws);
       return false;
     }
 
     // check if user already joined the room
     if (user_conn_details.room !== params.room_id) {
-      send_ws_response({ status: "error", message: `Room with ID ${params.room_id} not found`, payload: null }, params.ws);
+      send_ws_response(
+        { status: "error", type, message: `Room with ID ${params.room_id} not found`, payload: null },
+        params.ws
+      );
       return false;
     }
 
@@ -94,7 +102,7 @@ const user_conns: UserConns = {
 
     // success
     send_ws_response<null>(
-      { status: "error", message: `User has successfully left the room (ID: ${params.room_id})`, payload: null },
+      { status: "error", type, message: `User has successfully left the room (ID: ${params.room_id})`, payload: null },
       params.ws
     );
     return true;
