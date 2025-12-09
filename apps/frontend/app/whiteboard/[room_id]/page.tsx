@@ -1,9 +1,10 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, use } from "react";
 import CheckUserAuth from "@/wrappers/check-user-auth";
-import BtnDrawCanvas from "../canvas/btn-draw-canvas";
-import DrawCanvas from "../canvas/draw-canvas";
+import BtnDrawCanvas from "@/app/canvas/btn-draw-canvas";
+import DrawCanvas from "@/app/canvas/draw-canvas";
 import { Heading } from "@repo/ui/index";
+import { send_ws_request } from "@/utils/send-ws-request.utils";
 import { success_notification, error_notification } from "@/utils/toast.utils";
 // icons
 import { SiGoogleclassroom } from "react-icons/si";
@@ -37,7 +38,10 @@ const BTNS_CANVAS = [
   { id: "eraser", icon: <BsEraserFill className="w-full h-full" /> },
 ];
 
-export default function Draw() {
+export default function Draw({ params }: { params: Promise<{ room_id: string }> }) {
+  // get room_id from dynamic route
+  const { room_id } = use(params);
+
   // canvas-btn related states
   const [selected_btn_id, set_selected_btn_id] = useState<string | null>(null);
   const [shapes, set_shapes] = useState<Shapes>([]);
@@ -50,6 +54,7 @@ export default function Draw() {
     if (!jwt) return;
     if (!WS_BACKEND_BASE_URL) return;
 
+    // connect WebSocket client to WebSocket server
     const ws = new WebSocket(`${WS_BACKEND_BASE_URL}?jwt=${jwt}`);
 
     // The open event is fired when a connection with a WebSocket is opened
@@ -63,31 +68,35 @@ export default function Draw() {
     ws.onclose = () => console.info("Connection with WebSocket server terminated");
     // listen messages coming from WebSocket server
     ws.onmessage = (event) => {
-      console.info(event.data);
+      // parse json-stringified response
+      const parsed_response = JSON.parse(event.data);
+
+      if (!ws) return;
+
+      switch (parsed_response.type) {
+        case "join-room": {
+          if (parsed_response.status === "error") {
+            console.error(parsed_response.message as string);
+            error_notification(parsed_response.message as string);
+            return;
+          }
+          // get all shapes of a specific room
+          send_ws_request({ type: "get-all-shapes", payload: null }, ws);
+          break;
+        }
+        case "get-all-shapes": {
+          console.info(event.data);
+        }
+      }
     };
   }, []);
 
-  // send message on successfully intializing web-socket instance
+  // send message on successfully initializing web-socket instance
   useEffect(() => {
     if (!web_socket) return;
-
     // WebSocket.send() method enqueues the specified data to be transmitted to the server over the WebSocket connection
     // join specific room
-    web_socket.send(
-      JSON.stringify({
-        type: "join-room",
-        payload: {
-          room_id: "shape_id",
-        },
-      })
-    );
-    // get all shapes of a specific room
-    web_socket.send(
-      JSON.stringify({
-        type: "get-all-shapes",
-        payload: null,
-      })
-    );
+    send_ws_request({ type: "join-room", payload: { room_id } }, web_socket);
   }, [web_socket]);
 
   function handle_set_selected_btn_id(id: string | null) {
