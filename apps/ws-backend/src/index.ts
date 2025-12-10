@@ -1,10 +1,10 @@
-import WebSocket, { WebSocketServer } from "ws";
+import { WebSocketServer } from "ws";
 import jsonwebtoken from "jsonwebtoken";
 import dotenv from "dotenv";
 import { user_conns } from "./states/user.states.js";
 import { JWT_SECRET } from "@repo/configs/index";
 import { join_room, leave_room } from "./sockets/room.socket.js";
-import { create_shape, delete_shape, get_all_shapes } from "./sockets/shape.socket.js";
+import { alter_shape, create_shape, delete_shape, get_all_shapes } from "./sockets/shape.socket.js";
 import { send_ws_response } from "./utils/websocket.utils.js";
 import { catch_general_exception } from "./utils/exceptions.utils.js";
 
@@ -14,7 +14,10 @@ interface DecodedPayload {
   id: string;
 }
 
-// verifing provided jwt
+// Validate the user_id to avoid multiple concurrent connections by the same user
+const user_ids: { [key: string]: boolean } = {};
+
+// verifying provided jwt
 async function verify_jwt(jwt: string): Promise<string> {
   return new Promise((resolve, reject) => {
     jsonwebtoken.verify(jwt, JWT_SECRET, (error: any, decoded_payload: unknown) => {
@@ -31,10 +34,12 @@ async function verify_jwt(jwt: string): Promise<string> {
   });
 }
 
+// get web-socket port
 const PORT = parseInt(process.env.PORT || "3002");
 
 const wss = new WebSocketServer({ port: PORT });
 
+// error intializing web-socket server
 wss.on("error", (error) => console.error("WebSocket server error:", error.message));
 if (wss) console.info("WebSocket server is successfully running on port:", PORT);
 
@@ -54,6 +59,18 @@ wss.on("connection", async function connection(ws, req) {
 
     // get user-id from parsed jwt
     ws.user_id = await verify_jwt(jwt || "");
+
+    // checking if same user has already connected to web-socket server
+    if (user_ids[ws.user_id]) {
+      // error
+      const msg = "The user is already connected to the WebSocket server";
+      send_ws_response({ status: "error", type: "auth", message: msg, payload: null }, ws);
+      ws.close();
+      return;
+    }
+
+    // add user-id to users_ids global state
+    user_ids[ws.user_id] = true;
 
     console.info("New client successfully connected to web-socket server");
 
@@ -87,6 +104,11 @@ wss.on("connection", async function connection(ws, req) {
           await delete_shape(parsed_message.payload, ws);
           console.info(Object.entries(user_conns.user_conns_state));
           return;
+        } else if (parsed_message.type === "alter-shape") {
+          // delete a shape
+          await alter_shape(parsed_message.payload, ws);
+          console.info(Object.entries(user_conns.user_conns_state));
+          return;
         } else if (parsed_message.type === "get-all-shapes") {
           // get all the shapes of specific room
           await get_all_shapes(ws);
@@ -95,10 +117,9 @@ wss.on("connection", async function connection(ws, req) {
         }
 
         // invalid incoming message type
-        send_ws_response<null>(
-          { status: "error", type: "others", message: "Please provide a valid incoming message type", payload: null },
-          ws
-        );
+        const msg = "Please provide a valid incoming message type";
+        console.error(msg);
+        send_ws_response<null>({ status: "error", type: "others", message: msg, payload: null }, ws);
       } catch (error) {
         catch_general_exception(error, ws);
         return;
@@ -107,15 +128,24 @@ wss.on("connection", async function connection(ws, req) {
 
     // on-close event
     ws.on("close", () => {
-      // delete user details in global user-state
-      const check_deletion = delete user_conns.user_conns_state[ws.id || ""];
+      // delete user-id from user_ids global state
+      const check_user_id_deletion = delete user_ids[ws.user_id || ""];
       // error
-      if (!check_deletion) {
-        console.error(`The client with ID (${ws.id}) not found in the global user-state.`);
-        return;
+      if (!check_user_id_deletion) {
+        console.error(`The client with auth ID (${ws.user_id}) not found in the global user-ids state.`);
       }
+
+      // delete user details in global user-conns-state
+      const check_user_conns_state_deletion = delete user_conns.user_conns_state[ws.id || ""];
+      // error
+      if (!check_user_conns_state_deletion) {
+        console.error(`The client with ID (${ws.id}) not found in the global user-state.`);
+      }
+
       // success
-      console.info(`The client with ID (${ws.id}) has disconnected from the web-socket server.`);
+      const msg = `The client with ID (${ws.id}) has disconnected from the web-socket server.`;
+      console.info(msg);
+      send_ws_response<null>({ status: "info", type: "others", message: msg, payload: null }, ws);
     });
   } catch (error) {
     catch_general_exception(error, ws);

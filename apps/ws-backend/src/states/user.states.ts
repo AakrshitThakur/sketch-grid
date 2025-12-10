@@ -36,31 +36,39 @@ const user_conns: UserConns = {
   },
   async join_room(params: JoinRoomParams) {
     const type = "join-room";
+    let msg = "";
+
+    // user not-found
     if (!params.ws.id) {
-      send_ws_response<null>({ status: "error", type, message: "User not found", payload: null }, params.ws);
+      msg = "User not found";
+      console.error(msg);
+      send_ws_response<null>({ status: "error", type, message: msg, payload: null }, params.ws);
       return false;
     }
 
     // get user ws:conn details
     const user_conn_details = this.user_conns_state[params.ws.id];
     if (!user_conn_details) {
-      send_ws_response<null>({ status: "error", type, message: "User not found", payload: null }, params.ws);
+      msg = "User not found";
+      console.error(msg);
+      send_ws_response<null>({ status: "error", type, message: msg, payload: null }, params.ws);
       return false;
     }
 
     // check if user already joined the room
     if (user_conn_details.room === params.room_id) {
-      send_ws_response<null>({ status: "error", type, message: "User already joined the room", payload: null }, params.ws);
+      msg = "User already joined the room";
+      console.error(msg);
+      send_ws_response<null>({ status: "error", type, message: msg, payload: null }, params.ws);
       return false;
     }
 
     // check existence of room
     const room_obj = await get_room_record({ id: params.room_id });
     if (room_obj.status === "error") {
-      send_ws_response(
-        { status: "error", type, message: `Room with ID ${params.room_id} not found`, payload: null },
-        params.ws
-      );
+      msg = `Room with ID ${params.room_id} not found`;
+      console.error(msg);
+      send_ws_response({ status: "error", type, message: msg, payload: null }, params.ws);
       return false;
     }
 
@@ -68,32 +76,37 @@ const user_conns: UserConns = {
     user_conn_details.room = params.room_id;
 
     // success
-    send_ws_response(
-      { status: "success", type, message: `User has successfully joined the room (ID: ${params.room_id})`, payload: null },
-      params.ws
-    );
+    msg = `User has successfully joined the room (ID: ${params.room_id})`;
+    console.info(msg);
+    send_ws_response({ status: "success", type, message: msg, payload: null }, params.ws);
     return true;
   },
   async leave_room(params: LeaveRoomParams) {
     const type = "leave-room";
+    let msg = "";
+
+    // user not-found
     if (!params.ws.id) {
-      send_ws_response<null>({ status: "error", type, message: "User not found", payload: null }, params.ws);
+      msg = "User not found";
+      console.error(msg);
+      send_ws_response<null>({ status: "error", type, message: msg, payload: null }, params.ws);
       return false;
     }
 
     // get user ws:conn details
     const user_conn_details = this.user_conns_state[params.ws.id];
+    msg = "User not found";
+    console.error(msg);
     if (!user_conn_details) {
-      send_ws_response<null>({ status: "error", type, message: "User not found", payload: null }, params.ws);
+      send_ws_response<null>({ status: "error", type, message: msg, payload: null }, params.ws);
       return false;
     }
 
     // check if user already joined the room
     if (user_conn_details.room !== params.room_id) {
-      send_ws_response(
-        { status: "error", type, message: `Room with ID ${params.room_id} not found`, payload: null },
-        params.ws
-      );
+      msg = `Room with ID ${params.room_id} not found`;
+      console.error(msg);
+      send_ws_response({ status: "error", type, message: msg, payload: null }, params.ws);
       return false;
     }
 
@@ -101,10 +114,9 @@ const user_conns: UserConns = {
     user_conn_details.room = null;
 
     // success
-    send_ws_response<null>(
-      { status: "error", type, message: `User has successfully left the room (ID: ${params.room_id})`, payload: null },
-      params.ws
-    );
+    msg = `User has successfully left the room (ID: ${params.room_id})`;
+    console.info(msg);
+    send_ws_response<null>({ status: "info", type, message: msg, payload: null }, params.ws);
     return true;
   },
 };

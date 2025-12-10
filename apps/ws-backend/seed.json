@@ -26,6 +26,18 @@
       "shape_id": "shape-id"
     }
   },
+  "alter-shape": {
+    "type": "alter-shape",
+    "payload": {
+      "shape_id": "shape-id",
+      "data": {
+        "id": "shape-id",
+        "type": "circle",
+        "center": { "x": 200, "y": 300 },
+        "radius": 75
+      }
+    }
+  },
   "get-all-shapes": {
     "type": "get-all-shapes",
     "payload": null
