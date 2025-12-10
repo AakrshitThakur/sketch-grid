@@ -19,6 +19,7 @@ model User {
   email      String     @unique
   password   String
   rooms      Room[]
+  shapes     Shape[]
 }
 
 model Room {
@@ -36,4 +37,6 @@ model Shape {
   data     Json
   room_id  String
   room     Room   @relation(fields: [room_id], references: [id], onDelete: Cascade)
+  owner_id String
+  owner    User   @relation(fields: [owner_id], references: [id], onDelete: Cascade)
 }
