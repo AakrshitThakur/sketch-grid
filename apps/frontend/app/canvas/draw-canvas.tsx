@@ -7,6 +7,7 @@ import mouse_move_drag_canvas from "./mouse-move-drag-canvas";
 import mouse_move_hover_canvas from "./mouse-move-hover-canvas";
 import draw_all_shapes from "./draw-all-shapes";
 import type { Shape, Shapes } from "@repo/types/index";
+import { send_ws_request } from "@/utils/send-ws-request.utils";
 
 interface DrawCanvasProps {
   selected_btn: {
@@ -19,6 +20,7 @@ interface DrawCanvasProps {
     delete_shape_by_id: (id: string) => void;
     alter_shape_properties: (shape: Shape) => void;
   };
+  web_socket: WebSocket | null;
 }
 
 export default function DrawCanvas(props: DrawCanvasProps) {
@@ -114,6 +116,14 @@ export default function DrawCanvas(props: DrawCanvasProps) {
     ctx.fillStyle = canvas_default_props.fill_style;
   }, []);
 
+  // function to reset all the DrawCanvas's states
+  function reset_to_initial() {
+    set_start_point(null);
+    set_curr_shape(null);
+    set_is_drawing(false);
+    set_is_dragging(false);
+  }
+
   function handle_mouse_down(e: React.MouseEvent<HTMLCanvasElement>) {
     const canvas = canvas_ref.current;
     if (!canvas) return;
@@ -198,6 +208,7 @@ export default function DrawCanvas(props: DrawCanvasProps) {
         all_shapes: props.all_shapes,
         handle_set_start_point,
         ctx,
+        web_socket: props.web_socket,
       });
       return;
     }
@@ -209,32 +220,37 @@ export default function DrawCanvas(props: DrawCanvasProps) {
       handle_set_curr_shape,
       handle_set_start_point,
       ctx,
+      web_socket: props.web_socket,
     });
   }
 
   function handle_mouse_up(e: React.MouseEvent<HTMLCanvasElement>) {
-    if (!start_point || (!is_drawing && !is_dragging)) {
-      set_start_point(null);
-      set_curr_shape(null);
-      set_is_drawing(false);
-      set_is_dragging(false);
+    if (!start_point || (!is_drawing && !is_dragging) || !props.web_socket) {
+      reset_to_initial();
       return;
     }
 
     const canvas = canvas_ref.current;
-    if (!canvas) return;
+    if (!canvas) {
+      reset_to_initial();
+      return;
+    }
 
     // get 2d-context
     const ctx = canvas.getContext("2d");
-    if (!ctx) return;
+    if (!ctx) {
+      reset_to_initial();
+      return;
+    }
 
     // push curr-shape to shapes state
-    if (is_drawing && curr_shape) props.all_shapes.push_new_curr_shape(curr_shape);
+    if (is_drawing && curr_shape) {
+      // props.all_shapes.push_new_curr_shape(curr_shape);
+      send_ws_request({ type: "create-shape", payload: curr_shape }, props.web_socket);
+    }
 
-    set_start_point(null);
-    set_curr_shape(null);
-    set_is_drawing(false);
-    set_is_dragging(false);
+    // reset state's to initial values
+    reset_to_initial();
   }
 
   return (

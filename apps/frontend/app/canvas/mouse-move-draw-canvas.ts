@@ -1,5 +1,6 @@
 import { nanoid } from "nanoid";
 import type { Shape, Shapes } from "@repo/types/index";
+import { send_ws_request } from "@/utils/send-ws-request.utils";
 
 interface Props {
   selected_btn_id: string | null;
@@ -13,6 +14,7 @@ interface Props {
   handle_set_curr_shape: (shape: Shape) => void;
   handle_set_start_point: (x: number, y: number) => void;
   ctx: CanvasRenderingContext2D;
+  web_socket: WebSocket | null;
 }
 
 export default function mouse_move_draw_canvas(props: Props) {
@@ -20,6 +22,13 @@ export default function mouse_move_draw_canvas(props: Props) {
   const start = { x: props.start_point.x, y: props.start_point.y };
   // mouse-move coordinate
   const end = { x: props.end_point.x, y: props.end_point.y };
+
+  if (!props.web_socket) return;
+
+  function delete_shape(shape_id: string) {
+    if (!props.web_socket) return;
+    send_ws_request({ type: "delete-shape", payload: { shape_id } }, props.web_socket);
+  }
 
   switch (props.selected_btn_id) {
     case "circle": {
@@ -139,14 +148,16 @@ export default function mouse_move_draw_canvas(props: Props) {
               end.y >= Math.min(box_start.y, box_start.y + shape.height) &&
               end.y <= Math.max(box_start.y, box_start.y + shape.height)
             ) {
-              props.all_shapes.delete_shape_by_id(shape.id);
+              // delete specific shape of current room
+              delete_shape(shape.id);
             }
             break;
           }
           case "circle": {
             // checking if point lies inside the circle
             if (Math.pow(shape.center.x - end.x, 2) + Math.pow(shape.center.y - end.y, 2) <= Math.pow(shape.radius, 2)) {
-              props.all_shapes.delete_shape_by_id(shape.id);
+              // delete specific shape of current room
+              delete_shape(shape.id);
             }
             break;
           }
@@ -161,7 +172,8 @@ export default function mouse_move_draw_canvas(props: Props) {
 
             // checking if point lies on the edge of arrow-line
             if (props.ctx.isPointInStroke(line_segment, end.x, end.y)) {
-              props.all_shapes.delete_shape_by_id(shape.id);
+              // delete specific shape of current room
+              delete_shape(shape.id);
             }
             break;
           }
@@ -174,7 +186,8 @@ export default function mouse_move_draw_canvas(props: Props) {
 
             // checking if point lies inside the text-box
             if (props.ctx.isPointInPath(box, end.x, end.y)) {
-              props.all_shapes.delete_shape_by_id(shape.id);
+              // delete specific shape of current room
+              delete_shape(shape.id);
             }
             break;
           }
@@ -194,7 +207,8 @@ export default function mouse_move_draw_canvas(props: Props) {
 
             // checking if point lies inside the diamond
             if (props.ctx.isPointInPath(diamond, end.x, end.y)) {
-              props.all_shapes.delete_shape_by_id(shape.id);
+              // delete specific shape of current room
+              delete_shape(shape.id);
             }
             break;
           }

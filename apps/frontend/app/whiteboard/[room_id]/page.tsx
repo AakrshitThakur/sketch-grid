@@ -73,19 +73,62 @@ export default function Draw({ params }: { params: Promise<{ room_id: string }> 
 
       if (!ws) return;
 
+      let msg = "";
+
       switch (parsed_response.type) {
         case "join-room": {
           if (parsed_response.status === "error") {
-            console.error(parsed_response.message as string);
-            error_notification(parsed_response.message as string);
+            msg = parsed_response.message as string;
+            console.error(msg);
+            error_notification(msg);
             return;
           }
           // get all shapes of a specific room
           send_ws_request({ type: "get-all-shapes", payload: null }, ws);
           break;
         }
+        case "create-shape": {
+          msg = parsed_response.message;
+          if (parsed_response.status === "error") {
+            console.error(msg);
+            error_notification(msg);
+            return;
+          }
+          console.info(msg);
+          const all_shapes: Shape[] = parsed_response.payload.map((shape: unknown) => {
+            // @ts-ignore - shape.data is data about shape
+            return { ...shape.data };
+          });
+          set_shapes(all_shapes);
+        }
+        case "alter-shape": {
+          msg = parsed_response.message;
+          if (parsed_response.status === "error") {
+            console.error(msg);
+            error_notification(msg);
+            return;
+          }
+          console.info(msg);
+          const all_shapes: Shape[] = parsed_response.payload.map((shape: unknown) => {
+            // @ts-ignore - shape.data is data about shape
+            return { ...shape.data };
+          });
+          set_shapes(all_shapes);
+        }
         case "get-all-shapes": {
-          console.info(event.data);
+          msg = parsed_response.message;
+          if (parsed_response.status === "error") {
+            console.error(msg);
+            error_notification(msg);
+            set_shapes([]);
+            return;
+          }
+          console.info(msg);
+          const all_shapes: Shape[] = parsed_response.payload.map((shape: unknown) => {
+            // @ts-ignore - shape.data is data about shape
+            return { ...shape.data };
+          });
+          set_shapes(all_shapes);
         }
       }
     };
@@ -187,6 +230,7 @@ export default function Draw({ params }: { params: Promise<{ room_id: string }> 
           <DrawCanvas
             selected_btn={{ selected_btn_id, handle_set_selected_btn_id }}
             all_shapes={{ shapes, push_new_curr_shape, delete_shape_by_id, alter_shape_properties }}
+            web_socket={web_socket}
           />
         </section>
         {/* Live logs */}

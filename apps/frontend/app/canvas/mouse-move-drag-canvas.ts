@@ -18,6 +18,7 @@ interface Params {
   };
   handle_set_start_point: (x: number, y: number) => void;
   ctx: CanvasRenderingContext2D;
+  web_socket: WebSocket | null;
 }
 
 export default function mouse_move_drag_canvas(params: Params) {
