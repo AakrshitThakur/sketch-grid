@@ -3,6 +3,7 @@ type WebSocketResponseType =
   | "leave-room"
   | "create-shape"
   | "delete-shape"
+  | "alter-shape"
   | "get-all-shapes"
   | "auth"
   | "others";

@@ -10,7 +10,6 @@ interface UserConnsState {
     ws: WebSocket;
   };
 }
-
 interface JoinRoomParams {
   room_id: string;
   ws: WebSocket;

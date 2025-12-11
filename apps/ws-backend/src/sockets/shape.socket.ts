@@ -162,12 +162,14 @@ async function delete_shape(payload: { shape_id: string }, ws: WebSocket) {
 }
 
 async function alter_shape(payload: { shape_id: string; data: Shape }, ws: WebSocket) {
-  const type: WebSocketResponseType = "delete-shape";
+  const type: WebSocketResponseType = "alter-shape";
   let msg = "";
   try {
     // get user-joined-room-id
     const room_id = await get_user_joined_room(type, ws);
     if (!room_id) return false;
+
+    console.info("data", payload.data);
 
     // Prisma will only update the fields you specify in the data object - all other fields remain unchanged.
     // alter shape of specific shape-id
