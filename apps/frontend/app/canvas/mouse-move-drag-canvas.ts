@@ -17,6 +17,13 @@ interface Params {
     alter_shape_properties: (shape: Shape) => void;
   };
   handle_set_start_point: (x: number, y: number) => void;
+  handle_set_curr_shape: (shape: Shape) => void;
+  reset_styles_to_initial: (ctx: CanvasRenderingContext2D) => void;
+  canvas_default_props: {
+    line_width: number;
+    fill_style: string;
+    stroke_style: string;
+  };
   ctx: CanvasRenderingContext2D;
   web_socket: WebSocket | null;
 }
@@ -24,6 +31,95 @@ interface Params {
 export default function mouse_move_drag_canvas(params: Params) {
   const start = { x: params.start_point.x, y: params.start_point.y };
   const end = { x: params.end_point.x, y: params.end_point.y };
+
+  // draw a temporary rectangle shape
+  function draw_rect(point: Point, w: number, h: number) {
+    // set the pre-requisite values for canvas session
+    // setting canvas pre-requisites
+    params.reset_styles_to_initial(params.ctx);
+    params.ctx.setLineDash([5, 5]);
+
+    // print box shape on canvas
+    params.ctx.strokeRect(point.x, point.y, w, h);
+  }
+  // draw temporary circle shape
+  function draw_circle(center: Point, r: number) {
+    // set the pre-requisite values for canvas session
+    // setting canvas pre-requisites
+    params.reset_styles_to_initial(params.ctx);
+    params.ctx.setLineDash([5, 5]);
+
+    // print box shape on canvas
+    // beginPath() -> Forget all previous lines and start fresh
+    params.ctx.beginPath();
+    // make circle 0(pi) to 2(pi)
+    params.ctx.arc(center.x, center.y, r, 0, 2 * Math.PI, false);
+    // stroke current path
+    params.ctx.stroke();
+  }
+  // draw a temporary arrow shape
+  function draw_arrow(start_point: Point, end_point: Point) {
+    // set the pre-requisite values for canvas session
+    // setting canvas pre-requisites
+    params.reset_styles_to_initial(params.ctx);
+    params.ctx.setLineDash([5, 5]);
+
+    params.ctx.beginPath();
+    params.ctx.moveTo(start_point.x, start_point.y);
+    params.ctx.lineTo(end_point.x, end_point.y);
+    // stroke current path
+    params.ctx.stroke();
+
+    // Math.atan2() static method returns the angle in the plane (in radians) between the positive x-axis and the ray from (0, 0) to the point (x, y), for Math.atan2(y, x).
+    // Note: With atan2(), the y coordinate is passed as the first argument and the x coordinate is passed as the second argument.
+    const angle = Math.atan2(end_point.y - start_point.y, end_point.x - start_point.x);
+    const head_length = 15;
+
+    // drawing 2 lines forming arrow-head
+    // haven't understood it
+    params.ctx.beginPath();
+    params.ctx.moveTo(end_point.x, end_point.y);
+    params.ctx.lineTo(
+      end_point.x - head_length * Math.cos(angle - Math.PI / 6),
+      end_point.y - head_length * Math.sin(angle - Math.PI / 6)
+    );
+    params.ctx.moveTo(end_point.x, end_point.y);
+    params.ctx.lineTo(
+      end_point.x - head_length * Math.cos(angle + Math.PI / 6),
+      end_point.y - head_length * Math.sin(angle + Math.PI / 6)
+    );
+    // print current stroke
+    params.ctx.stroke();
+  }
+  function draw_text(font_size: number, text: string, start_point: Point) {
+    // set the pre-requisite values for canvas session
+    // setting canvas pre-requisites
+    params.reset_styles_to_initial(params.ctx);
+    params.ctx.setLineDash([5, 5]);
+
+    if (!text) return;
+
+    // make text on canvas
+    params.ctx.textAlign = "left";
+    params.ctx.textBaseline = "top";
+    params.ctx.font = `${font_size}px Cursive`;
+    params.ctx.strokeText(text.trim(), start_point.x, start_point.y);
+  }
+  function draw_diamond(center: Point, width: number, height: number) {
+    // set the pre-requisite values for canvas session
+    // setting canvas pre-requisites
+    params.reset_styles_to_initial(params.ctx);
+    params.ctx.setLineDash([5, 5]);
+
+    // drawing all the four vertices from the center
+    params.ctx.beginPath();
+    params.ctx.moveTo(center.x, center.y - height);
+    params.ctx.lineTo(center.x + width, center.y);
+    params.ctx.lineTo(center.x, center.y + height);
+    params.ctx.lineTo(center.x - width, center.y);
+    params.ctx.closePath();
+    params.ctx.stroke();
+  }
 
   for (let shape of params.all_shapes.shapes) {
     switch (shape.type) {
@@ -60,41 +156,63 @@ export default function mouse_move_drag_canvas(params: Params) {
         box.rect(box_start.x, box_start.y, box_width, box_height);
 
         if (params.ctx.isPointInStroke(left_to_right, start.x, start.y)) {
+          // draw temporary shape on canvas
+          draw_rect(
+            { x: shape.point.x, y: shape.point.y + (end.y - start.y) },
+            shape.width,
+            shape.height - (end.y - start.y)
+          );
           // point lies on the edge of left-to-right line
-          params.all_shapes.alter_shape_properties({
+          params.handle_set_curr_shape({
             ...shape,
             point: { x: shape.point.x, y: shape.point.y + (end.y - start.y) },
             height: shape.height - (end.y - start.y),
           });
         } else if (params.ctx.isPointInStroke(top_to_bottom, start.x, start.y)) {
+          // draw temporary shape on canvas
+          draw_rect({ x: shape.point.x, y: shape.point.y }, shape.width + (end.x - start.x), shape.height);
           // point lies on the edge of top-to-bottom line
-          params.all_shapes.alter_shape_properties({
+          params.handle_set_curr_shape({
             ...shape,
             width: shape.width + (end.x - start.x),
           });
         } else if (params.ctx.isPointInStroke(right_to_left, start.x, start.y)) {
+          // draw temporary shape on canvas
+          draw_rect({ x: shape.point.x, y: shape.point.y }, shape.width, shape.height + (end.y - start.y));
           // point lies on the edge of right-to-left line
-          params.all_shapes.alter_shape_properties({
+          params.handle_set_curr_shape({
             ...shape,
             height: shape.height + (end.y - start.y),
           });
         } else if (params.ctx.isPointInStroke(bottom_to_top, start.x, start.y)) {
+          // draw temporary shape on canvas
+          draw_rect(
+            { x: shape.point.x + (end.x - start.x), y: shape.point.y },
+            shape.width - (end.x - start.x),
+            shape.height
+          );
           // point lies on the edge of bottom-to-top line
-          params.all_shapes.alter_shape_properties({
+          params.handle_set_curr_shape({
             ...shape,
             point: { x: shape.point.x + (end.x - start.x), y: shape.point.y },
             width: shape.width - (end.x - start.x),
           });
         } else if (params.ctx.isPointInPath(box, start.x, start.y)) {
+          // draw temporary shape on canvas
+          draw_rect(
+            { x: shape.point.x + (end.x - start.x), y: shape.point.y + (end.y - start.y) },
+            shape.width,
+            shape.height
+          );
           // point lies inside the box
           // change the position of box
-          params.all_shapes.alter_shape_properties({
+          params.handle_set_curr_shape({
             ...shape,
             point: { x: shape.point.x + (end.x - start.x), y: shape.point.y + (end.y - start.y) },
           });
         }
         // change mouse-down coordinates
-        params.handle_set_start_point(end.x, end.y);
+        //
         break;
       }
       case "circle": {
@@ -122,21 +240,25 @@ export default function mouse_move_drag_canvas(params: Params) {
             if (end.y - start.y >= 0) {
               // Δx and Δy both are +ve
               // Increase radius of circle
-              params.all_shapes.alter_shape_properties({ ...shape, radius: shape.radius + d });
+              draw_circle({ x: shape.center.x, y: shape.center.y }, shape.radius + d);
+              params.handle_set_curr_shape({ ...shape, radius: shape.radius + d });
             } else {
               // Δx is +ve but Δy is -ve
               // Increase radius of circle
-              params.all_shapes.alter_shape_properties({ ...shape, radius: shape.radius + d });
+              draw_circle({ x: shape.center.x, y: shape.center.y }, shape.radius + d);
+              params.handle_set_curr_shape({ ...shape, radius: shape.radius + d });
             }
           } else {
             // Δx is -ve
             if (end.y - start.y >= 0) {
               // Δx is -ve but Δy is +ve
               // decrease radius of circle
-              params.all_shapes.alter_shape_properties({ ...shape, radius: shape.radius - d });
+              draw_circle({ x: shape.center.x, y: shape.center.y }, shape.radius - d);
+              params.handle_set_curr_shape({ ...shape, radius: shape.radius - d });
             } else {
               // Δx and Δy both are -ve
               // decrease radius of circle
+              draw_circle({ x: shape.center.x, y: shape.center.y }, shape.radius - d);
               params.all_shapes.alter_shape_properties({ ...shape, radius: shape.radius - d });
             }
           }
@@ -148,33 +270,37 @@ export default function mouse_move_drag_canvas(params: Params) {
             if (end.y - start.y >= 0) {
               // Δx and Δy both are +ve
               // Decrease radius of circle
-              params.all_shapes.alter_shape_properties({ ...shape, radius: shape.radius - d });
+              draw_circle({ x: shape.center.x, y: shape.center.y }, shape.radius - d);
+              params.handle_set_curr_shape({ ...shape, radius: shape.radius - d });
             } else {
               // Δx is +ve but Δy is -ve
               // Decrease radius of circle
-              params.all_shapes.alter_shape_properties({ ...shape, radius: shape.radius - d });
+              draw_circle({ x: shape.center.x, y: shape.center.y }, shape.radius - d);
+              params.handle_set_curr_shape({ ...shape, radius: shape.radius - d });
             }
           } else {
             // Δx is -ve
             if (end.y - start.y >= 0) {
               // Δx is -ve but Δy is +ve
               // decrease radius of circle
-              params.all_shapes.alter_shape_properties({ ...shape, radius: shape.radius + d });
+              draw_circle({ x: shape.center.x, y: shape.center.y }, shape.radius + d);
+              params.handle_set_curr_shape({ ...shape, radius: shape.radius + d });
             } else {
               // Δx and Δy both are -ve
               // decrease radius of circle
-              params.all_shapes.alter_shape_properties({ ...shape, radius: shape.radius + d });
+              draw_circle({ x: shape.center.x, y: shape.center.y }, shape.radius + d);
+              params.handle_set_curr_shape({ ...shape, radius: shape.radius + d });
             }
           }
         } else if (params.ctx.isPointInPath(circle, start.x, start.y)) {
           // point lies inside the circle
           // change the position of circle
-          params.all_shapes.alter_shape_properties({
+          draw_circle({ x: shape.center.x + (end.x - start.x), y: shape.center.y + (end.y - start.y) }, shape.radius);
+          params.handle_set_curr_shape({
             ...shape,
             center: { x: shape.center.x + (end.x - start.x), y: shape.center.y + (end.y - start.y) },
           });
         }
-        params.handle_set_start_point(end.x, end.y);
         break;
       }
       case "arrow": {
@@ -191,7 +317,12 @@ export default function mouse_move_drag_canvas(params: Params) {
 
         // checking if point is on stoke of line-segment
         if (params.ctx.isPointInStroke(line_segment, start.x, start.y)) {
-          params.all_shapes.alter_shape_properties({
+          // draw temporary arrow for reference
+          draw_arrow(
+            { x: shape.points.start.x + (end.x - start.x), y: shape.points.start.y + (end.y - start.y) },
+            { x: shape.points.end.x + (end.x - start.x), y: shape.points.end.y + (end.y - start.y) }
+          );
+          params.handle_set_curr_shape({
             ...shape,
             points: {
               start: { x: shape.points.start.x + (end.x - start.x), y: shape.points.start.y + (end.y - start.y) },
@@ -199,7 +330,6 @@ export default function mouse_move_drag_canvas(params: Params) {
             },
           });
         }
-        params.handle_set_start_point(end.x, end.y);
         break;
       }
       case "text": {
@@ -249,8 +379,11 @@ export default function mouse_move_drag_canvas(params: Params) {
           const top_left_x = shape.points.start.x;
           const top_left_y = shape.points.start.y - metrics.actualBoundingBoxAscent;
 
-          // push new curr-shape to shapes state
-          params.all_shapes.alter_shape_properties({
+          // draw temporary text for reference
+          draw_text(font_size, shape.text, { x: top_left_x, y: top_left_y });
+
+          // push new curr-shape to current room
+          params.handle_set_curr_shape({
             ...shape,
             font: {
               font_size,
@@ -277,8 +410,11 @@ export default function mouse_move_drag_canvas(params: Params) {
           const top_left_x = shape.points.start.x;
           const top_left_y = shape.points.start.y - metrics.actualBoundingBoxAscent;
 
+          // draw temporary text for reference
+          draw_text(font_size, shape.text, { x: top_left_x, y: top_left_y });
+
           // push new curr-shape to shapes state
-          params.all_shapes.alter_shape_properties({
+          params.handle_set_curr_shape({
             ...shape,
             font: {
               font_size,
@@ -305,8 +441,11 @@ export default function mouse_move_drag_canvas(params: Params) {
           const top_left_x = shape.points.start.x;
           const top_left_y = shape.points.start.y - metrics.actualBoundingBoxAscent;
 
+          // draw temporary text for reference
+          draw_text(font_size, shape.text, { x: top_left_x, y: top_left_y });
+
           // push new curr-shape to shapes state
-          params.all_shapes.alter_shape_properties({
+          params.handle_set_curr_shape({
             ...shape,
             font: {
               font_size,
@@ -333,8 +472,11 @@ export default function mouse_move_drag_canvas(params: Params) {
           const top_left_x = shape.points.start.x;
           const top_left_y = shape.points.start.y - metrics.actualBoundingBoxAscent;
 
+          // draw temporary text for reference
+          draw_text(font_size, shape.text, { x: top_left_x, y: top_left_y });
+
           // push new curr-shape to shapes state
-          params.all_shapes.alter_shape_properties({
+          params.handle_set_curr_shape({
             ...shape,
             font: {
               font_size,
@@ -348,8 +490,13 @@ export default function mouse_move_drag_canvas(params: Params) {
             },
           });
         } else if (params.ctx.isPointInPath(box, start.x, start.y)) {
+          // draw temporary text for reference
+          draw_text(shape.font.font_size, shape.text, {
+            x: shape.points.start.x + (end.x - start.x),
+            y: shape.points.start.y + (end.y - start.y),
+          });
           // checking if point lies inside the text-box or not
-          params.all_shapes.alter_shape_properties({
+          params.handle_set_curr_shape({
             ...shape,
             points: {
               start: { x: shape.points.start.x + (end.x - start.x), y: shape.points.start.y + (end.y - start.y) },
@@ -357,7 +504,6 @@ export default function mouse_move_drag_canvas(params: Params) {
             },
           });
         }
-        params.handle_set_start_point(end.x, end.y);
         break;
       }
       case "diamond": {
@@ -394,14 +540,28 @@ export default function mouse_move_drag_canvas(params: Params) {
             // Δx is +ve
             if (end.y - start.y >= 0) {
               // Δx and Δy both are +ve
-              params.all_shapes.alter_shape_properties({
+              // draw temporary diamond for reference
+              draw_diamond(
+                { x: shape.center.x, y: shape.center.y },
+                shape.width + 2 * (end.x - start.x),
+                shape.height + 2 * (end.y - start.y)
+              );
+              // set curr-shape to alter values
+              params.handle_set_curr_shape({
                 ...shape,
                 width: shape.width + 2 * (end.x - start.x),
                 height: shape.height + 2 * (end.y - start.y),
               });
             } else {
               // Δx is +ve but Δy is -ve
-              params.all_shapes.alter_shape_properties({
+              // draw temporary diamond for reference
+              draw_diamond(
+                { x: shape.center.x, y: shape.center.y },
+                shape.width + 2 * (end.x - start.x),
+                shape.height + 2 * (start.y - end.y)
+              );
+              // set curr-shape to alter values
+              params.handle_set_curr_shape({
                 ...shape,
                 width: shape.width + 2 * (end.x - start.x),
                 height: shape.height + 2 * (start.y - end.y),
@@ -411,14 +571,28 @@ export default function mouse_move_drag_canvas(params: Params) {
             // Δx is -ve
             if (end.y - start.y >= 0) {
               // Δx is -ve but Δy is +ve
-              params.all_shapes.alter_shape_properties({
+              // draw temporary diamond for reference
+              draw_diamond(
+                { x: shape.center.x, y: shape.center.y },
+                shape.width + 2 * (end.x - start.x),
+                shape.height + 2 * (start.y - end.y)
+              );
+              // set curr-shape to alter values
+              params.handle_set_curr_shape({
                 ...shape,
                 width: shape.width + 2 * (end.x - start.x),
                 height: shape.height + 2 * (start.y - end.y),
               });
             } else {
               // Δx and Δy both are -ve
-              params.all_shapes.alter_shape_properties({
+              // draw temporary diamond for reference
+              draw_diamond(
+                { x: shape.center.x, y: shape.center.y },
+                shape.width + 2 * (end.x - start.x),
+                shape.height + 2 * (end.y - start.y)
+              );
+              // set curr-shape to alter values
+              params.handle_set_curr_shape({
                 ...shape,
                 width: shape.width + 2 * (end.x - start.x),
                 height: shape.height + 2 * (end.y - start.y),
@@ -431,13 +605,27 @@ export default function mouse_move_drag_canvas(params: Params) {
             // Δx is +ve
             if (end.y - start.y >= 0) {
               // Δx and Δy both are +ve
-              params.all_shapes.alter_shape_properties({
+              // draw temporary diamond for reference
+              draw_diamond(
+                { x: shape.center.x, y: shape.center.y },
+                shape.width - 2 * (end.x - start.x),
+                shape.height - 2 * (end.y - start.y)
+              );
+              // set curr-shape to alter values
+              params.handle_set_curr_shape({
                 ...shape,
                 width: shape.width - 2 * (end.x - start.x),
                 height: shape.height - 2 * (end.y - start.y),
               });
             } else {
               // Δx is +ve but Δy is -ve
+              // draw temporary diamond for reference
+              draw_diamond(
+                { x: shape.center.x, y: shape.center.y },
+                shape.width - 2 * (end.x - start.x),
+                shape.height - 2 * (start.y - end.y)
+              );
+              // set curr-shape to alter values
               params.all_shapes.alter_shape_properties({
                 ...shape,
                 width: shape.width - 2 * (end.x - start.x),
@@ -448,14 +636,28 @@ export default function mouse_move_drag_canvas(params: Params) {
             // Δx is -ve
             if (end.y - start.y >= 0) {
               // Δx is -ve but Δy is +ve
-              params.all_shapes.alter_shape_properties({
+              // draw temporary diamond for reference
+              draw_diamond(
+                { x: shape.center.x, y: shape.center.y },
+                shape.width - 2 * (end.x - start.x),
+                shape.height - 2 * (start.y - end.y)
+              );
+              // set curr-shape to alter values
+              params.handle_set_curr_shape({
                 ...shape,
                 width: shape.width - 2 * (end.x - start.x),
                 height: shape.height - 2 * (start.y - end.y),
               });
             } else {
               // Δx and Δy both are -ve
-              params.all_shapes.alter_shape_properties({
+              // draw temporary diamond for reference
+              draw_diamond(
+                { x: shape.center.x, y: shape.center.y },
+                shape.width - 2 * (end.x - start.x),
+                shape.height - 2 * (end.y - start.y)
+              );
+              // set curr-shape to alter values
+              params.handle_set_curr_shape({
                 ...shape,
                 width: shape.width - 2 * (end.x - start.x),
                 height: shape.height - 2 * (end.y - start.y),
@@ -464,7 +666,17 @@ export default function mouse_move_drag_canvas(params: Params) {
           }
         } else if (params.ctx.isPointInPath(diamond, start.x, start.y)) {
           // point lies inside diamond
-          params.all_shapes.alter_shape_properties({
+          // draw temporary diamond for reference
+          draw_diamond(
+            {
+              x: center.x + (end.x - start.x),
+              y: center.y + (end.y - start.y),
+            },
+            shape.width,
+            shape.height
+          );
+          // set curr-shape to alter values
+          params.handle_set_curr_shape({
             ...shape,
             center: {
               x: center.x + (end.x - start.x),
@@ -472,7 +684,6 @@ export default function mouse_move_drag_canvas(params: Params) {
             },
           });
         }
-        params.handle_set_start_point(end.x, end.y);
         break;
       }
     }

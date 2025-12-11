@@ -14,6 +14,7 @@ import { FaArrowRightLong, FaDiamond, FaTrash } from "react-icons/fa6";
 import { BsChatTextFill } from "react-icons/bs";
 import { BsCursorFill, BsEraserFill } from "react-icons/bs";
 import { Shape, Shapes } from "@repo/types/index";
+import draw_all_shapes from "@/app/canvas/draw-all-shapes";
 
 //     9     10    11    12
 //  9  ┌─────┬─────┬─────┬─────┐
@@ -100,6 +101,7 @@ export default function Draw({ params }: { params: Promise<{ room_id: string }> 
             return { ...shape.data };
           });
           set_shapes(all_shapes);
+          break;
         }
         case "alter-shape": {
           msg = parsed_response.message;
@@ -114,6 +116,7 @@ export default function Draw({ params }: { params: Promise<{ room_id: string }> 
             return { ...shape.data };
           });
           set_shapes(all_shapes);
+          break;
         }
         case "get-all-shapes": {
           msg = parsed_response.message;
@@ -129,6 +132,7 @@ export default function Draw({ params }: { params: Promise<{ room_id: string }> 
             return { ...shape.data };
           });
           set_shapes(all_shapes);
+          break;
         }
       }
     };

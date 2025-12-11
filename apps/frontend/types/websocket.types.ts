@@ -1,5 +1,5 @@
 interface WebSocketRequest<T> {
-  type: "join-room" | "leave-room" | "create-shape" | "delete-shape" | "get-all-shapes";
+  type: "join-room" | "leave-room" | "create-shape" | "delete-shape" | "alter-shape" | "get-all-shapes";
   payload: T;
 }
 

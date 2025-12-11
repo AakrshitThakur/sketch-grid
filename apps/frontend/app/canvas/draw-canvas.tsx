@@ -33,6 +33,7 @@ export default function DrawCanvas(props: DrawCanvasProps) {
   const [curr_shape, set_curr_shape] = useState<Shape | null>(null);
   const [canvas_default_props, set_canvas_default_props] = useState({
     line_width: 1.25,
+    set_lined_dash: [],
     fill_style: "oklch(50% 0.15 30)",
     stroke_style: "oklch(50% 0.15 30)",
   });
@@ -53,12 +54,12 @@ export default function DrawCanvas(props: DrawCanvasProps) {
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
+    if (!props.web_socket) return;
+
     // setting different modes on different selected btns
     if (props.selected_btn.selected_btn_id === "text") {
       // setting canvas pre-requisites
-      ctx.lineWidth = canvas_default_props.line_width;
-      ctx.strokeStyle = canvas_default_props.stroke_style;
-      ctx.fillStyle = canvas_default_props.fill_style;
+      reset_styles_to_initial(ctx);
 
       const font_size = 30;
       const text = prompt("Enter text: ");
@@ -75,28 +76,32 @@ export default function DrawCanvas(props: DrawCanvasProps) {
       const top_left_y = canvas.height / 2 - metrics.actualBoundingBoxAscent;
       ctx.fillText(text.trim(), top_left_x, top_left_y);
 
-      // push new curr-shape to shapes state
-      props.all_shapes.push_new_curr_shape({
-        id: nanoid(),
-        text: text.trim(),
-        type: "text",
-        font: {
-          font_size,
-        },
-        points: {
-          start: { x: top_left_x, y: top_left_y },
-          end: {
-            x: top_left_x + metrics.width,
-            y: top_left_y + metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent,
+      // push new text-shape to current room
+      send_ws_request(
+        {
+          type: "create-shape",
+          payload: {
+            id: nanoid(),
+            text: text.trim(),
+            type: "text",
+            font: {
+              font_size,
+            },
+            points: {
+              start: { x: top_left_x, y: top_left_y },
+              end: {
+                x: top_left_x + metrics.width,
+                y: top_left_y + metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent,
+              },
+            },
           },
         },
-      });
+        props.web_socket
+      );
+
       // set to initial state values
       props.selected_btn.handle_set_selected_btn_id("cursor");
-      set_start_point(null);
-      set_is_drawing(false);
-      set_is_dragging(false);
-      return;
+      reset_to_initial();
     }
   }, [props.selected_btn]);
 
@@ -116,6 +121,23 @@ export default function DrawCanvas(props: DrawCanvasProps) {
     ctx.fillStyle = canvas_default_props.fill_style;
   }, []);
 
+  useEffect(() => {
+    const canvas = canvas_ref.current;
+    if (!canvas) return;
+
+    // using 2d-canvas context
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // setting canvas pre-requisites
+    reset_styles_to_initial(ctx);
+
+    // re-drawing all the canvas-shapes
+    draw_all_shapes(props.all_shapes.shapes, ctx);
+  }, [props.all_shapes.shapes]);
+
   // function to reset all the DrawCanvas's states
   function reset_to_initial() {
     set_start_point(null);
@@ -124,7 +146,17 @@ export default function DrawCanvas(props: DrawCanvasProps) {
     set_is_dragging(false);
   }
 
+  function reset_styles_to_initial(ctx: CanvasRenderingContext2D) {
+    // setting canvas pre-requisites
+    ctx.lineWidth = canvas_default_props.line_width;
+    ctx.strokeStyle = canvas_default_props.stroke_style;
+    ctx.fillStyle = canvas_default_props.fill_style;
+    ctx.setLineDash(canvas_default_props.set_lined_dash);
+  }
+
   function handle_mouse_down(e: React.MouseEvent<HTMLCanvasElement>) {
+    if (start_point) return;
+
     const canvas = canvas_ref.current;
     if (!canvas) return;
 
@@ -163,9 +195,7 @@ export default function DrawCanvas(props: DrawCanvasProps) {
     if (!ctx) return;
 
     // setting canvas pre-requisites
-    ctx.lineWidth = canvas_default_props.line_width;
-    ctx.strokeStyle = canvas_default_props.stroke_style;
-    ctx.fillStyle = canvas_default_props.fill_style;
+    reset_styles_to_initial(ctx);
 
     // When clicking on canvas element, the mouse event (e) gives coordinates relative to the entire browser viewport (the visible window area). However, the canvas needs coordinates relative to its own top-left corner (0, 0).
     // The Element.getBoundingClientRect() method returns a position relative to the viewport.
@@ -180,9 +210,7 @@ export default function DrawCanvas(props: DrawCanvasProps) {
     mouse_move_hover_canvas({ end_point: { x: end_x, y: end_y }, all_shapes: { shapes: props.all_shapes.shapes }, ctx });
 
     if (!start_point || (!is_drawing && !is_dragging)) {
-      set_start_point(null);
-      set_curr_shape(null);
-      set_is_drawing(false);
+      reset_to_initial();
       return;
     }
 
@@ -191,9 +219,7 @@ export default function DrawCanvas(props: DrawCanvasProps) {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
       // setting canvas pre-requisites
-      ctx.lineWidth = canvas_default_props.line_width;
-      ctx.strokeStyle = canvas_default_props.stroke_style;
-      ctx.fillStyle = canvas_default_props.fill_style;
+      reset_styles_to_initial(ctx);
 
       // re-drawing all the canvas-shapes
       draw_all_shapes(props.all_shapes.shapes, ctx);
@@ -207,6 +233,9 @@ export default function DrawCanvas(props: DrawCanvasProps) {
         end_point: { x: end_x, y: end_y },
         all_shapes: props.all_shapes,
         handle_set_start_point,
+        handle_set_curr_shape,
+        canvas_default_props,
+        reset_styles_to_initial,
         ctx,
         web_socket: props.web_socket,
       });
@@ -243,10 +272,11 @@ export default function DrawCanvas(props: DrawCanvasProps) {
       return;
     }
 
-    // push curr-shape to shapes state
+    // push curr-shape to shapes
     if (is_drawing && curr_shape) {
-      // props.all_shapes.push_new_curr_shape(curr_shape);
       send_ws_request({ type: "create-shape", payload: curr_shape }, props.web_socket);
+    } else if (is_dragging && curr_shape) {
+      send_ws_request({ type: "alter-shape", payload: { shape_id: curr_shape.id, data: curr_shape } }, props.web_socket);
     }
 
     // reset state's to initial values
