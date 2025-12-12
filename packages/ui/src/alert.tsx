@@ -3,7 +3,7 @@ import { SiTicktick } from "react-icons/si";
 import { BiSolidMessageSquareError } from "react-icons/bi";
 
 interface AlertProps {
-  type: "info" | "success" | "error";
+  status: "info" | "success" | "error";
   class_name?: string;
   text: string;
 }
@@ -11,7 +11,7 @@ interface AlertProps {
 export default function Alert(props: AlertProps) {
   let add_css_to_alert = props.class_name ? `text-sm p-2 rounded-lg ${props.class_name} ` : "text-sm p-2 rounded-lg ";
 
-  switch (props.type) {
+  switch (props.status) {
     case "info":
       add_css_to_alert += "color-info color-info-content flex justify-center items-center gap-1";
       return (

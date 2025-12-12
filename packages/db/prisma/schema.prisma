@@ -29,6 +29,7 @@ model Room {
   createdAt  DateTime   @default(now())
   admin_id   String
   admin      User       @relation(fields: [admin_id], references: [id], onDelete: Cascade)
+  user_ids   String[]
   shapes Shape[]
 }
 
