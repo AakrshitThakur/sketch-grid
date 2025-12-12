@@ -38,7 +38,7 @@ const user_conns: UserConns = {
     let msg = "";
 
     // user not-found
-    if (!params.ws.id) {
+    if (!params.ws.id || !params.ws.user_credentials) {
       msg = "User not found";
       console.error(msg);
       send_ws_response<null>({ status: "error", type, message: msg, payload: null }, params.ws);
@@ -56,7 +56,7 @@ const user_conns: UserConns = {
 
     // check if user already joined the room
     if (user_conn_details.room === params.room_id) {
-      msg = "User already joined the room";
+      msg = `${params.ws.user_credentials.username} has already joined the room with ID ${params.room_id}`;
       console.error(msg);
       send_ws_response<null>({ status: "error", type, message: msg, payload: null }, params.ws);
       return false;
@@ -64,8 +64,20 @@ const user_conns: UserConns = {
 
     // check existence of room
     const room_obj = await get_room_record({ id: params.room_id });
-    if (room_obj.status === "error") {
+    if (room_obj.status === "error" || !room_obj.payload) {
       msg = `Room with ID ${params.room_id} not found`;
+      console.error(msg);
+      send_ws_response({ status: "error", type, message: msg, payload: null }, params.ws);
+      return false;
+    }
+
+    // check if user is authorized to join or not
+    if (
+      // @ts-ignore
+      !room_obj.payload.user_ids.includes(params.ws.user_id) &&
+      room_obj.payload.admin_id !== params.ws.user_credentials?.id
+    ) {
+      msg = `${params.ws.user_credentials.username} not allowed to join the room with ID ${params.room_id}`;
       console.error(msg);
       send_ws_response({ status: "error", type, message: msg, payload: null }, params.ws);
       return false;
@@ -75,7 +87,7 @@ const user_conns: UserConns = {
     user_conn_details.room = params.room_id;
 
     // success
-    msg = `User has successfully joined the room (ID: ${params.room_id})`;
+    msg = `${params.ws.user_credentials.username} has successfully joined the room (ID: ${params.room_id})`;
     console.info(msg);
     send_ws_response({ status: "success", type, message: msg, payload: null }, params.ws);
     return true;
@@ -85,7 +97,7 @@ const user_conns: UserConns = {
     let msg = "";
 
     // user not-found
-    if (!params.ws.id) {
+    if (!params.ws.id || !params.ws.user_credentials) {
       msg = "User not found";
       console.error(msg);
       send_ws_response<null>({ status: "error", type, message: msg, payload: null }, params.ws);
@@ -113,7 +125,7 @@ const user_conns: UserConns = {
     user_conn_details.room = null;
 
     // success
-    msg = `User has successfully left the room (ID: ${params.room_id})`;
+    msg = `${params.ws.user_credentials.username} has successfully left the room (ID: ${params.room_id})`;
     console.info(msg);
     send_ws_response<null>({ status: "info", type, message: msg, payload: null }, params.ws);
     return true;

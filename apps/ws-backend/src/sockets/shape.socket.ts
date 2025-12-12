@@ -11,9 +11,9 @@ async function get_user_joined_room(type: WebSocketResponseType, ws: WebSocket) 
   let msg = "";
   try {
     // user not-found
-    msg = "User not found";
-    console.error(msg);
-    if (!ws.id) {
+    if (!ws.id || !ws.user_credentials) {
+      msg = "User not found";
+      console.error(msg);
       send_ws_response<null>({ status: "error", type, message: msg, payload: null }, ws);
       return null;
     }
@@ -29,7 +29,7 @@ async function get_user_joined_room(type: WebSocketResponseType, ws: WebSocket) 
 
     // check if user already joined the room
     if (!user_conn_details.room) {
-      msg = "User has not yet joined the room";
+      msg = `${ws.user_credentials.username} has not yet joined any room`;
       console.error(msg);
       send_ws_response<null>({ status: "error", type, message: msg, payload: null }, ws);
       return null;
@@ -74,7 +74,7 @@ async function broadcast_all_shapes(type: WebSocketResponseType, room_id: string
     // The Object.entries() static method returns an array of a given object's own enumerable string-keyed property key-value pairs.
     for (let [key, value] of Object.entries(user_conns.user_conns_state)) {
       if (room_id === value.room) {
-        msg = "All Shapes received successfully";
+        msg = `All shapes have been received successfully - by ${ws.user_credentials?.username}`;
         // broadcast all the shapes of a specific room to all the client connected to the same room
         send_ws_response({ status: "success", type, message: msg, payload: all_shapes_obj.payload }, value.ws);
       }
@@ -91,35 +91,40 @@ async function create_shape(payload: Shape, ws: WebSocket) {
   const type: WebSocketResponseType = "create-shape";
   let msg = "";
   try {
-    // get user-joined-room-id
-    const room_id = await get_user_joined_room(type, ws);
-    if (!room_id) return false;
-
-    // check user-auth id
-    if (!ws.user_id) {
+    // check user
+    if (!ws.user_credentials || !ws.id) {
       msg = "Please sign up or sign in to continue";
       console.error(msg);
       send_ws_response({ status: "error", type, message: msg, payload: null }, ws);
       return false;
     }
 
+    // get user-joined-room-id
+    const room_id = await get_user_joined_room(type, ws);
+    if (!room_id) return false;
+
     // create new shape entry
     const new_shape = await prisma_client.shape.create({
       data: {
         id: payload.id,
         data: JSON.stringify(payload),
-        owner_id: ws.user_id,
+        owner_id: ws.user_credentials.id,
         room_id,
       },
     });
 
     // new shape not created
     if (!new_shape) {
-      msg = "New shape not created";
+      msg = `Unable to create a new ${payload.type} shape in the room with ID ${room_id}`;
       console.error(msg);
       send_ws_response<null>({ status: "error", type, message: msg, payload: null }, ws);
       return false;
     }
+
+    // notify
+    msg = `A new ${payload.type} shape has been successfully created - by ${ws.user_credentials.username}`;
+    console.info(msg);
+    send_ws_response({ status: "success", type, message: msg, payload: null }, ws);
 
     // broadcasting all the shapes of specific room
     return broadcast_all_shapes(type, room_id, ws);
@@ -129,10 +134,19 @@ async function create_shape(payload: Shape, ws: WebSocket) {
   }
 }
 
+// delete a specific shape from current room
 async function delete_shape(payload: { shape_id: string }, ws: WebSocket) {
   const type: WebSocketResponseType = "delete-shape";
   let msg = "";
   try {
+    // check user
+    if (!ws.user_credentials || !ws.id) {
+      msg = "Please sign up or sign in to continue";
+      console.error(msg);
+      send_ws_response({ status: "error", type, message: msg, payload: null }, ws);
+      return false;
+    }
+
     // get user-joined-room-id
     const room_id = await get_user_joined_room(type, ws);
     if (!room_id) return false;
@@ -147,11 +161,16 @@ async function delete_shape(payload: { shape_id: string }, ws: WebSocket) {
 
     // error while deletion
     if (!deleted_shape) {
-      msg = `The provided shape ID: ${payload.shape_id} is invalid`;
+      msg = `Unable to delete the shape with ID ${payload.shape_id} in the room with ID ${room_id}`;
       console.error(msg);
       send_ws_response({ status: "error", type, message: msg, payload: null }, ws);
       return false;
     }
+
+    // notify
+    msg = `The shape with ID ${payload.shape_id} has been successfully deleted - by ${ws.user_credentials.username}`;
+    console.info(msg);
+    send_ws_response({ status: "success", type, message: msg, payload: null }, ws);
 
     // broadcasting all the shapes of specific room
     return broadcast_all_shapes(type, room_id, ws);
@@ -161,15 +180,22 @@ async function delete_shape(payload: { shape_id: string }, ws: WebSocket) {
   }
 }
 
+// alter properties of a specific shape of a room
 async function alter_shape(payload: { shape_id: string; data: Shape }, ws: WebSocket) {
   const type: WebSocketResponseType = "alter-shape";
   let msg = "";
   try {
+    // check user
+    if (!ws.user_credentials || !ws.id) {
+      msg = "Please sign up or sign in to continue";
+      console.error(msg);
+      send_ws_response({ status: "error", type, message: msg, payload: null }, ws);
+      return false;
+    }
+
     // get user-joined-room-id
     const room_id = await get_user_joined_room(type, ws);
     if (!room_id) return false;
-
-    console.info("data", payload.data);
 
     // Prisma will only update the fields you specify in the data object - all other fields remain unchanged.
     // alter shape of specific shape-id
@@ -177,6 +203,19 @@ async function alter_shape(payload: { shape_id: string; data: Shape }, ws: WebSo
       where: { id: payload.shape_id },
       data: { data: JSON.stringify(payload.data) },
     });
+
+    // error while deletion
+    if (!alter_shape) {
+      msg = `Unable to update the properties of shape with ID ${payload.shape_id} in the room with ID ${room_id}`;
+      console.error(msg);
+      send_ws_response({ status: "error", type, message: msg, payload: null }, ws);
+      return false;
+    }
+
+    // notify
+    msg = `The shape with ID ${payload.shape_id} has been successfully updated - by ${ws.user_credentials.username}`;
+    console.info(msg);
+    send_ws_response({ status: "success", type, message: msg, payload: null }, ws);
 
     // broadcasting all the shapes of specific room
     return broadcast_all_shapes(type, room_id, ws);

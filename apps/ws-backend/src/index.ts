@@ -2,11 +2,12 @@ import { WebSocketServer } from "ws";
 import jsonwebtoken from "jsonwebtoken";
 import dotenv from "dotenv";
 import { user_conns } from "./states/user.states.js";
-import { JWT_SECRET } from "@repo/configs/index";
 import { join_room, leave_room } from "./sockets/room.socket.js";
 import { alter_shape, create_shape, delete_shape, get_all_shapes } from "./sockets/shape.socket.js";
 import { send_ws_response } from "./utils/websocket.utils.js";
 import { catch_general_exception } from "./utils/exceptions.utils.js";
+import { get_user_record } from "@repo/db/index";
+import { JWT_SECRET } from "@repo/configs/index";
 
 dotenv.config();
 
@@ -18,15 +19,21 @@ interface DecodedPayload {
 const user_ids: { [key: string]: boolean } = {};
 
 // verifying provided jwt
-async function verify_jwt(jwt: string): Promise<string> {
+async function verify_jwt(jwt: string): Promise<string | { id: string; username: string }> {
   return new Promise((resolve, reject) => {
-    jsonwebtoken.verify(jwt, JWT_SECRET, (error: any, decoded_payload: unknown) => {
+    jsonwebtoken.verify(jwt, JWT_SECRET, async (error: any, decoded_payload: unknown) => {
       // jwt is invalid
       if (error) {
         reject(`JWT verification failed: ${error as string}`);
         return;
       } else if (decoded_payload && typeof decoded_payload === "object") {
-        resolve((decoded_payload as DecodedPayload).id || "");
+        // get user record from email field
+        const user_obj = await get_user_record({ id: (decoded_payload as DecodedPayload).id || "" });
+        if (user_obj.status === "error" || !user_obj.payload) {
+          reject("User not found");
+          return;
+        }
+        resolve({ id: user_obj.payload.id, username: user_obj.payload.username });
         return;
       }
       reject("JWT verification failed");
@@ -58,10 +65,25 @@ wss.on("connection", async function connection(ws, req) {
     const jwt = search_params.get("jwt");
 
     // get user-id from parsed jwt
-    ws.user_id = await verify_jwt(jwt || "");
+    const user = await verify_jwt(jwt || "");
+
+    // check user value
+    if (typeof user !== "object") {
+      // error
+      const msg = "User verification failed";
+      send_ws_response({ status: "error", type: "auth", message: msg, payload: null }, ws);
+      ws.close();
+      return;
+    }
+
+    // set user-credentials on current ws-object
+    ws.user_credentials = {
+      id: user.id,
+      username: user.username,
+    };
 
     // checking if same user has already connected to web-socket server
-    if (user_ids[ws.user_id]) {
+    if (user_ids[ws.user_credentials.id]) {
       // error
       const msg = "The user is already connected to the WebSocket server";
       send_ws_response({ status: "error", type: "auth", message: msg, payload: null }, ws);
@@ -70,7 +92,7 @@ wss.on("connection", async function connection(ws, req) {
     }
 
     // add user-id to users_ids global state
-    user_ids[ws.user_id] = true;
+    user_ids[ws.user_credentials.id] = true;
 
     console.info("New client successfully connected to web-socket server");
 
@@ -129,10 +151,12 @@ wss.on("connection", async function connection(ws, req) {
     // on-close event
     ws.on("close", () => {
       // delete user-id from user_ids global state
-      const check_user_id_deletion = delete user_ids[ws.user_id || ""];
+      const check_user_id_deletion = delete user_ids[ws.user_credentials?.id as string];
       // error
       if (!check_user_id_deletion) {
-        console.error(`The client with auth ID (${ws.user_id}) not found in the global user-ids state.`);
+        console.error(
+          `The client with auth ID (${ws.user_credentials?.id as string}) not found in the global user-ids state.`
+        );
       }
 
       // delete user details in global user-conns-state

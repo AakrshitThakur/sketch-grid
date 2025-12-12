@@ -7,7 +7,7 @@ async function join_room(room_id: string, ws: WebSocket) {
   let msg = "";
 
   // user not-found
-  if (!ws.id) {
+  if (!ws.id || !ws.user_credentials) {
     msg = "User not found";
     console.error(msg);
     send_ws_response<null>({ status: "error", type: "join-room", message: msg, payload: null }, ws);
@@ -27,7 +27,7 @@ async function leave_room(room_id: string, ws: WebSocket) {
   let msg = "";
 
   // user not-found
-  if (!ws.id) {
+  if (!ws.id || !ws.user_credentials) {
     msg = "User not found";
     console.error(msg);
     send_ws_response<null>({ status: "error", type: "leave-room", message: msg, payload: null }, ws);
