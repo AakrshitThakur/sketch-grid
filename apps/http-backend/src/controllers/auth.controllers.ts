@@ -15,13 +15,13 @@ async function signin_controller(req: Request, res: Response) {
 
     // get user record from email field
     const user_obj = await get_user_record({ email: v_credentials.email });
-    if (user_obj.status === "error") {
+    if (user_obj.status === "error" || !user_obj.payload) {
       res.status(user_obj.status_code).json({ message: user_obj.message });
       return;
     }
 
     // compare passwords
-    const check_psd = await bcrypt.compare(v_credentials.password, user_obj.payload?.password || "");
+    const check_psd = await bcrypt.compare(v_credentials.password, user_obj.payload.password || "");
 
     // invalid password provided
     if (!check_psd) {
@@ -31,7 +31,7 @@ async function signin_controller(req: Request, res: Response) {
 
     // jwt payload
     const user_credentials = {
-      id: user_obj.payload?.id || "",
+      id: user_obj.payload.id || "",
     };
 
     // generate jwt
@@ -44,7 +44,7 @@ async function signin_controller(req: Request, res: Response) {
     // generate cookie
     res.cookie("jwt", jwt, AUTH_COOKIE_OPTIONS);
 
-    res.status(200).json({ message: "User has successfully signed in" });
+    res.status(200).json({ message: `${user_obj.payload.username} has successfully signed in` });
     return;
   } catch (error) {
     const { status_code, message } = catch_auth_exception(error as Error);
@@ -75,7 +75,7 @@ async function signup_controller(req: Request, res: Response) {
 
     // error
     if (!is_user_created) {
-      res.status(400).json({ message: "User not created" });
+      res.status(400).json({ message: "User creation failed due to an unexpected error" });
       return;
     }
 
@@ -95,7 +95,7 @@ async function signup_controller(req: Request, res: Response) {
     res.cookie("jwt", jwt, AUTH_COOKIE_OPTIONS);
 
     // success
-    res.status(200).json({ message: "User has successfully signed up" });
+    res.status(200).json({ message: `${is_user_created.username} has successfully signed up` });
     return;
   } catch (error) {
     const { status_code, message } = catch_auth_exception(error as Error);
@@ -105,7 +105,7 @@ async function signup_controller(req: Request, res: Response) {
 }
 
 // sign-out
-function signout_controller(req: Request, res: Response) {
+async function signout_controller(req: Request, res: Response) {
   try {
     const user_credentials = req.user_credentials;
 
@@ -115,9 +115,16 @@ function signout_controller(req: Request, res: Response) {
       return;
     }
 
+    // get user record from email field
+    const user_obj = await get_user_record({ id: user_credentials.id });
+    if (user_obj.status === "error" || !user_obj.payload) {
+      res.status(user_obj.status_code).json({ message: user_obj.message });
+      return;
+    }
+
     // success
     res.cookie("jwt", "", { ...AUTH_COOKIE_OPTIONS, maxAge: 0 });
-    res.status(200).json({ message: "User signed out successfully" });
+    res.status(200).json({ message: `${user_obj.payload.username} signed out successfully` });
     return;
   } catch (error) {
     const { status_code, message } = catch_general_exception(error as Error);
@@ -141,7 +148,7 @@ async function is_user_authenticated_controller(req: Request, res: Response) {
     const user_obj = await get_user_record({ id: user_credentials.id });
 
     // user not-found
-    if (user_obj.status === "error") {
+    if (user_obj.status === "error" || !user_obj.payload) {
       res.status(user_obj.status_code).json({ message: user_obj.message });
       return;
     }
@@ -166,7 +173,7 @@ async function is_user_authenticated_controller(req: Request, res: Response) {
     }
 
     // success
-    res.status(200).json({ message: "User is authenticated", jwt });
+    res.status(200).json({ message: `${user_obj.payload.username} is authenticated"`, jwt });
     return;
   } catch (error) {
     const { status_code, message } = catch_general_exception(error as Error);

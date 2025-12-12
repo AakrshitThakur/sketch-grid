@@ -33,6 +33,7 @@ async function create_room_controller(req: Request, res: Response) {
         slug: v_credentials.slug,
         password: h_password,
         admin_id: user_credentials.id,
+        user_ids: [],
       },
     });
     if (!new_room) {
@@ -42,14 +43,79 @@ async function create_room_controller(req: Request, res: Response) {
 
     // success
     res.status(200).json({
-      message: "Room successfully created",
+      message: `${user_obj.payload.username} has successfully created a new room named ${new_room.slug}`,
       room_id: new_room.id,
     });
     return;
   } catch (error) {
     const { status_code, message } = catch_general_exception(error as Error);
     res.status(status_code).json({ message });
+  }
+}
+
+// user (not admin) to join a specific room
+async function join_room_controller(req: Request, res: Response) {
+  try {
+    const credentials = req.body;
+    const v_credentials = create_room_zod_schema.parse(credentials);
+
+    // get user-cred
+    const user_credentials = req.user_credentials;
+    if (!user_credentials || !user_credentials.id) {
+      res.status(401).json({ message: "Please sign in or create an account to continue" });
+      return;
+    }
+
+    // check if user exists or not
+    const user_obj = await get_user_record({ id: user_credentials.id });
+    if (user_obj.status === "error" || !user_obj.payload) {
+      res.status(user_obj.status_code).json({ message: user_obj.message });
+      return;
+    }
+
+    // get room
+    const room_obj = await get_room_record({
+      slug: v_credentials.slug,
+    });
+    if (room_obj.status === "error" || !room_obj.payload) {
+      res.status(room_obj.status_code).json({ message: room_obj.message });
+      return;
+    }
+
+    // check if the user is admin of room
+    if (room_obj.payload.admin_id === user_obj.payload.id) {
+      res.status(200).json({ message: "Administrators are already authorized to access their own rooms" });
+      return;
+    }
+
+    // check the authenticity of provided password from the user
+    const check_psd = await bcrypt.compare(v_credentials.password, room_obj.payload.password);
+    if (!check_psd) {
+      res.status(400).json({ message: "Invalid room password" });
+      return;
+    }
+
+    // add user-add to user_ids array
+    const updated_room = await prisma_client.room.update({
+      where: { id: room_obj.payload.id },
+      // @ts-ignore
+      data: { user_ids: [...room_obj.payload.user_ids, user_credentials.id] },
+    });
+
+    // error
+    if (!updated_room) {
+      res.status(500).json({ message: "Internal server error" });
+      return;
+    }
+    // success
+    res.status(200).json({
+      message: `${user_obj.payload.username} has successfully entered the room with ID ${room_obj.payload.id}`,
+      room_id: room_obj.payload.id,
+    });
     return;
+  } catch (error) {
+    const { status_code, message } = catch_general_exception(error as Error);
+    res.status(status_code).json({ message });
   }
 }
 
@@ -137,7 +203,7 @@ async function delete_room_controller(req: Request, res: Response) {
 
     // check if user exists
     const user_obj = await get_user_record({ id: user_credentials.id });
-    if (user_obj.status === "error") {
+    if (user_obj.status === "error" || !user_obj.payload) {
       res.status(user_obj.status_code).json({ message: user_obj.message });
       return;
     }
@@ -167,11 +233,17 @@ async function delete_room_controller(req: Request, res: Response) {
     }
 
     // success
-    res.status(200).json({ message: `Room (ID: ${room_id}) successfully deleted` });
+    res.status(200).json({ message: `${user_obj.payload.username} has successfully deleted the room (ID: ${room_id})` });
   } catch (error) {
     const { status_code, message } = catch_general_exception(error as Error);
     res.status(status_code).json({ message });
   }
 }
 
-export { create_room_controller, get_room_by_id_controller, get_all_rooms_controller, delete_room_controller };
+export {
+  create_room_controller,
+  join_room_controller,
+  get_room_by_id_controller,
+  get_all_rooms_controller,
+  delete_room_controller,
+};
