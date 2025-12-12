@@ -1,11 +1,12 @@
 "use client";
 import type React from "react";
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import useFetch from "@/hooks/use-fetch";
 import { FaLock } from "react-icons/fa";
 import { FaUserGroup } from "react-icons/fa6";
 import { BsEyeFill, BsEyeSlashFill, BsBuildingFillAdd } from "react-icons/bs";
+import { RiTeamFill } from "react-icons/ri";
 import { success_notification, error_notification } from "@/utils/toast.utils";
 import { create_room_zod_schema } from "@repo/zod/index";
 import { Card, TextInputMd } from "@repo/ui/index";
@@ -23,7 +24,7 @@ interface CallApi {
 // constants
 const HTTP_BACKEND_BASE_URL = process.env.NEXT_PUBLIC_HTTP_BACKEND_BASE_URL;
 
-const URL = HTTP_BACKEND_BASE_URL + "/api/v1/rooms/create";
+const URL = HTTP_BACKEND_BASE_URL + "/api/v1/rooms/join";
 
 const OPTIONS: RequestInit = {
   method: "POST",
@@ -33,17 +34,21 @@ const OPTIONS: RequestInit = {
   credentials: "include",
 };
 
-export default function CreateRoom() {
+export default function JoinRoom() {
+  // hook for navigation
+  const router = useRouter();
+
+  // useSearchParams is a Client Component hook that lets you read the current URL's query string
+  const search_params = useSearchParams();
+  const room_name = search_params.get("room_name");
+
   const [form_data, set_form_data] = useState({
-    room_name: "",
+    room_name: room_name ? room_name : "",
     password: "",
   });
   const [show_password, set_show_password] = useState(false);
   const [v_errors, set_v_errors] = useState<FormValidationErrors>({});
   const [call_api, set_call_api] = useState<CallApi>({ url: "", options: {} });
-
-  // hook for navigations
-  const router = useRouter();
 
   // custom use-fetch hook
   const { data, error, loading } = useFetch<{ message: string; room_id: string }>(call_api);
@@ -97,7 +102,7 @@ export default function CreateRoom() {
 
   return (
     <div
-      id="create-room"
+      id="join-room"
       className="color-base-100 color-base-content min-h-[65vh] flex justify-center items-center bg-linear-to-b to-green-500 overflow-hidden p-5 sm:p-7 md:p-9"
     >
       <CheckUserAuth>
@@ -107,7 +112,7 @@ export default function CreateRoom() {
             <div className="text-center space-y-2">
               <div className="flex justify-center">
                 <div className="color-primary p-3 rounded-full">
-                  <BsBuildingFillAdd className="h-8 w-8 color-primary-content" />
+                  <RiTeamFill className="h-8 w-8 color-primary-content" />
                 </div>
               </div>
               <h3 className="text-3xl font-bold">SketchGrid</h3>
@@ -116,8 +121,8 @@ export default function CreateRoom() {
             <div className="color-base-200 color-base-content rounded-xl">
               {/* card-header */}
               <div className="space-y-1 px-5 pt-3">
-                <h2 className="text-2xl font-semibold text-center">Create Room</h2>
-                <p className="text-base text-center">Enter details to create a new room</p>
+                <h2 className="text-2xl font-semibold text-center">Join Room</h2>
+                <p className="text-base text-center">Enter details to join a new room</p>
               </div>
 
               <form onSubmit={handle_on_submit}>
@@ -182,19 +187,19 @@ export default function CreateRoom() {
                     type="submit"
                     className="w-full color-success color-success-content font-medium py-2 px-4 rounded-md cursor-pointer"
                     disabled={loading}
-                    aria-describedby="create-room-button-description"
+                    aria-describedby="join-room-button-description"
                   >
                     {loading ? (
                       <div className="flex items-center justify-center">
                         <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                        Creating...
+                        Joining...
                       </div>
                     ) : (
-                      "Create Room"
+                      "Join Room"
                     )}
                   </button>
-                  <p id="create-room-button-description" className="text-sm sr-only">
-                    Click to create a new room
+                  <p id="join-room-button-description" className="text-sm sr-only">
+                    Click to join a new room
                   </p>
                 </div>
               </form>

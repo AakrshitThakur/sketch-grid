@@ -1,9 +1,10 @@
 "use client";
 import { useEffect, useState, use } from "react";
+import { useRouter } from "next/navigation";
 import CheckUserAuth from "@/wrappers/check-user-auth";
 import BtnDrawCanvas from "@/app/canvas/btn-draw-canvas";
 import DrawCanvas from "@/app/canvas/draw-canvas";
-import { Heading } from "@repo/ui/index";
+import { Heading, Alert } from "@repo/ui/index";
 import { send_ws_request } from "@/utils/send-ws-request.utils";
 import { success_notification, error_notification } from "@/utils/toast.utils";
 // icons
@@ -27,6 +28,11 @@ import draw_all_shapes from "@/app/canvas/draw-all-shapes";
 //           ↑
 //       x = 10 coordinate
 
+interface WsLogs {
+  text: string;
+  status: "success" | "error" | "info";
+}
+
 const WS_BACKEND_BASE_URL = process.env.NEXT_PUBLIC_WS_BACKEND_BASE_URL;
 
 const BTNS_CANVAS = [
@@ -43,10 +49,14 @@ export default function Draw({ params }: { params: Promise<{ room_id: string }> 
   // get room_id from dynamic route
   const { room_id } = use(params);
 
+  // hook for navigations
+  const router = useRouter();
+
   // canvas-btn related states
   const [selected_btn_id, set_selected_btn_id] = useState<string | null>(null);
   const [shapes, set_shapes] = useState<Shapes>([]);
   const [web_socket, set_web_socket] = useState<WebSocket | null>(null);
+  const [ws_logs, set_ws_logs] = useState<WsLogs[]>([]);
 
   useEffect(() => {
     // get jwt from local-storage
@@ -76,35 +86,58 @@ export default function Draw({ params }: { params: Promise<{ room_id: string }> 
 
       let msg = "";
 
+      // All web-socket events
       switch (parsed_response.type) {
         case "join-room": {
+          // get message from ws-response
+          msg = parsed_response.message;
+
+          // update ws_logs array
+          set_ws_logs((curr) => [...curr, { text: msg, status: parsed_response.status }]);
+
+          // check status
           if (parsed_response.status === "error") {
             msg = parsed_response.message as string;
             console.error(msg);
             error_notification(msg);
+            router.push("/rooms");
             return;
           }
+          console.info(msg);
           // get all shapes of a specific room
           send_ws_request({ type: "get-all-shapes", payload: null }, ws);
           break;
         }
         case "create-shape": {
+          // get message from ws-response
           msg = parsed_response.message;
+
+          // update ws_logs array
+          set_ws_logs((curr) => [...curr, { text: msg, status: parsed_response.status }]);
+
+          // check status
           if (parsed_response.status === "error") {
             console.error(msg);
             error_notification(msg);
             return;
           }
-          console.info(msg);
           const all_shapes: Shape[] = parsed_response.payload.map((shape: unknown) => {
             // @ts-ignore - shape.data is data about shape
             return { ...shape.data };
           });
+          console.info(msg);
+          // update shapes state
           set_shapes(all_shapes);
           break;
         }
         case "alter-shape": {
+          // get message from ws-response
           msg = parsed_response.message;
+
+          // update ws_logs array
+          set_ws_logs((curr) => [...curr, { text: msg, status: parsed_response.status }]);
+
+          // check status
           if (parsed_response.status === "error") {
             console.error(msg);
             error_notification(msg);
@@ -119,7 +152,13 @@ export default function Draw({ params }: { params: Promise<{ room_id: string }> 
           break;
         }
         case "get-all-shapes": {
+          // get message from ws-response
           msg = parsed_response.message;
+
+          // update ws_logs array
+          set_ws_logs((curr) => [...curr, { text: msg, status: parsed_response.status }]);
+
+          // check status
           if (parsed_response.status === "error") {
             console.error(msg);
             error_notification(msg);
@@ -238,9 +277,20 @@ export default function Draw({ params }: { params: Promise<{ room_id: string }> 
           />
         </section>
         {/* Live logs */}
-        {/* <div className="shrink-0 color-warning color-warning-content min-h-[25vh] w-full flex flex-col justify-start items-center gap-2 rounded-xl p-1 sm:p-2 md:p-3">
-        <Heading size="h3" text="Live logs" class_name="underline" />
-      </div> */}
+        <div className="shrink-0 color-base-200 color-base-content min-h-[25vh] max-w-5xl w-full flex flex-col justify-start items-center gap-2 rounded-xl p-1 sm:p-2 md:p-3">
+          <Heading size="h3" text="Live logs" class_name="underline" />
+          {ws_logs.length < 1 ? (
+            <p className="text-xs">No Logs Found</p>
+          ) : (
+            <ul className="space-y-1 sm:space-y-2">
+              {ws_logs.map((log) => (
+                <li>
+                  <Alert text={log.text} status={log.status} class_name="text-xs sm:text-sm" />
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
       </CheckUserAuth>
     </div>
   );

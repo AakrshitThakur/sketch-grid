@@ -52,7 +52,7 @@ export default function Signout() {
   useEffect(() => {
     if (data) {
       success_notification(data.message);
-      router.push("/");
+      router.push("/rooms");
     } else if (error) {
       error_notification(error);
       // set use-fetch hook to initial state

@@ -31,7 +31,7 @@ const OPTIONS: RequestInit = {
 export default function Rooms() {
   const [call_api, set_call_api] = useState<CallApi>({ url: URL, options: OPTIONS });
 
-  // hook for navigations
+  // hook for navigation
   const router = useRouter();
 
   // custom use-fetch hook
@@ -63,6 +63,7 @@ export default function Rooms() {
             <button
               type="button"
               key={room.id}
+              onClick={() => router.push(`/rooms/join/?room_name=${room.slug}`)}
               className="color-base-300 color-base-content flex items-center gap-1 rounded-md cursor-pointer p-2"
             >
               <span className="text-md">{room.slug}&nbsp;|&nbsp;</span>
