@@ -55,7 +55,9 @@ wss.on("connection", async function connection(ws, req) {
     // get web-socket url
     const url = req.url;
     if (!url) {
-      send_ws_response({ status: "error", type: "auth", message: "Invalid web-socket url", payload: null }, ws);
+      const msg = "Invalid web-socket url";
+      console.error(msg);
+      send_ws_response({ status: "error", type: "auth", message: msg, payload: null }, ws);
       ws.close();
       return;
     }
@@ -71,6 +73,7 @@ wss.on("connection", async function connection(ws, req) {
     if (typeof user !== "object") {
       // error
       const msg = "User verification failed";
+      console.error(msg);
       send_ws_response({ status: "error", type: "auth", message: msg, payload: null }, ws);
       ws.close();
       return;
@@ -85,7 +88,8 @@ wss.on("connection", async function connection(ws, req) {
     // checking if same user has already connected to web-socket server
     if (user_ids[ws.user_credentials.id]) {
       // error
-      const msg = "The user is already connected to the WebSocket server";
+      const msg = `${ws.user_credentials.username} is already connected to the WebSocket server`;
+      console.error(msg);
       send_ws_response({ status: "error", type: "auth", message: msg, payload: null }, ws);
       ws.close();
       return;
@@ -93,6 +97,8 @@ wss.on("connection", async function connection(ws, req) {
 
     // add user-id to users_ids global state
     user_ids[ws.user_credentials.id] = true;
+
+    console.info(user_ids);
 
     console.info("New client successfully connected to web-socket server");
 

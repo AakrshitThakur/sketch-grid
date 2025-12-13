@@ -149,7 +149,7 @@ export default function mouse_move_draw_canvas(props: Props) {
               end.y <= Math.max(box_start.y, box_start.y + shape.height)
             ) {
               // delete specific shape of current room
-              delete_shape(shape.id);
+              setTimeout(() => delete_shape(shape.id), 500);
             }
             break;
           }

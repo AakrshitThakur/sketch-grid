@@ -84,7 +84,8 @@ async function join_room_controller(req: Request, res: Response) {
 
     // check if the user is admin of room
     if (room_obj.payload.admin_id === user_obj.payload.id) {
-      res.status(200).json({ message: "Administrators are already authorized to access their own rooms" });
+      res.status(200);
+      res.json({ message: "Administrators are already authorized to access their own rooms", room_id: room_obj.payload.id });
       return;
     }
 
@@ -92,6 +93,16 @@ async function join_room_controller(req: Request, res: Response) {
     const check_psd = await bcrypt.compare(v_credentials.password, room_obj.payload.password);
     if (!check_psd) {
       res.status(400).json({ message: "Invalid room password" });
+      return;
+    }
+
+    // @ts-ignore
+    if (room_obj.payload.user_ids.includes(user_obj.payload.id)) {
+      // user already subscribed/joined the room
+      res.status(200).json({
+        message: `${user_obj.payload.username} has successfully entered the room with ID ${room_obj.payload.id}`,
+        room_id: room_obj.payload.id,
+      });
       return;
     }
 
@@ -185,6 +196,45 @@ async function get_room_by_id_controller(req: Request, res: Response) {
   }
 }
 
+// get all rooms created by the user (admin)
+async function get_all_admin_rooms_controller(req: Request, res: Response) {
+  try {
+    // get user-id
+    const user_credentials = req.user_credentials;
+    if (!user_credentials || !user_credentials.id) {
+      res.status(401).json({ message: "Please sign in or create an account to continue" });
+      return;
+    }
+
+    // get user from db
+    const user_obj = await get_user_record({ id: user_credentials.id });
+    if (user_obj.status === "error" || !user_obj.payload) {
+      res.status(user_obj.status_code).json({ message: user_obj.message });
+      return;
+    }
+
+    // get room by id
+    const rooms_obj = await get_room_records({
+      admin_id: user_credentials.id,
+    });
+    // error
+    if (rooms_obj.status === "error") {
+      res.status(rooms_obj.status_code).json({ message: rooms_obj.message });
+      return;
+    }
+    // success
+    res.status(200).json({
+      rooms: rooms_obj.payload,
+      message: `All rooms made by ${user_obj.payload.username} have been received successfully`,
+    });
+    return;
+  } catch (error) {
+    const { status_code, message } = catch_general_exception(error as Error);
+    res.status(status_code).json({ message });
+    return;
+  }
+}
+
 // delete room by room-id
 async function delete_room_controller(req: Request, res: Response) {
   try {
@@ -245,5 +295,6 @@ export {
   join_room_controller,
   get_room_by_id_controller,
   get_all_rooms_controller,
+  get_all_admin_rooms_controller,
   delete_room_controller,
 };

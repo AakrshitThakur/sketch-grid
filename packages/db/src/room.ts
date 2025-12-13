@@ -16,14 +16,14 @@ async function get_room_records(input: GetRoomRecords) {
       },
     });
 
-    if (rooms.length === 0) {
-      return {
-        status_code: 404,
-        status: "error",
-        message: "No Rooms found",
-        payload: null,
-      } as ReturnPrismaResponse<null>;
-    }
+    // if (rooms.length === 0) {
+    //   return {
+    //     status_code: 404,
+    //     status: "error",
+    //     message: "No Rooms found",
+    //     payload: null,
+    //   } as ReturnPrismaResponse<null>;
+    // }
 
     const return_rooms: ReturnPrismaResponse<typeof rooms> = {
       status_code: 200,

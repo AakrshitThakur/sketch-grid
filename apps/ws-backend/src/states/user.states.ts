@@ -37,6 +37,14 @@ const user_conns: UserConns = {
     const type = "join-room";
     let msg = "";
 
+    // room-id not provided
+    if (!params.room_id) {
+      msg = "Room ID not provided";
+      console.error(msg);
+      send_ws_response<null>({ status: "error", type, message: msg, payload: null }, params.ws);
+      return false;
+    }
+
     // user not-found
     if (!params.ws.id || !params.ws.user_credentials) {
       msg = "User not found";
@@ -74,8 +82,8 @@ const user_conns: UserConns = {
     // check if user is authorized to join or not
     if (
       // @ts-ignore
-      !room_obj.payload.user_ids.includes(params.ws.user_id) &&
-      room_obj.payload.admin_id !== params.ws.user_credentials?.id
+      !room_obj.payload.user_ids.includes(params.ws.user_credentials.id) &&
+      room_obj.payload.admin_id !== params.ws.user_credentials.id
     ) {
       msg = `${params.ws.user_credentials.username} not allowed to join the room with ID ${params.room_id}`;
       console.error(msg);
@@ -95,6 +103,14 @@ const user_conns: UserConns = {
   async leave_room(params: LeaveRoomParams) {
     const type = "leave-room";
     let msg = "";
+
+    // room-id not provided
+    if (!params.room_id) {
+      msg = "Room ID not provided";
+      console.error(msg);
+      send_ws_response<null>({ status: "error", type, message: msg, payload: null }, params.ws);
+      return false;
+    }
 
     // user not-found
     if (!params.ws.id || !params.ws.user_credentials) {

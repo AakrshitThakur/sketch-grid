@@ -6,6 +6,12 @@ import { send_ws_response } from "../utils/websocket.utils.js";
 import { catch_general_exception } from "../utils/exceptions.utils.js";
 import type { WebSocketResponseType } from "../types/index.js";
 
+interface BroadcastAllShapesData {
+  type: WebSocketResponseType;
+  room_id: string;
+  broadcast_msg: string;
+}
+
 // return room which is currently joined by user
 async function get_user_joined_room(type: WebSocketResponseType, ws: WebSocket) {
   let msg = "";
@@ -51,15 +57,23 @@ async function get_user_joined_room(type: WebSocketResponseType, ws: WebSocket) 
 }
 
 // broadcasting all the shapes of specific room
-async function broadcast_all_shapes(type: WebSocketResponseType, room_id: string, ws: WebSocket) {
+async function broadcast_all_shapes(data: BroadcastAllShapesData, ws: WebSocket) {
   let msg = "";
   try {
-    // get all shapes of a specific room
-    const all_shapes_obj = await get_shape_records({ room_id });
-    if (all_shapes_obj.status === "error") {
-      msg = `Shapes of Room ID: ${room_id} not found`;
+    // room-id not provided
+    if (!data.room_id) {
+      msg = "Room ID not provided";
       console.error(msg);
-      send_ws_response({ status: "error", type, message: msg, payload: null }, ws);
+      send_ws_response<null>({ status: "error", type: data.type, message: msg, payload: null }, ws);
+      return false;
+    }
+
+    // get all shapes of a specific room
+    const all_shapes_obj = await get_shape_records({ room_id: data.room_id });
+    if (all_shapes_obj.status === "error") {
+      msg = `Shapes of Room ID: ${data.room_id} not found`;
+      console.error(msg);
+      send_ws_response({ status: "error", type: data.type, message: msg, payload: null }, ws);
       return false;
     }
 
@@ -73,10 +87,10 @@ async function broadcast_all_shapes(type: WebSocketResponseType, room_id: string
 
     // The Object.entries() static method returns an array of a given object's own enumerable string-keyed property key-value pairs.
     for (let [key, value] of Object.entries(user_conns.user_conns_state)) {
-      if (room_id === value.room) {
-        msg = `All shapes have been received successfully - by ${ws.user_credentials?.username}`;
+      if (data.room_id === value.room) {
+        msg = data.broadcast_msg;
         // broadcast all the shapes of a specific room to all the client connected to the same room
-        send_ws_response({ status: "success", type, message: msg, payload: all_shapes_obj.payload }, value.ws);
+        send_ws_response({ status: "success", type: data.type, message: msg, payload: all_shapes_obj.payload }, value.ws);
       }
     }
     return true;
@@ -121,13 +135,10 @@ async function create_shape(payload: Shape, ws: WebSocket) {
       return false;
     }
 
-    // notify
+    // broadcasting all the shapes of specific room
     msg = `A new ${payload.type} shape has been successfully created - by ${ws.user_credentials.username}`;
     console.info(msg);
-    send_ws_response({ status: "success", type, message: msg, payload: null }, ws);
-
-    // broadcasting all the shapes of specific room
-    return broadcast_all_shapes(type, room_id, ws);
+    return broadcast_all_shapes({ type, room_id, broadcast_msg: msg }, ws);
   } catch (error) {
     catch_general_exception(error, ws);
     return false;
@@ -139,6 +150,14 @@ async function delete_shape(payload: { shape_id: string }, ws: WebSocket) {
   const type: WebSocketResponseType = "delete-shape";
   let msg = "";
   try {
+    // room-id not provided
+    if (!payload.shape_id) {
+      msg = "Shape ID not provided";
+      console.error(msg);
+      send_ws_response<null>({ status: "error", type, message: msg, payload: null }, ws);
+      return false;
+    }
+
     // check user
     if (!ws.user_credentials || !ws.id) {
       msg = "Please sign up or sign in to continue";
@@ -150,6 +169,8 @@ async function delete_shape(payload: { shape_id: string }, ws: WebSocket) {
     // get user-joined-room-id
     const room_id = await get_user_joined_room(type, ws);
     if (!room_id) return false;
+
+    console.log(payload.shape_id, room_id);
 
     // get deleted shape
     const deleted_shape = await prisma_client.shape.delete({
@@ -167,13 +188,10 @@ async function delete_shape(payload: { shape_id: string }, ws: WebSocket) {
       return false;
     }
 
-    // notify
+    // broadcasting all the shapes of specific room
     msg = `The shape with ID ${payload.shape_id} has been successfully deleted - by ${ws.user_credentials.username}`;
     console.info(msg);
-    send_ws_response({ status: "success", type, message: msg, payload: null }, ws);
-
-    // broadcasting all the shapes of specific room
-    return broadcast_all_shapes(type, room_id, ws);
+    return broadcast_all_shapes({ type, room_id, broadcast_msg: msg }, ws);
   } catch (error) {
     catch_general_exception(error, ws);
     return false;
@@ -212,13 +230,10 @@ async function alter_shape(payload: { shape_id: string; data: Shape }, ws: WebSo
       return false;
     }
 
-    // notify
+    // broadcasting all the altered-shapes of specific room
     msg = `The shape with ID ${payload.shape_id} has been successfully updated - by ${ws.user_credentials.username}`;
     console.info(msg);
-    send_ws_response({ status: "success", type, message: msg, payload: null }, ws);
-
-    // broadcasting all the shapes of specific room
-    return broadcast_all_shapes(type, room_id, ws);
+    return broadcast_all_shapes({ type, room_id, broadcast_msg: msg }, ws);
   } catch (error) {
     catch_general_exception(error, ws);
     return false;
@@ -235,7 +250,9 @@ async function get_all_shapes(ws: WebSocket) {
     if (!room_id) return false;
 
     // broadcasting all the shapes of specific room
-    return broadcast_all_shapes(type, room_id, ws);
+    msg = "All shapes have been received successfully";
+    console.info(msg);
+    return broadcast_all_shapes({ type, room_id, broadcast_msg: msg }, ws);
   } catch (error) {
     catch_general_exception(error, ws);
     return false;

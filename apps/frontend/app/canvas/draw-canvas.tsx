@@ -113,7 +113,7 @@ export default function DrawCanvas(props: DrawCanvasProps) {
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    fix_dpi(canvas);
+    // fix_dpi(canvas);
 
     // set the pre-requisite values for canvas session
     ctx.lineWidth = canvas_default_props.line_width;
@@ -291,7 +291,7 @@ export default function DrawCanvas(props: DrawCanvasProps) {
     <canvas
       id="whiteboard-canvas"
       ref={canvas_ref}
-      className="color-neutral color-neutral-content shrink-0 w-full rounded-xl touch-none"
+      className="color-neutral color-neutral-content w-full shrink-0 rounded-xl touch-none"
       onMouseDown={handle_mouse_down}
       onMouseMove={handle_mouse_move}
       onMouseUp={handle_mouse_up}

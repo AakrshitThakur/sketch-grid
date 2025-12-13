@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState, use } from "react";
+import { useEffect, useState, use, useRef } from "react";
 import { useRouter } from "next/navigation";
 import CheckUserAuth from "@/wrappers/check-user-auth";
 import BtnDrawCanvas from "@/app/canvas/btn-draw-canvas";
@@ -49,19 +49,24 @@ export default function Draw({ params }: { params: Promise<{ room_id: string }> 
   // get room_id from dynamic route
   const { room_id } = use(params);
 
-  // hook for navigations
+  // hook for navigation
   const router = useRouter();
 
-  // canvas-btn related states
+  // canvas related states
   const [selected_btn_id, set_selected_btn_id] = useState<string | null>(null);
   const [shapes, set_shapes] = useState<Shapes>([]);
-  const [web_socket, set_web_socket] = useState<WebSocket | null>(null);
+  const web_socket_ref = useRef<WebSocket | null>(null);
   const [ws_logs, set_ws_logs] = useState<WsLogs[]>([]);
 
   useEffect(() => {
     // get jwt from local-storage
     const jwt = localStorage.getItem("jwt");
 
+    if (web_socket_ref.current) {
+      web_socket_ref.current.close();
+      web_socket_ref.current = null;
+      return;
+    }
     if (!jwt) return;
     if (!WS_BACKEND_BASE_URL) return;
 
@@ -71,7 +76,12 @@ export default function Draw({ params }: { params: Promise<{ room_id: string }> 
     // The open event is fired when a connection with a WebSocket is opened
     ws.onopen = () => {
       console.info("Connection to WebSocket server established successfully");
-      set_web_socket(ws);
+      web_socket_ref.current = ws;
+
+      if (!web_socket_ref.current || web_socket_ref.current.readyState !== WebSocket.OPEN) return;
+      // WebSocket.send() method enqueues the specified data to be transmitted to the server over the WebSocket connection
+      // join specific room
+      send_ws_request({ type: "join-room", payload: { room_id } }, web_socket_ref.current);
     };
     // The error event is fired when a connection with a WebSocket has been closed due to an error (some data couldn't be sent for example)
     ws.onerror = (error) => console.error("WebSocket error:", error);
@@ -79,11 +89,20 @@ export default function Draw({ params }: { params: Promise<{ room_id: string }> 
     ws.onclose = () => console.info("Connection with WebSocket server terminated");
     // listen messages coming from WebSocket server
     ws.onmessage = (event) => {
-      // parse json-stringified response
-      const parsed_response = JSON.parse(event.data);
+      // get parsed message
+      let parsed_response;
+      try {
+        // parse json-stringified response
+        parsed_response = JSON.parse(event.data);
+      } catch (error) {
+        console.error("Invalid JSON data could not be parsed");
+        return;
+      }
 
-      if (!ws) return;
+      // The connection isn't open and not ready to communicate
+      if (ws.readyState !== WebSocket.OPEN) return;
 
+      // parsed-response message
       let msg = "";
 
       // All web-socket events
@@ -173,17 +192,65 @@ export default function Draw({ params }: { params: Promise<{ room_id: string }> 
           set_shapes(all_shapes);
           break;
         }
+        case "auth": {
+          // get message from ws-response
+          msg = parsed_response.message;
+
+          // update ws_logs array
+          set_ws_logs((curr) => [...curr, { text: msg, status: parsed_response.status }]);
+
+          // check status
+          if (parsed_response.status === "error") {
+            console.error(msg);
+            error_notification(msg);
+            set_shapes([]);
+            return;
+          }
+          console.info(msg);
+          const all_shapes: Shape[] = parsed_response.payload.map((shape: unknown) => {
+            // @ts-ignore - shape.data is data about shape
+            return { ...shape.data };
+          });
+          set_shapes(all_shapes);
+          break;
+        }
+        case "others": {
+          // get message from ws-response
+          msg = parsed_response.message;
+
+          // update ws_logs array
+          set_ws_logs((curr) => [...curr, { text: msg, status: parsed_response.status }]);
+
+          // check status
+          if (parsed_response.status === "error") {
+            console.error(msg);
+            error_notification(msg);
+            set_shapes([]);
+            return;
+          }
+          console.info(msg);
+          const all_shapes: Shape[] = parsed_response.payload.map((shape: unknown) => {
+            // @ts-ignore - shape.data is data about shape
+            return { ...shape.data };
+          });
+          set_shapes(all_shapes);
+          break;
+        }
       }
     };
-  }, []);
+
+    // cleanup function
+    return () => {
+      // close web-socket instance if current web-socket status is connection or connected
+      if (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING) {
+        ws.close();
+        web_socket_ref.current = null;
+      }
+    };
+  }, [WS_BACKEND_BASE_URL, room_id]);
 
   // send message on successfully initializing web-socket instance
-  useEffect(() => {
-    if (!web_socket) return;
-    // WebSocket.send() method enqueues the specified data to be transmitted to the server over the WebSocket connection
-    // join specific room
-    send_ws_request({ type: "join-room", payload: { room_id } }, web_socket);
-  }, [web_socket]);
+  useEffect(() => {}, [WS_BACKEND_BASE_URL, room_id]);
 
   function handle_set_selected_btn_id(id: string | null) {
     set_selected_btn_id(id);
@@ -273,7 +340,7 @@ export default function Draw({ params }: { params: Promise<{ room_id: string }> 
           <DrawCanvas
             selected_btn={{ selected_btn_id, handle_set_selected_btn_id }}
             all_shapes={{ shapes, push_new_curr_shape, delete_shape_by_id, alter_shape_properties }}
-            web_socket={web_socket}
+            web_socket={web_socket_ref.current}
           />
         </section>
         {/* Live logs */}
@@ -283,9 +350,9 @@ export default function Draw({ params }: { params: Promise<{ room_id: string }> 
             <p className="text-xs">No Logs Found</p>
           ) : (
             <ul className="space-y-1 sm:space-y-2">
-              {ws_logs.map((log) => (
+              {ws_logs.map((log, idx) => (
                 <li>
-                  <Alert text={log.text} status={log.status} class_name="text-xs sm:text-sm" />
+                  <Alert key={idx} text={log.text} status={log.status} class_name="text-xs sm:text-sm" />
                 </li>
               ))}
             </ul>

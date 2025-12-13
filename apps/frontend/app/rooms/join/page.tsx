@@ -155,7 +155,7 @@ export default function JoinRoom() {
                         id="password"
                         name="password"
                         type={show_password ? "text" : "password"}
-                        placeholder="Enter your password"
+                        placeholder="Enter room password"
                         value={form_data.password}
                         onChange={handle_on_change}
                         className="w-full px-10 py-2 border rounded-md"
