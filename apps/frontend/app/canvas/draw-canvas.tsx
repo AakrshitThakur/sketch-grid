@@ -1,7 +1,6 @@
 "use client";
 import { useRef, useState, useEffect } from "react";
 import { nanoid } from "nanoid";
-import fix_dpi from "./fix_dpi";
 import mouse_move_draw_canvas from "./mouse-move-draw-canvas";
 import mouse_move_drag_canvas from "./mouse-move-drag-canvas";
 import mouse_move_hover_canvas from "./mouse-move-hover-canvas";
@@ -14,12 +13,7 @@ interface DrawCanvasProps {
     selected_btn_id: string | null;
     handle_set_selected_btn_id: (id: string | null) => void;
   };
-  all_shapes: {
-    shapes: Shapes;
-    push_new_curr_shape: (curr_shape: Shape) => void;
-    delete_shape_by_id: (id: string) => void;
-    alter_shape_properties: (shape: Shape) => void;
-  };
+  all_shapes: { shapes: Shapes };
   web_socket: WebSocket | null;
 }
 
@@ -38,15 +32,37 @@ export default function DrawCanvas(props: DrawCanvasProps) {
     stroke_style: "oklch(50% 0.15 30)",
   });
 
+  // used to set current dragged or drawn shape
   function handle_set_curr_shape(shape: Shape) {
     set_curr_shape(shape);
   }
 
-  function handle_set_start_point(x: number, y: number) {
-    set_start_point({ x, y });
+  // reset all the DrawCanvas's states to initial values
+  function reset_to_initial() {
+    set_start_point(null);
+    set_curr_shape(null);
+    set_is_drawing(false);
+    set_is_dragging(false);
   }
 
+  // reset all the style-related canvas to default values
+  function reset_styles_to_initial(ctx: CanvasRenderingContext2D) {
+    // setting canvas pre-requisites
+    ctx.lineWidth = canvas_default_props.line_width;
+    ctx.strokeStyle = canvas_default_props.stroke_style;
+    ctx.fillStyle = canvas_default_props.fill_style;
+    ctx.setLineDash(canvas_default_props.set_lined_dash);
+  }
+
+  // initialize canvas whiteboard
   useEffect(() => {
+    // stop everything if web-socket isn't initialized
+    if (!props.web_socket) {
+      reset_to_initial();
+      return;
+    }
+
+    // get canvas reference
     const canvas = canvas_ref.current;
     if (!canvas) return;
 
@@ -54,10 +70,32 @@ export default function DrawCanvas(props: DrawCanvasProps) {
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    if (!props.web_socket) return;
+    // setting canvas pre-requisites
+    reset_styles_to_initial(ctx);
+  }, []);
+
+  // draw a text when select canvas btn is "text"
+  useEffect(() => {
+    const canvas = canvas_ref.current;
+    if (!canvas) {
+      reset_to_initial();
+      return;
+    }
+
+    // using 2d-canvas context
+    const ctx = canvas.getContext("2d");
+    if (!ctx) {
+      reset_to_initial();
+      return;
+    }
 
     // setting different modes on different selected btns
     if (props.selected_btn.selected_btn_id === "text") {
+      // stop everything if web-socket isn't initialized
+      if (!props.web_socket) {
+        reset_to_initial();
+        return;
+      }
       // setting canvas pre-requisites
       reset_styles_to_initial(ctx);
 
@@ -105,22 +143,7 @@ export default function DrawCanvas(props: DrawCanvasProps) {
     }
   }, [props.selected_btn]);
 
-  useEffect(() => {
-    const canvas = canvas_ref.current;
-    if (!canvas) return;
-
-    // using 2d-canvas context
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-
-    // fix_dpi(canvas);
-
-    // set the pre-requisite values for canvas session
-    ctx.lineWidth = canvas_default_props.line_width;
-    ctx.strokeStyle = canvas_default_props.stroke_style;
-    ctx.fillStyle = canvas_default_props.fill_style;
-  }, []);
-
+  // re-draw all the shapes after response from web-socket server
   useEffect(() => {
     const canvas = canvas_ref.current;
     if (!canvas) return;
@@ -137,22 +160,6 @@ export default function DrawCanvas(props: DrawCanvasProps) {
     // re-drawing all the canvas-shapes
     draw_all_shapes(props.all_shapes.shapes, ctx);
   }, [props.all_shapes.shapes]);
-
-  // function to reset all the DrawCanvas's states
-  function reset_to_initial() {
-    set_start_point(null);
-    set_curr_shape(null);
-    set_is_drawing(false);
-    set_is_dragging(false);
-  }
-
-  function reset_styles_to_initial(ctx: CanvasRenderingContext2D) {
-    // setting canvas pre-requisites
-    ctx.lineWidth = canvas_default_props.line_width;
-    ctx.strokeStyle = canvas_default_props.stroke_style;
-    ctx.fillStyle = canvas_default_props.fill_style;
-    ctx.setLineDash(canvas_default_props.set_lined_dash);
-  }
 
   function handle_mouse_down(e: React.MouseEvent<HTMLCanvasElement>) {
     if (start_point) return;
@@ -232,7 +239,6 @@ export default function DrawCanvas(props: DrawCanvasProps) {
         start_point,
         end_point: { x: end_x, y: end_y },
         all_shapes: props.all_shapes,
-        handle_set_start_point,
         handle_set_curr_shape,
         canvas_default_props,
         reset_styles_to_initial,
@@ -247,7 +253,6 @@ export default function DrawCanvas(props: DrawCanvasProps) {
       end_point: { x: end_x, y: end_y },
       all_shapes: props.all_shapes,
       handle_set_curr_shape,
-      handle_set_start_point,
       ctx,
       web_socket: props.web_socket,
     });
@@ -291,7 +296,9 @@ export default function DrawCanvas(props: DrawCanvasProps) {
     <canvas
       id="whiteboard-canvas"
       ref={canvas_ref}
-      className="color-neutral color-neutral-content w-full shrink-0 rounded-xl touch-none"
+      width={1500}
+      height={900}
+      className="color-neutral color-neutral-content inline-block w-full h-full shrink-0 rounded-xl touch-none"
       onMouseDown={handle_mouse_down}
       onMouseMove={handle_mouse_move}
       onMouseUp={handle_mouse_up}

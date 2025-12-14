@@ -1,4 +1,3 @@
-"use client";
 import type { Point, Shapes } from "@repo/types/index";
 import {
   ARROW_DRAG_STROKE_WIDTH,

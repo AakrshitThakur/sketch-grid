@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import useFetch from "@/hooks/use-fetch";
 import { FaLock } from "react-icons/fa";
 import { FaUserGroup } from "react-icons/fa6";
-import { BsEyeFill, BsEyeSlashFill, BsBuildingFillAdd } from "react-icons/bs";
+import { BsEyeFill, BsEyeSlashFill } from "react-icons/bs";
 import { RiTeamFill } from "react-icons/ri";
 import { success_notification, error_notification } from "@/utils/toast.utils";
 import { create_room_zod_schema } from "@repo/zod/index";

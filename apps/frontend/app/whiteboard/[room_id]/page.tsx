@@ -62,10 +62,15 @@ export default function Draw({ params }: { params: Promise<{ room_id: string }> 
     // get jwt from local-storage
     const jwt = localStorage.getItem("jwt");
 
+    // If an older socket exists, close it before creating a new one
     if (web_socket_ref.current) {
-      web_socket_ref.current.close();
+      const curr_web_socket = web_socket_ref.current;
+      // check state
+      if (curr_web_socket.readyState === WebSocket.OPEN || curr_web_socket.readyState === WebSocket.CONNECTING) {
+        curr_web_socket && curr_web_socket.close();
+      }
+      // reassign with null
       web_socket_ref.current = null;
-      return;
     }
     if (!jwt) return;
     if (!WS_BACKEND_BASE_URL) return;
@@ -84,9 +89,17 @@ export default function Draw({ params }: { params: Promise<{ room_id: string }> 
       send_ws_request({ type: "join-room", payload: { room_id } }, web_socket_ref.current);
     };
     // The error event is fired when a connection with a WebSocket has been closed due to an error (some data couldn't be sent for example)
-    ws.onerror = (error) => console.error("WebSocket error:", error);
+    ws.onerror = (error) => {
+      console.error("WebSocket error:", error);
+      // clear ref so future attempts will create a new socket
+      if (web_socket_ref.current === ws) web_socket_ref.current = null;
+    };
     // The close event is fired when a connection with a WebSocket is closed
-    ws.onclose = () => console.info("Connection with WebSocket server terminated");
+    ws.onclose = () => {
+      console.info("Connection with WebSocket server terminated");
+      // clear ref so future attempts will create a new socket
+      if (web_socket_ref.current === ws) web_socket_ref.current = null;
+    };
     // listen messages coming from WebSocket server
     ws.onmessage = (event) => {
       // get parsed message
@@ -128,6 +141,50 @@ export default function Draw({ params }: { params: Promise<{ room_id: string }> 
           break;
         }
         case "create-shape": {
+          // get message from ws-response
+          msg = parsed_response.message;
+
+          // update ws_logs array
+          set_ws_logs((curr) => [...curr, { text: msg, status: parsed_response.status }]);
+
+          // check status
+          if (parsed_response.status === "error") {
+            console.error(msg);
+            error_notification(msg);
+            return;
+          }
+          const all_shapes: Shape[] = parsed_response.payload.map((shape: unknown) => {
+            // @ts-ignore - shape.data is data about shape
+            return { ...shape.data };
+          });
+          console.info(msg);
+          // update shapes state
+          set_shapes(all_shapes);
+          break;
+        }
+        case "delete-shape": {
+          // get message from ws-response
+          msg = parsed_response.message;
+
+          // update ws_logs array
+          set_ws_logs((curr) => [...curr, { text: msg, status: parsed_response.status }]);
+
+          // check status
+          if (parsed_response.status === "error") {
+            console.error(msg);
+            error_notification(msg);
+            return;
+          }
+          const all_shapes: Shape[] = parsed_response.payload.map((shape: unknown) => {
+            // @ts-ignore - shape.data is data about shape
+            return { ...shape.data };
+          });
+          console.info(msg);
+          // update shapes state
+          set_shapes(all_shapes);
+          break;
+        }
+        case "delete-all-shapes": {
           // get message from ws-response
           msg = parsed_response.message;
 
@@ -256,47 +313,18 @@ export default function Draw({ params }: { params: Promise<{ room_id: string }> 
     set_selected_btn_id(id);
   }
 
-  // push new curr-shape to shapes array
-  function push_new_curr_shape(curr_shape: Shape) {
-    set_shapes((curr) => [...curr, curr_shape]);
-  }
-
-  // delete specific shape
-  function delete_shape_by_id(id: string) {
-    if (!id) return;
-    set_shapes(shapes.filter((shape) => shape.id !== id));
-  }
-
-  // alter existing shape properties in existing shapes state
-  function alter_shape_properties(shape: Shape) {
-    const altered_shapes = shapes.map((s) => {
-      if (shape.id === s.id) return shape;
-      return s;
-    });
-    set_shapes(altered_shapes);
-  }
-
   // delete all the shapes
   function delete_all_shapes() {
-    const check = prompt("Kindly confirm the deletion of all shapes. (yes/no)");
+    const check = confirm("Kindly confirm the deletion of all shapes. (Ok/Cancel)");
 
     // change selected btn to -> cursor
     set_selected_btn_id("cursor");
 
-    // validations
-    if (!check) return;
-    if (check.toLowerCase().trim() !== "yes") return;
+    // check response from user
+    if (!web_socket_ref.current || !check) return;
 
-    // clear all shapes
-    set_shapes([]);
-    // get canvas ref
-    const canvas = document.getElementById("whiteboard-canvas") as HTMLCanvasElement;
-    if (!canvas) return;
-    // get 2d-context
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-    // clear entire canvas area
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    // clear all shapes if authorized
+    send_ws_request({ type: "delete-all-shapes", payload: null }, web_socket_ref.current);
   }
 
   console.info(shapes);
@@ -339,12 +367,12 @@ export default function Draw({ params }: { params: Promise<{ room_id: string }> 
           {/* draw canvas whiteboard */}
           <DrawCanvas
             selected_btn={{ selected_btn_id, handle_set_selected_btn_id }}
-            all_shapes={{ shapes, push_new_curr_shape, delete_shape_by_id, alter_shape_properties }}
+            all_shapes={{ shapes }}
             web_socket={web_socket_ref.current}
           />
         </section>
         {/* Live logs */}
-        <div className="shrink-0 color-base-200 color-base-content min-h-[25vh] max-w-5xl w-full flex flex-col justify-start items-center gap-2 rounded-xl p-1 sm:p-2 md:p-3">
+        <div className="shrink-0 color-base-200 color-base-content h-full max-h-[35vh] max-w-5xl w-full flex flex-col justify-start items-center gap-2 rounded-xl overflow-y-auto p-1 sm:p-2 md:p-3">
           <Heading size="h3" text="Live logs" class_name="underline" />
           {ws_logs.length < 1 ? (
             <p className="text-xs">No Logs Found</p>

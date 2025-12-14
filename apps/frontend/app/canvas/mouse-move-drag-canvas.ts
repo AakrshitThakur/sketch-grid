@@ -10,13 +10,7 @@ import {
 interface Params {
   start_point: Point;
   end_point: Point;
-  all_shapes: {
-    shapes: Shapes;
-    push_new_curr_shape: (curr_shape: Shape) => void;
-    delete_shape_by_id: (id: string) => void;
-    alter_shape_properties: (shape: Shape) => void;
-  };
-  handle_set_start_point: (x: number, y: number) => void;
+  all_shapes: { shapes: Shapes };
   handle_set_curr_shape: (shape: Shape) => void;
   reset_styles_to_initial: (ctx: CanvasRenderingContext2D) => void;
   canvas_default_props: {
@@ -30,7 +24,10 @@ interface Params {
 
 export default function mouse_move_drag_canvas(params: Params) {
   const start = { x: params.start_point.x, y: params.start_point.y };
-  const end = { x: params.end_point.x, y: params.end_point.y };
+  const end = { x: params.end_point.x, y: params.end_point.y }; 
+
+    // return if web-socket isn't already set
+  if (!params.web_socket) return;
 
   // draw a temporary rectangle shape
   function draw_rect(point: Point, w: number, h: number) {
@@ -259,7 +256,7 @@ export default function mouse_move_drag_canvas(params: Params) {
               // Δx and Δy both are -ve
               // decrease radius of circle
               draw_circle({ x: shape.center.x, y: shape.center.y }, shape.radius - d);
-              params.all_shapes.alter_shape_properties({ ...shape, radius: shape.radius - d });
+              params.handle_set_curr_shape({ ...shape, radius: shape.radius - d });
             }
           }
         } else if (params.ctx.isPointInStroke(last_half_circle, start.x, start.y)) {
@@ -626,7 +623,7 @@ export default function mouse_move_drag_canvas(params: Params) {
                 shape.height - 2 * (start.y - end.y)
               );
               // set curr-shape to alter values
-              params.all_shapes.alter_shape_properties({
+              params.handle_set_curr_shape({
                 ...shape,
                 width: shape.width - 2 * (end.x - start.x),
                 height: shape.height - 2 * (start.y - end.y),

@@ -16,7 +16,7 @@ export default function Profile(props: ProfileProps) {
   const DROPDOWN_LINKS = [
     {
       label: "View My Rooms",
-      navigate_func: () => router.push("/demo"),
+      navigate_func: () => router.push("/rooms/mine"),
       icon: <GoSearch className="w-full h-full" />,
     },
   ];
@@ -51,12 +51,13 @@ export default function Profile(props: ProfileProps) {
         <div
           className={`absolute z-10 p-1 top-[105%] left-[50%] -translate-x-[50%] rounded-md text-sm ${props.class_names?.drop_down_links}`}
         >
-          {DROPDOWN_LINKS.map((link) => (
+          {DROPDOWN_LINKS.map((link, idx) => (
             <div
               onClick={() => {
                 set_open(false);
                 link.navigate_func();
               }}
+              key={idx}
               className={`flex justify-center items-center gap-1 cursor-pointer px-3 py-2 ${props.class_names?.drop_down_link}`}
             >
               <span className="text-nowrap">{link.label}</span>

@@ -48,6 +48,22 @@ export default function Navbar() {
     ],
   };
 
+  // profile drop-down
+  const profile_drop_down_props = {
+    label: "My Rooms",
+    class_names: {
+      drop_down: "color-secondary color-secondary-content ",
+      toggle_btn: "color-secondary color-secondary-content ",
+    },
+    drop_down_links: [
+      {
+        label: "GitHub",
+        navigate_func: () => router.push("https://github.com/AakrshitThakur"),
+        icon: <FaGithub className="w-full h-full" />,
+      },
+    ],
+  };
+
   // socials drop-down
   const socials_drop_down_props = {
     label: "Socials",
@@ -128,13 +144,13 @@ export default function Navbar() {
           <DropDownLinks {...socials_drop_down_props} />
         </div>
 
-        {/* cto and other navigations */}
+        {/* cto and other navigation */}
         <div className="hidden md:flex gap-2 items-center">
           <ToggleMode />
           <DropDownLinks {...auth_drop_down_props} />
           <DropDownLinks {...rooms_drop_down_links} />
           <Button type="success" size="md" text="Get Started" on_click={() => router.push("/rooms")} />
-          <Profile class_names={{drop_down_link: "color-secondary color-secondary-content"}} />
+          <Profile class_names={{ drop_down_link: "color-secondary color-secondary-content" }} />
         </div>
 
         {/* Mobile menu button */}
@@ -167,7 +183,9 @@ export default function Navbar() {
                 <ToggleMode />
                 <DropDownLinks {...socials_drop_down_props} />
                 <DropDownLinks {...auth_drop_down_props} />
+                <DropDownLinks {...rooms_drop_down_links} />
                 <Button type="success" size="md" text="Get Started" on_click={() => router.push("/rooms")} />
+                <Profile class_names={{ drop_down_link: "color-secondary color-secondary-content" }} />
               </div>
             </div>
           </div>

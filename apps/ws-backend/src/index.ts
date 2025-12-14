@@ -3,7 +3,7 @@ import jsonwebtoken from "jsonwebtoken";
 import dotenv from "dotenv";
 import { user_conns } from "./states/user.states.js";
 import { join_room, leave_room } from "./sockets/room.socket.js";
-import { alter_shape, create_shape, delete_shape, get_all_shapes } from "./sockets/shape.socket.js";
+import { alter_shape, create_shape, delete_all_shapes, delete_shape, get_all_shapes } from "./sockets/shape.socket.js";
 import { send_ws_response } from "./utils/websocket.utils.js";
 import { catch_general_exception } from "./utils/exceptions.utils.js";
 import { get_user_record } from "@repo/db/index";
@@ -46,7 +46,7 @@ const PORT = parseInt(process.env.PORT || "3002");
 
 const wss = new WebSocketServer({ port: PORT });
 
-// error intializing web-socket server
+// error initializing web-socket server
 wss.on("error", (error) => console.error("WebSocket server error:", error.message));
 if (wss) console.info("WebSocket server is successfully running on port:", PORT);
 
@@ -130,6 +130,11 @@ wss.on("connection", async function connection(ws, req) {
         } else if (parsed_message.type === "delete-shape") {
           // delete a shape
           await delete_shape(parsed_message.payload, ws);
+          console.info(Object.entries(user_conns.user_conns_state));
+          return;
+        } else if (parsed_message.type === "delete-all-shapes") {
+          // delete a shape
+          await delete_all_shapes(ws);
           console.info(Object.entries(user_conns.user_conns_state));
           return;
         } else if (parsed_message.type === "alter-shape") {

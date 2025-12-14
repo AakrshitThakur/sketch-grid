@@ -2,8 +2,9 @@ type WebSocketResponseType =
   | "join-room"
   | "leave-room"
   | "create-shape"
-  | "delete-shape"
   | "alter-shape"
+  | "delete-shape"
+  | "delete-all-shapes"
   | "get-all-shapes"
   | "auth"
   | "others";

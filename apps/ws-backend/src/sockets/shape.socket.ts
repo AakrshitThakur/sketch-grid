@@ -72,8 +72,8 @@ async function broadcast_all_shapes(data: BroadcastAllShapesData, ws: WebSocket)
     const all_shapes_obj = await get_shape_records({ room_id: data.room_id });
     if (all_shapes_obj.status === "error") {
       msg = `Shapes of Room ID: ${data.room_id} not found`;
-      console.error(msg);
-      send_ws_response({ status: "error", type: data.type, message: msg, payload: null }, ws);
+      console.info(msg);
+      send_ws_response({ status: "info", type: data.type, message: msg, payload: [] }, ws);
       return false;
     }
 
@@ -145,59 +145,6 @@ async function create_shape(payload: Shape, ws: WebSocket) {
   }
 }
 
-// delete a specific shape from current room
-async function delete_shape(payload: { shape_id: string }, ws: WebSocket) {
-  const type: WebSocketResponseType = "delete-shape";
-  let msg = "";
-  try {
-    // room-id not provided
-    if (!payload.shape_id) {
-      msg = "Shape ID not provided";
-      console.error(msg);
-      send_ws_response<null>({ status: "error", type, message: msg, payload: null }, ws);
-      return false;
-    }
-
-    // check user
-    if (!ws.user_credentials || !ws.id) {
-      msg = "Please sign up or sign in to continue";
-      console.error(msg);
-      send_ws_response({ status: "error", type, message: msg, payload: null }, ws);
-      return false;
-    }
-
-    // get user-joined-room-id
-    const room_id = await get_user_joined_room(type, ws);
-    if (!room_id) return false;
-
-    console.log(payload.shape_id, room_id);
-
-    // get deleted shape
-    const deleted_shape = await prisma_client.shape.delete({
-      where: {
-        id: payload.shape_id,
-        room_id,
-      },
-    });
-
-    // error while deletion
-    if (!deleted_shape) {
-      msg = `Unable to delete the shape with ID ${payload.shape_id} in the room with ID ${room_id}`;
-      console.error(msg);
-      send_ws_response({ status: "error", type, message: msg, payload: null }, ws);
-      return false;
-    }
-
-    // broadcasting all the shapes of specific room
-    msg = `The shape with ID ${payload.shape_id} has been successfully deleted - by ${ws.user_credentials.username}`;
-    console.info(msg);
-    return broadcast_all_shapes({ type, room_id, broadcast_msg: msg }, ws);
-  } catch (error) {
-    catch_general_exception(error, ws);
-    return false;
-  }
-}
-
 // alter properties of a specific shape of a room
 async function alter_shape(payload: { shape_id: string; data: Shape }, ws: WebSocket) {
   const type: WebSocketResponseType = "alter-shape";
@@ -240,6 +187,125 @@ async function alter_shape(payload: { shape_id: string; data: Shape }, ws: WebSo
   }
 }
 
+// delete a specific shape from current room
+async function delete_all_shapes(ws: WebSocket) {
+  const type: WebSocketResponseType = "delete-all-shapes";
+  let msg = "";
+  try {
+    // check user
+    if (!ws.user_credentials || !ws.id) {
+      msg = "Please sign up or sign in to continue";
+      console.error(msg);
+      send_ws_response({ status: "error", type, message: msg, payload: null }, ws);
+      return false;
+    }
+
+    // get user-joined-room-id
+    const room_id = await get_user_joined_room(type, ws);
+    if (!room_id) return false;
+
+    // find room of specific shape
+    const room_obj = await get_room_record({ id: room_id });
+    if (room_obj.status === "error" || !room_obj.payload) {
+      msg = `The room with ID ${room_id} could not be found for user ${ws.user_credentials.username}`;
+      console.error(msg);
+      send_ws_response({ status: "error", type, message: msg, payload: null }, ws);
+      return false;
+    }
+
+    // user not authorized to delete all shapes
+    if (room_obj.payload.admin_id !== ws.user_credentials.id) {
+      msg = `User ${ws.user_credentials.username} is not authorized to delete all shapes in the room with ID ${room_obj.payload.id}`;
+      console.error(msg);
+      send_ws_response({ status: "error", type, message: msg, payload: null }, ws);
+      return false;
+    }
+
+    // get all deleted shapes
+    const deleted_shapes = await prisma_client.shape.deleteMany({
+      where: {
+        room_id: room_obj.payload.id,
+      },
+    });
+
+    // error while deletion
+    if (deleted_shapes.count < 1) {
+      msg = `Room with ID ${room_obj.payload.id} is already empty`;
+      console.info(msg);
+      send_ws_response({ status: "info", type, message: msg, payload: null }, ws);
+      return false;
+    }
+
+    // broadcasting all the shapes of specific room
+    msg = `All shapes of room with ID ${room_id} has been successfully deleted - by ${ws.user_credentials.username}`;
+    console.info(msg);
+    return broadcast_all_shapes({ type, room_id: room_obj.payload.id, broadcast_msg: msg }, ws);
+  } catch (error) {
+    catch_general_exception(error, ws);
+    return false;
+  }
+}
+
+// delete a specific shape from current room
+async function delete_shape(payload: { shape_id: string }, ws: WebSocket) {
+  const type: WebSocketResponseType = "delete-shape";
+  let msg = "";
+  try {
+    // room-id not provided
+    if (!payload.shape_id) {
+      msg = "Shape ID not provided";
+      console.error(msg);
+      send_ws_response<null>({ status: "error", type, message: msg, payload: null }, ws);
+      return false;
+    }
+
+    // check user
+    if (!ws.user_credentials || !ws.id) {
+      msg = "Please sign up or sign in to continue";
+      console.error(msg);
+      send_ws_response({ status: "error", type, message: msg, payload: null }, ws);
+      return false;
+    }
+
+    // get user-joined-room-id
+    const room_id = await get_user_joined_room(type, ws);
+    if (!room_id) return false;
+
+    // find specific shape
+    const shape_obj = await get_shape_record({ id: payload.shape_id, room_id });
+    if (shape_obj.status === "error" || !shape_obj.payload) {
+      msg = `Unable to find the shape with ID ${payload.shape_id} in the room with ID ${room_id}`;
+      console.error(msg);
+      send_ws_response({ status: "error", type, message: msg, payload: null }, ws);
+      return false;
+    }
+
+    // get deleted shape
+    const deleted_shape = await prisma_client.shape.delete({
+      where: {
+        id: payload.shape_id,
+        room_id,
+      },
+    });
+
+    // error while deletion
+    if (!deleted_shape) {
+      msg = `Unable to delete the shape with ID ${payload.shape_id} in the room with ID ${room_id}`;
+      console.error(msg);
+      send_ws_response({ status: "error", type, message: msg, payload: null }, ws);
+      return false;
+    }
+
+    // broadcasting all the shapes of specific room
+    msg = `The shape with ID ${payload.shape_id} has been successfully deleted - by ${ws.user_credentials.username}`;
+    console.info(msg);
+    return broadcast_all_shapes({ type, room_id, broadcast_msg: msg }, ws);
+  } catch (error) {
+    catch_general_exception(error, ws);
+    return false;
+  }
+}
+
 // function to get all shapes of a specific room
 async function get_all_shapes(ws: WebSocket) {
   const type: WebSocketResponseType = "get-all-shapes";
@@ -259,4 +325,4 @@ async function get_all_shapes(ws: WebSocket) {
   }
 }
 
-export { create_shape, delete_shape, alter_shape, get_all_shapes };
+export { create_shape, delete_shape, delete_all_shapes, alter_shape, get_all_shapes };
