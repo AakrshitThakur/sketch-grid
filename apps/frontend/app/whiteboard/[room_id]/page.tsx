@@ -6,7 +6,7 @@ import BtnDrawCanvas from "@/app/canvas/btn-draw-canvas";
 import DrawCanvas from "@/app/canvas/draw-canvas";
 import { Heading, Alert } from "@repo/ui/index";
 import { send_ws_request } from "@/utils/send-ws-request.utils";
-import { success_notification, error_notification } from "@/utils/toast.utils";
+import { error_notification } from "@/utils/toast.utils";
 // icons
 import { SiGoogleclassroom } from "react-icons/si";
 import { VscCircleLargeFilled } from "react-icons/vsc";
@@ -15,7 +15,6 @@ import { FaArrowRightLong, FaDiamond, FaTrash } from "react-icons/fa6";
 import { BsChatTextFill } from "react-icons/bs";
 import { BsCursorFill, BsEraserFill } from "react-icons/bs";
 import { Shape, Shapes } from "@repo/types/index";
-import draw_all_shapes from "@/app/canvas/draw-all-shapes";
 
 //     9     10    11    12
 //  9  ┌─────┬─────┬─────┬─────┐
@@ -67,7 +66,7 @@ export default function Draw({ params }: { params: Promise<{ room_id: string }> 
       const curr_web_socket = web_socket_ref.current;
       // check state
       if (curr_web_socket.readyState === WebSocket.OPEN || curr_web_socket.readyState === WebSocket.CONNECTING) {
-        curr_web_socket && curr_web_socket.close();
+        if (curr_web_socket) curr_web_socket.close();
       }
       // reassign with null
       web_socket_ref.current = null;
@@ -108,7 +107,7 @@ export default function Draw({ params }: { params: Promise<{ room_id: string }> 
         // parse json-stringified response
         parsed_response = JSON.parse(event.data);
       } catch (error) {
-        console.error("Invalid JSON data could not be parsed");
+        console.error("Invalid JSON data could not be parsed:", error as Error);
         return;
       }
 
@@ -153,8 +152,8 @@ export default function Draw({ params }: { params: Promise<{ room_id: string }> 
             error_notification(msg);
             return;
           }
-          const all_shapes: Shape[] = parsed_response.payload.map((shape: unknown) => {
-            // @ts-ignore - shape.data is data about shape
+          const all_shapes: Shape[] = parsed_response.payload.map((shape: unknown) => { 
+            //@ts-expect-error - ts type error
             return { ...shape.data };
           });
           console.info(msg);

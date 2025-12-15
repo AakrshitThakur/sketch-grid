@@ -1,13 +1,9 @@
-type Tool = "cursor" | "circle" | "box" | "arrow" | "text" | "pencil" | "eraser";
-
 interface Point {
   x: number;
   y: number;
 }
 
-interface BaseShape {
-  id: string;
-}
+type BaseShape = { id: string };
 
 interface CircleShape extends BaseShape {
   type: "circle";
@@ -24,22 +20,14 @@ interface BoxShape extends BaseShape {
 
 interface ArrowShape extends BaseShape {
   type: "arrow";
-  points: {
-    start: Point;
-    end: Point;
-  };
+  points: { start: Point; end: Point };
 }
 
 interface TextShape extends BaseShape {
   type: "text";
   text: string;
-  font: {
-    font_size: number;
-  };
-  points: {
-    start: Point;
-    end: Point;
-  };
+  font: { font_size: number };
+  points: { start: Point; end: Point };
 }
 
 interface DiamondShape extends BaseShape {
@@ -49,7 +37,20 @@ interface DiamondShape extends BaseShape {
   height: number;
 }
 
-type Shape = CircleShape | BoxShape | ArrowShape | TextShape  | DiamondShape;
+type Shape = CircleShape | BoxShape | ArrowShape | TextShape | DiamondShape;
 type Shapes = Shape[];
 
-export type { BaseShape, CircleShape, BoxShape, ArrowShape, TextShape, Shape, Shapes, Point };
+type WsType =
+  | "join-room"
+  | "leave-room"
+  | "create-shape"
+  | "get-all-shapes"
+  | "alter-shape"
+  | "delete-shape"
+  | "delete-all-shapes"
+  | "auth"
+  | "others";
+
+type WsStatus = "success" | "error" | "info" | "warn";
+
+export type { BaseShape, CircleShape, BoxShape, ArrowShape, TextShape, Shape, Shapes, Point, WsType, WsStatus };

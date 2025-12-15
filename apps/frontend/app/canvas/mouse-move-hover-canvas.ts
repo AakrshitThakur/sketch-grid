@@ -22,35 +22,35 @@ export default function mouse_move_hover_canvas(params: Params) {
   function add_move_cursor_only(canvas: HTMLElement | null) {
     //  Adds the specified class(es) to the element's class attribute
     // If the class already exists on the element, it won't add it again (no duplicates)
-    canvas && canvas.classList.add("move");
+    if(canvas) canvas.classList.add("move");
     remove_n_resize_cursor(canvas);
     remove_e_resize_cursor(canvas);
     remove_n_w_resize_cursor(canvas);
     remove_n_e_resize_cursor(canvas);
   }
   function add_n_resize_cursor_only(canvas: HTMLElement | null) {
-    canvas && canvas.classList.add("n-resize");
+    if(canvas) canvas.classList.add("n-resize");
     remove_move_cursor(canvas);
     remove_e_resize_cursor(canvas);
     remove_n_w_resize_cursor(canvas);
     remove_n_e_resize_cursor(canvas);
   }
   function add_e_resize_cursor_only(canvas: HTMLElement | null) {
-    canvas && canvas.classList.add("e-resize");
+    if(canvas) canvas.classList.add("e-resize");
     remove_move_cursor(canvas);
     remove_n_resize_cursor(canvas);
     remove_n_w_resize_cursor(canvas);
     remove_n_e_resize_cursor(canvas);
   }
   function add_n_e_resize_cursor_only(canvas: HTMLElement | null) {
-    canvas && canvas.classList.add("ne-resize");
+    if(canvas) canvas.classList.add("ne-resize");
     remove_move_cursor(canvas);
     remove_n_resize_cursor(canvas);
     remove_e_resize_cursor(canvas);
     remove_n_w_resize_cursor(canvas);
   }
   function add_n_w_resize_cursor_only(canvas: HTMLElement | null) {
-    canvas && canvas.classList.add("nw-resize");
+    if(canvas) canvas.classList.add("nw-resize");
     remove_move_cursor(canvas);
     remove_n_resize_cursor(canvas);
     remove_e_resize_cursor(canvas);
@@ -60,19 +60,19 @@ export default function mouse_move_hover_canvas(params: Params) {
   function remove_move_cursor(canvas: HTMLElement | null) {
     // Removes the specified class(es) from the element's class attribute
     // If the class doesn't exist on the element, it does nothing (no error thrown)
-    canvas && canvas.classList.remove("move");
+    if(canvas) canvas.classList.remove("move");
   }
   function remove_n_resize_cursor(canvas: HTMLElement | null) {
-    canvas && canvas.classList.remove("n-resize");
+    if(canvas) canvas.classList.remove("n-resize");
   }
   function remove_e_resize_cursor(canvas: HTMLElement | null) {
-    canvas && canvas.classList.remove("e-resize");
+    if(canvas) canvas.classList.remove("e-resize");
   }
   function remove_n_e_resize_cursor(canvas: HTMLElement | null) {
-    canvas && canvas.classList.remove("ne-resize");
+    if(canvas) canvas.classList.remove("ne-resize");
   }
   function remove_n_w_resize_cursor(canvas: HTMLElement | null) {
-    canvas && canvas.classList.remove("nw-resize");
+    if(canvas) canvas.classList.remove("nw-resize");
   }
   function remove_all_cursor_types(canvas: HTMLElement | null) {
     if (!canvas) return;
@@ -84,7 +84,7 @@ export default function mouse_move_hover_canvas(params: Params) {
     remove_n_e_resize_cursor(canvas);
   }
 
-  for (let shape of params.all_shapes.shapes) {
+  for (const shape of params.all_shapes.shapes) {
     switch (shape.type) {
       case "box": {
         // get box-credentials from shapes state

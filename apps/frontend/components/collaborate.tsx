@@ -1,6 +1,8 @@
+import Image from "next/image";
 import { FcIdea } from "react-icons/fc";
 import { Heading } from "@repo/ui/index";
 
+// collaborate section
 export default function Collaborate() {
   return (
     <section id="collaborate" className="flex flex-col md:flex-row justify-center items-center gap-3 p-5 sm:p-7 md:p-9">
@@ -14,7 +16,7 @@ export default function Collaborate() {
       </div>
 
       <div className="w-xs sm:w-sm md:w-md aspect-square shrink-0 rounded-xl overflow-hidden">
-        <img className="w-full h-full" src="/collaborate.png" alt="" />
+        <Image className="w-full h-full" src="/collaborate.png" alt="Collaborate image" />
       </div>
     </section>
   );

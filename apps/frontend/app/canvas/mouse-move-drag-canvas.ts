@@ -13,11 +13,6 @@ interface Params {
   all_shapes: { shapes: Shapes };
   handle_set_curr_shape: (shape: Shape) => void;
   reset_styles_to_initial: (ctx: CanvasRenderingContext2D) => void;
-  canvas_default_props: {
-    line_width: number;
-    fill_style: string;
-    stroke_style: string;
-  };
   ctx: CanvasRenderingContext2D;
   web_socket: WebSocket | null;
 }
@@ -118,7 +113,7 @@ export default function mouse_move_drag_canvas(params: Params) {
     params.ctx.stroke();
   }
 
-  for (let shape of params.all_shapes.shapes) {
+  for (const shape of params.all_shapes.shapes) {
     switch (shape.type) {
       case "box": {
         // get box-credentials from shapes state

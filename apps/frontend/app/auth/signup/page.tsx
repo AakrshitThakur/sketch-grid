@@ -23,9 +23,7 @@ interface CallApi {
 
 // constants
 const HTTP_BACKEND_BASE_URL = process.env.NEXT_PUBLIC_HTTP_BACKEND_BASE_URL;
-
 const URL = HTTP_BACKEND_BASE_URL + "/api/v1/auth/signup";
-
 const OPTIONS: RequestInit = {
   method: "POST",
   headers: {
@@ -34,7 +32,8 @@ const OPTIONS: RequestInit = {
   credentials: "include",
 };
 
-export default function Signin() {
+// signup page
+export default function Signup() {
   const [form_data, set_form_data] = useState({
     username: "",
     email: "",
@@ -44,7 +43,7 @@ export default function Signin() {
   const [show_password, set_show_password] = useState(false);
   const [call_api, set_call_api] = useState<CallApi>({ url: "", options: {} });
 
-  // hook for navigations
+  // hook for navigation
   const router = useRouter();
 
   // custom use-fetch hook
@@ -90,13 +89,8 @@ export default function Signin() {
       router.push("/rooms");
     } else if (error) {
       error_notification(error);
-      // set use-fetch hook to initial state
-      set_call_api({
-        url: "",
-        options: {},
-      });
     }
-  }, [data, error]);
+  }, [data, error, router]);
 
   return (
     <div
@@ -114,7 +108,7 @@ export default function Signin() {
             </div>
             <h3 className="text-3xl font-bold">SketchGrid</h3>
           </div>
-
+          {/* card */}
           <div className="color-base-300 color-base-content rounded-xl">
             {/* card-header */}
             <div className="space-y-1 px-5 pt-3">

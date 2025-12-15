@@ -1,6 +1,7 @@
 import { FaGithub } from "react-icons/fa";
 import { Button, Heading } from "@repo/ui/index";
 
+// cto section
 export default function CallToAction() {
   return (
     <section

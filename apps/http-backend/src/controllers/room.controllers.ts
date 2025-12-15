@@ -282,8 +282,19 @@ async function delete_room_controller(req: Request, res: Response) {
       return;
     }
 
+    // get all rooms
+    const rooms_obj = await get_room_records({ admin_id: user_obj.payload.id });
+    if (rooms_obj.status === "error" || !rooms_obj.payload) {
+      res.status(rooms_obj.status_code).json({ message: rooms_obj.message });
+      return;
+    }
+
     // success
-    res.status(200).json({ message: `${user_obj.payload.username} has successfully deleted the room (ID: ${room_id})` });
+    res.status(200);
+    res.json({
+      message: `${user_obj.payload.username} has successfully deleted the room (ID: ${room_id})`,
+      rooms: rooms_obj.payload,
+    });
   } catch (error) {
     const { status_code, message } = catch_general_exception(error as Error);
     res.status(status_code).json({ message });

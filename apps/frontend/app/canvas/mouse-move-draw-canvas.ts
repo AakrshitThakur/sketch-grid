@@ -129,7 +129,7 @@ export default function mouse_move_draw_canvas(props: Props) {
     }
     case "eraser": {
       // iterate all shapes to check if mouse-move coordinate land inside the shape
-      for (let shape of props.all_shapes.shapes) {
+      for (const shape of props.all_shapes.shapes) {
         switch (shape.type) {
           case "box": {
             const box_start = { x: shape.point.x, y: shape.point.y };

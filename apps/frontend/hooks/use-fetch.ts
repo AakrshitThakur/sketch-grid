@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import type { InputFetch, ResponseFetch } from "@/types/hooks.types";
 
+// custom use-fetch hook
 function useFetch<T>(props: InputFetch): ResponseFetch<T> {
   // set all the states
   const [states, set_states] = useState<ResponseFetch<T>>({

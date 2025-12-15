@@ -22,9 +22,7 @@ interface CallApi {
 
 // constants
 const HTTP_BACKEND_BASE_URL = process.env.NEXT_PUBLIC_HTTP_BACKEND_BASE_URL;
-
 const URL = HTTP_BACKEND_BASE_URL + "/api/v1/rooms/create";
-
 const OPTIONS: RequestInit = {
   method: "POST",
   headers: {
@@ -33,6 +31,7 @@ const OPTIONS: RequestInit = {
   credentials: "include",
 };
 
+// create a new room page
 export default function CreateRoom() {
   const [form_data, set_form_data] = useState({
     room_name: "",
@@ -42,7 +41,7 @@ export default function CreateRoom() {
   const [v_errors, set_v_errors] = useState<FormValidationErrors>({});
   const [call_api, set_call_api] = useState<CallApi>({ url: "", options: {} });
 
-  // hook for navigations
+  // hook for navigation
   const router = useRouter();
 
   // custom use-fetch hook
@@ -87,13 +86,8 @@ export default function CreateRoom() {
       router.push(`/whiteboard/${data.room_id}`);
     } else if (error) {
       error_notification(error);
-      // set use-fetch hook to initial state
-      set_call_api({
-        url: "",
-        options: {},
-      });
     }
-  }, [data, error]);
+  }, [data, error, router]);
 
   return (
     <div

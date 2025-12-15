@@ -23,9 +23,7 @@ interface CallApi {
 
 // constants
 const HTTP_BACKEND_BASE_URL = process.env.NEXT_PUBLIC_HTTP_BACKEND_BASE_URL;
-
 const URL = HTTP_BACKEND_BASE_URL + "/api/v1/rooms/join";
-
 const OPTIONS: RequestInit = {
   method: "POST",
   headers: {
@@ -34,6 +32,7 @@ const OPTIONS: RequestInit = {
   credentials: "include",
 };
 
+// join a new room page
 export default function JoinRoom() {
   // hook for navigation
   const router = useRouter();
@@ -92,13 +91,8 @@ export default function JoinRoom() {
       router.push(`/whiteboard/${data.room_id}`);
     } else if (error) {
       error_notification(error);
-      // set use-fetch hook to initial state
-      set_call_api({
-        url: "",
-        options: {},
-      });
     }
-  }, [data, error]);
+  }, [data, error, router]);
 
   return (
     <div

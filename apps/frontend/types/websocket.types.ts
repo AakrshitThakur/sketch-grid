@@ -1,12 +1,6 @@
+import type { WsType } from "@repo/types/index";
 interface WebSocketRequest<T> {
-  type:
-    | "join-room"
-    | "leave-room"
-    | "create-shape"
-    | "delete-shape"
-    | "delete-all-shapes"
-    | "alter-shape"
-    | "get-all-shapes";
+  type: WsType;
   payload: T;
 }
 

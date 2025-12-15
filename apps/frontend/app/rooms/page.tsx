@@ -17,9 +17,7 @@ interface UseFetchResponse {
 
 // constants
 const HTTP_BACKEND_BASE_URL = process.env.NEXT_PUBLIC_HTTP_BACKEND_BASE_URL;
-
 const URL = HTTP_BACKEND_BASE_URL + "/api/v1/rooms/all";
-
 const OPTIONS: RequestInit = {
   method: "GET",
   headers: {
@@ -29,7 +27,7 @@ const OPTIONS: RequestInit = {
 };
 
 export default function Rooms() {
-  const [call_api, set_call_api] = useState<CallApi>({ url: URL, options: OPTIONS });
+  const [call_api] = useState<CallApi>({ url: URL, options: OPTIONS });
 
   // hook for navigation
   const router = useRouter();
@@ -43,13 +41,8 @@ export default function Rooms() {
       success_notification(data.message);
     } else if (error) {
       error_notification(error);
-      // set use-fetch hook to initial state
-      set_call_api({
-        url: "",
-        options: {},
-      });
     }
-  }, [data, error]);
+  }, [data, error, router]);
 
   return (
     <div

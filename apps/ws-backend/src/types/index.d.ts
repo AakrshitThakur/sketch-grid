@@ -1,16 +1,9 @@
-type WebSocketResponseType =
-  | "join-room"
-  | "leave-room"
-  | "create-shape"
-  | "alter-shape"
-  | "delete-shape"
-  | "delete-all-shapes"
-  | "get-all-shapes"
-  | "auth"
-  | "others";
+import type { WsType, WsStatus } from "@repo/types/index";
+
+type WebSocketResponseType = WsType;
 
 interface WebSocketResponse<T> {
-  status: "success" | "error" | "info" | "warn";
+  status: WsStatus;
   type: WebSocketResponseType;
   message: string;
   payload: T;

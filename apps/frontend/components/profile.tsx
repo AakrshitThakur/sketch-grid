@@ -40,7 +40,7 @@ export default function Profile(props: ProfileProps) {
     <div id="profile" className="relative flex justify-center items-center" ref={container_ref}>
       {/* avatar */}
       <span
-        className="color-base-100 color-base-content inline-block w-[1.75rem] h-auto rounded-full overflow-hidden cursor-pointer p-1"
+        className="color-base-100 color-base-content inline-block w-7 h-auto rounded-full overflow-hidden cursor-pointer p-1"
         onClick={() => set_open((curr) => !curr)}
       >
         <FaUser className="w-full h-full" />

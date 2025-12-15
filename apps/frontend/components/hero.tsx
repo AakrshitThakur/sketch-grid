@@ -10,12 +10,12 @@ interface HeroSectionProps {
   on_cta_click?: () => void;
 }
 
+// hero section
 const Hero: React.FC<HeroSectionProps> = ({
   headline = "Collaborate Visually. Design Intuitively. Create Without Limits.",
   subheading = "Where creativity meets clarity. SketchGrid is a collaborative whiteboard designed for thinkers, designers, and teams who love to explore visually. Draw freely, brainstorm together, and bring structure to creativity — all in one seamless digital workspace.",
-  cta_text = "Get Started Today",
-  on_cta_click = () => console.info("CTA clicked"),
 }) => {
+  // hook used for navigation
   const router = useRouter();
 
   // navigate

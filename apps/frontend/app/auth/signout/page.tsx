@@ -1,5 +1,4 @@
 "use client";
-import type React from "react";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import useFetch from "@/hooks/use-fetch";
@@ -14,9 +13,7 @@ interface CallApi {
 
 // constants
 const HTTP_BACKEND_BASE_URL = process.env.NEXT_PUBLIC_HTTP_BACKEND_BASE_URL;
-
 const URL = HTTP_BACKEND_BASE_URL + "/api/v1/auth/signout";
-
 const OPTIONS: RequestInit = {
   method: "DELETE",
   headers: {
@@ -25,17 +22,18 @@ const OPTIONS: RequestInit = {
   credentials: "include",
 };
 
+// signout page
 export default function Signout() {
   const [call_api, set_call_api] = useState<CallApi>({ url: "", options: {} });
 
-  // hook for navigations
+  // hook for navigation
   const router = useRouter();
 
   // custom use-fetch hook
   const { data, error, loading } = useFetch<{ message: string }>(call_api);
 
   // on-submit function
-  function sign_out(e: React.FormEvent) {
+  function signout() {
     // call custom use-fetch hook
     set_call_api({
       url: URL,
@@ -44,9 +42,7 @@ export default function Signout() {
   }
 
   // one step back in the browser’s history
-  function go_back() {
-    router.back();
-  }
+  const go_back = () => router.back();
 
   // check values from use-fetch hook
   useEffect(() => {
@@ -55,13 +51,8 @@ export default function Signout() {
       router.push("/rooms");
     } else if (error) {
       error_notification(error);
-      // set use-fetch hook to initial state
-      set_call_api({
-        url: "",
-        options: {},
-      });
     }
-  }, [data, error]);
+  }, [data, error, router]);
 
   return (
     <div
@@ -90,7 +81,7 @@ export default function Signout() {
             <div className="flex justify-center items-center gap-2">
               <button
                 type="button"
-                onClick={sign_out}
+                onClick={signout}
                 className="color-error color-error-content font-medium text-sm px-2 py-1 rounded-md cursor-pointer"
                 disabled={loading}
                 aria-describedby="signout-button-description"

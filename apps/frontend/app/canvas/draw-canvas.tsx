@@ -8,6 +8,12 @@ import draw_all_shapes from "./draw-all-shapes";
 import type { Shape, Shapes } from "@repo/types/index";
 import { send_ws_request } from "@/utils/send-ws-request.utils";
 
+interface CanvasDefaultProps {
+  line_width: number;
+  line_dash: Array<number>;
+  fill_style: string;
+  stroke_style: string;
+}
 interface DrawCanvasProps {
   selected_btn: {
     selected_btn_id: string | null;
@@ -25,9 +31,9 @@ export default function DrawCanvas(props: DrawCanvasProps) {
   const [is_drawing, set_is_drawing] = useState(false);
   const [is_dragging, set_is_dragging] = useState(false);
   const [curr_shape, set_curr_shape] = useState<Shape | null>(null);
-  const [canvas_default_props, set_canvas_default_props] = useState({
+  const canvas_default_props = useRef<CanvasDefaultProps>({
     line_width: 1.25,
-    set_lined_dash: [],
+    line_dash: [],
     fill_style: "oklch(50% 0.15 30)",
     stroke_style: "oklch(50% 0.15 30)",
   });
@@ -48,19 +54,16 @@ export default function DrawCanvas(props: DrawCanvasProps) {
   // reset all the style-related canvas to default values
   function reset_styles_to_initial(ctx: CanvasRenderingContext2D) {
     // setting canvas pre-requisites
-    ctx.lineWidth = canvas_default_props.line_width;
-    ctx.strokeStyle = canvas_default_props.stroke_style;
-    ctx.fillStyle = canvas_default_props.fill_style;
-    ctx.setLineDash(canvas_default_props.set_lined_dash);
+    ctx.lineWidth = canvas_default_props.current.line_width;
+    ctx.strokeStyle = canvas_default_props.current.stroke_style;
+    ctx.fillStyle = canvas_default_props.current.fill_style;
+    ctx.setLineDash(canvas_default_props.current.line_dash);
   }
 
   // initialize canvas whiteboard
   useEffect(() => {
     // stop everything if web-socket isn't initialized
-    if (!props.web_socket) {
-      reset_to_initial();
-      return;
-    }
+    if (!props.web_socket) return;
 
     // get canvas reference
     const canvas = canvas_ref.current;
@@ -72,76 +75,70 @@ export default function DrawCanvas(props: DrawCanvasProps) {
 
     // setting canvas pre-requisites
     reset_styles_to_initial(ctx);
-  }, []);
+  }, [props.web_socket]);
 
   // draw a text when select canvas btn is "text"
   useEffect(() => {
+    // setting different modes on different selected btns
+    if (props.selected_btn.selected_btn_id !== "text") return;
+
     const canvas = canvas_ref.current;
-    if (!canvas) {
-      reset_to_initial();
-      return;
-    }
+    if (!canvas) return;
 
     // using 2d-canvas context
     const ctx = canvas.getContext("2d");
-    if (!ctx) {
-      reset_to_initial();
-      return;
-    }
+    if (!ctx) return;
 
-    // setting different modes on different selected btns
-    if (props.selected_btn.selected_btn_id === "text") {
-      // stop everything if web-socket isn't initialized
-      if (!props.web_socket) {
-        reset_to_initial();
-        return;
-      }
-      // setting canvas pre-requisites
-      reset_styles_to_initial(ctx);
+    // stop everything if web-socket isn't initialized
+    if (!props.web_socket) return;
 
-      const font_size = 30;
-      const text = prompt("Enter text: ");
-      if (!text) return;
+    // setting canvas pre-requisites
+    reset_styles_to_initial(ctx);
 
-      // make text on canvas
-      ctx.textAlign = "left";
-      ctx.textBaseline = "top";
-      ctx.font = `${font_size}px Cursive`;
-      // The HTML Canvas actualBoundingBoxAscent property of TextMetrics interface is a read-only method which returns a double value giving the distance from horizontal line indicated by the text baseline of CanvasRenderingContext2D interface context object to the "top" of the bounding rectangle box in which the text is rendered. The double value is given in CSS pixels.
-      // The HTML Canvas actualBoundingBoxDescent property of TextMetrics interface is a read-only method which returns a double value giving the distance from horizontal line indicated by the text baseline of CanvasRenderingContext2D interface context object to the "bottom" of the bounding rectangle box in which the text is rendered. The double value is given in CSS pixels.
-      const metrics = ctx.measureText(text.trim());
-      const top_left_x = canvas.width / 2;
-      const top_left_y = canvas.height / 2 - metrics.actualBoundingBoxAscent;
-      ctx.fillText(text.trim(), top_left_x, top_left_y);
+    const font_size = 30;
+    const text = prompt("Enter text: ");
+    if (!text) return;
 
-      // push new text-shape to current room
-      send_ws_request(
-        {
-          type: "create-shape",
-          payload: {
-            id: nanoid(),
-            text: text.trim(),
-            type: "text",
-            font: {
-              font_size,
-            },
-            points: {
-              start: { x: top_left_x, y: top_left_y },
-              end: {
-                x: top_left_x + metrics.width,
-                y: top_left_y + metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent,
-              },
+    // make text on canvas
+    ctx.textAlign = "left";
+    ctx.textBaseline = "top";
+    ctx.font = `${font_size}px Cursive`;
+    // The HTML Canvas actualBoundingBoxAscent property of TextMetrics interface is a read-only method which returns a double value giving the distance from horizontal line indicated by the text baseline of CanvasRenderingContext2D interface context object to the "top" of the bounding rectangle box in which the text is rendered. The double value is given in CSS pixels.
+    // The HTML Canvas actualBoundingBoxDescent property of TextMetrics interface is a read-only method which returns a double value giving the distance from horizontal line indicated by the text baseline of CanvasRenderingContext2D interface context object to the "bottom" of the bounding rectangle box in which the text is rendered. The double value is given in CSS pixels.
+    const metrics = ctx.measureText(text.trim());
+    const top_left_x = canvas.width / 2;
+    const top_left_y = canvas.height / 2 - metrics.actualBoundingBoxAscent;
+    ctx.fillText(text.trim(), top_left_x, top_left_y);
+
+    // push new text-shape to current room
+    send_ws_request(
+      {
+        type: "create-shape",
+        payload: {
+          id: nanoid(),
+          text: text.trim(),
+          type: "text",
+          font: {
+            font_size,
+          },
+          points: {
+            start: { x: top_left_x, y: top_left_y },
+            end: {
+              x: top_left_x + metrics.width,
+              y: top_left_y + metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent,
             },
           },
         },
-        props.web_socket
-      );
+      },
+      props.web_socket
+    );
 
-      // set to initial state values
-      props.selected_btn.handle_set_selected_btn_id("cursor");
-      reset_to_initial();
-    }
-  }, [props.selected_btn]);
+    // set to initial state values
+    props.selected_btn.handle_set_selected_btn_id("cursor");
+
+    // Run this after React finishes the current render + effects
+    setTimeout(() => reset_to_initial(), 0);
+  }, [props.selected_btn, props.web_socket]);
 
   // re-draw all the shapes after response from web-socket server
   useEffect(() => {
@@ -240,7 +237,6 @@ export default function DrawCanvas(props: DrawCanvasProps) {
         end_point: { x: end_x, y: end_y },
         all_shapes: props.all_shapes,
         handle_set_curr_shape,
-        canvas_default_props,
         reset_styles_to_initial,
         ctx,
         web_socket: props.web_socket,
@@ -258,7 +254,8 @@ export default function DrawCanvas(props: DrawCanvasProps) {
     });
   }
 
-  function handle_mouse_up(e: React.MouseEvent<HTMLCanvasElement>) {
+  // on mouse-up event-handler
+  function handle_mouse_up() {
     if (!start_point || (!is_drawing && !is_dragging) || !props.web_socket) {
       reset_to_initial();
       return;

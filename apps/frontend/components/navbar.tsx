@@ -14,6 +14,7 @@ import { BsRocketTakeoffFill } from "react-icons/bs";
 import Profile from "./profile";
 import { Button, DropDownLinks } from "@repo/ui/index";
 import ToggleMode from "./toggle-mode";
+import Image from "next/image";
 
 // app navigation bar
 export default function Navbar() {
@@ -44,22 +45,6 @@ export default function Navbar() {
         label: "Sign Out",
         navigate_func: () => router.push("/auth/signout"),
         icon: <GoSignOut className="w-full h-full" />,
-      },
-    ],
-  };
-
-  // profile drop-down
-  const profile_drop_down_props = {
-    label: "My Rooms",
-    class_names: {
-      drop_down: "color-secondary color-secondary-content ",
-      toggle_btn: "color-secondary color-secondary-content ",
-    },
-    drop_down_links: [
-      {
-        label: "GitHub",
-        navigate_func: () => router.push("https://github.com/AakrshitThakur"),
-        icon: <FaGithub className="w-full h-full" />,
       },
     ],
   };
@@ -133,7 +118,7 @@ export default function Navbar() {
         {/* logo */}
         <Link href="/">
           <div className="h-10 w-auto rounded-sm overflow-hidden">
-            <img className="w-full h-full" src="/logo.png" alt="Sketch Grid Logo" />
+            <Image className="w-full h-full" src="/logo.png" alt="Sketch Grid Logo" />
           </div>
         </Link>
 

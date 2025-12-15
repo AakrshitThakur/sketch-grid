@@ -1,11 +1,11 @@
+import Image from "next/image";
 import Link from "next/link";
 import { FaGithub, FaLinkedin } from "react-icons/fa";
 import { FaSquareXTwitter } from "react-icons/fa6";
 import { IoMdMail } from "react-icons/io";
 
+// footer section
 export default function Footer() {
-  const currentYear = new Date().getFullYear();
-
   return (
     <footer className="color-neutral color-neutral-content">
       {/* Main Footer Content */}
@@ -15,7 +15,7 @@ export default function Footer() {
           <div className="flex flex-col gap-3">
             {/* logo */}
             <div className="w-32 h-auto rounded-sm overflow-hidden">
-              <img
+              <Image
                 className="w-full h-full"
                 src="/logo.png"
                 alt="Sketch Grid Logo"

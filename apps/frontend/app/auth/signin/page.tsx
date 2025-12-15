@@ -21,9 +21,7 @@ interface CallApi {
 
 // constants
 const HTTP_BACKEND_BASE_URL = process.env.NEXT_PUBLIC_HTTP_BACKEND_BASE_URL;
-
 const URL = HTTP_BACKEND_BASE_URL + "/api/v1/auth/signin";
-
 const OPTIONS: RequestInit = {
   method: "POST",
   headers: {
@@ -32,6 +30,7 @@ const OPTIONS: RequestInit = {
   credentials: "include",
 };
 
+// signin page
 export default function Signin() {
   const [form_data, set_form_data] = useState({
     email: "",
@@ -41,7 +40,7 @@ export default function Signin() {
   const [show_password, set_show_password] = useState(false);
   const [call_api, set_call_api] = useState<CallApi>({ url: "", options: {} });
 
-  // hook for navigations
+  // hook for navigation
   const router = useRouter();
 
   // custom use-fetch hook
@@ -86,13 +85,8 @@ export default function Signin() {
       router.push("/rooms");
     } else if (error) {
       error_notification(error);
-      // set use-fetch hook to initial state
-      set_call_api({
-        url: "",
-        options: {},
-      });
     }
-  }, [data, error]);
+  }, [data, error, router]);
 
   return (
     <div
@@ -207,7 +201,7 @@ export default function Signin() {
 
                 {/* registration-link */}
                 <div className="text-center text-sm">
-                  Don't have an account?&nbsp;
+                  Don&apos;t have an account?&nbsp;
                   <button
                     type="button"
                     className="text-blue-500 font-medium cursor-pointer"

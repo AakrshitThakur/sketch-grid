@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { Card } from "@repo/ui/index";
 
 export default function About() {
@@ -14,13 +15,13 @@ export default function About() {
             </p>
           </div>
           <div className="w-3xs sm:w-2xs h-auto rounded-full overflow-hidden solid-border">
-            <img src="/favicon.jpg" alt="Sketch Grid Icon" className="w-full h-full" />
+            <Image src="/favicon.jpg" alt="Sketch Grid Icon" className="w-full h-full" />
           </div>
         </div>
         {/* The default display behavior of flex items is block-level within the flex container */}
         <div className="color-info color-info-content flex flex-col md:flex-row justify-center items-center gap-3 p-3 rounded-xl">
           <div className="w-3xs sm:w-2xs shrink-0 h-auto rounded-full overflow-hidden">
-            <img src="/aakrshit-th-pic.jpg" alt="Aakrshit Thakur's pic" className="w-full h-full" />
+            <Image src="/aakrshit-th-pic.jpg" alt="Aakrshit Thakur's pic" className="w-full h-full" />
           </div>
           <div>
             <p className="text-sm sm:text-base md:text-lg text-center md:text-left">
