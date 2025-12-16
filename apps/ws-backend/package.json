@@ -13,8 +13,10 @@
     "ws": "^8.18.3",
     "@repo/typescript-config": "*",
     "@repo/configs": "*",
-    "@repo/db": "*", 
-    "@repo/types": "*"
+    "@repo/db": "*",
+    "@repo/types": "*",
+    "@repo/utils": "*",
+    "@repo/zod": "*"
   },
   "keywords": [],
   "author": "Aakrshit Thakur",

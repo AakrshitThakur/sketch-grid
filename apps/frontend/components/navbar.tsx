@@ -117,8 +117,8 @@ export default function Navbar() {
       <div className="flex justify-around items-center">
         {/* logo */}
         <Link href="/">
-          <div className="h-10 w-auto rounded-sm overflow-hidden">
-            <Image className="w-full h-full" src="/logo.png" alt="Sketch Grid Logo" />
+          <div className="h-10 w-auto fixed rounded-sm overflow-hidden">
+            <Image className="w-full h-full" src="/logo.png" alt="Sketch Grid Logo" fill={true} />
           </div>
         </Link>
 

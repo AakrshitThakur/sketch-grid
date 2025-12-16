@@ -1,10 +1,12 @@
 "use client";
 import { useEffect, useState, use, useRef } from "react";
 import { useRouter } from "next/navigation";
+import { ZodError } from "zod/v4";
 import CheckUserAuth from "@/wrappers/check-user-auth";
 import BtnDrawCanvas from "@/app/canvas/btn-draw-canvas";
 import DrawCanvas from "@/app/canvas/draw-canvas";
 import { Heading, Alert } from "@repo/ui/index";
+import { type WsResponse, type WsResponseStatus, type Shape, WsResponseSchema } from "@repo/zod/index";
 import { send_ws_request } from "@/utils/send-ws-request.utils";
 import { error_notification } from "@/utils/toast.utils";
 // icons
@@ -14,7 +16,6 @@ import { RiCheckboxBlankFill } from "react-icons/ri";
 import { FaArrowRightLong, FaDiamond, FaTrash } from "react-icons/fa6";
 import { BsChatTextFill } from "react-icons/bs";
 import { BsCursorFill, BsEraserFill } from "react-icons/bs";
-import { Shape, Shapes } from "@repo/types/index";
 
 //     9     10    11    12
 //  9  ┌─────┬─────┬─────┬─────┐
@@ -29,7 +30,7 @@ import { Shape, Shapes } from "@repo/types/index";
 
 interface WsLogs {
   text: string;
-  status: "success" | "error" | "info";
+  status: WsResponseStatus;
 }
 
 const WS_BACKEND_BASE_URL = process.env.NEXT_PUBLIC_WS_BACKEND_BASE_URL;
@@ -53,16 +54,21 @@ export default function Draw({ params }: { params: Promise<{ room_id: string }> 
 
   // canvas related states
   const [selected_btn_id, set_selected_btn_id] = useState<string | null>(null);
-  const [shapes, set_shapes] = useState<Shapes>([]);
+  const [shapes, set_shapes] = useState<Shape[]>([]);
   const web_socket_ref = useRef<WebSocket | null>(null);
   const [ws_logs, set_ws_logs] = useState<WsLogs[]>([]);
 
   useEffect(() => {
+    console.log("sdffgsdsdfdasfsddasdasfadsfasdasfsdfvsdvsdvsdfvfrgvrf");
+
     // get jwt from local-storage
     const jwt = localStorage.getItem("jwt");
+    if (!jwt || !WS_BACKEND_BASE_URL) return;
 
     // If an older socket exists, close it before creating a new one
     if (web_socket_ref.current) {
+      console.error("Under if-block");
+
       const curr_web_socket = web_socket_ref.current;
       // check state
       if (curr_web_socket.readyState === WebSocket.OPEN || curr_web_socket.readyState === WebSocket.CONNECTING) {
@@ -71,8 +77,6 @@ export default function Draw({ params }: { params: Promise<{ room_id: string }> 
       // reassign with null
       web_socket_ref.current = null;
     }
-    if (!jwt) return;
-    if (!WS_BACKEND_BASE_URL) return;
 
     // connect WebSocket client to WebSocket server
     const ws = new WebSocket(`${WS_BACKEND_BASE_URL}?jwt=${jwt}`);
@@ -82,10 +86,13 @@ export default function Draw({ params }: { params: Promise<{ room_id: string }> 
       console.info("Connection to WebSocket server established successfully");
       web_socket_ref.current = ws;
 
-      if (!web_socket_ref.current || web_socket_ref.current.readyState !== WebSocket.OPEN) return;
+      if (!web_socket_ref.current || web_socket_ref.current.readyState !== WebSocket.OPEN) {
+        console.error("WebSocket not open");
+        return;
+      }
       // WebSocket.send() method enqueues the specified data to be transmitted to the server over the WebSocket connection
       // join specific room
-      send_ws_request({ type: "join-room", payload: { room_id } }, web_socket_ref.current);
+      // setTimeout(() => send_ws_request({ type: "join-room", payload: { room_id } }, ws), 1000);
     };
     // The error event is fired when a connection with a WebSocket has been closed due to an error (some data couldn't be sent for example)
     ws.onerror = (error) => {
@@ -101,13 +108,27 @@ export default function Draw({ params }: { params: Promise<{ room_id: string }> 
     };
     // listen messages coming from WebSocket server
     ws.onmessage = (event) => {
-      // get parsed message
-      let parsed_response;
+      // validated parsed message
+      let v_parsed_response: WsResponse | null = null;
       try {
-        // parse json-stringified response
-        parsed_response = JSON.parse(event.data);
+        // get parsed message
+        const parsed_response = JSON.parse(event.data);
+        v_parsed_response = WsResponseSchema.parse(parsed_response);
       } catch (error) {
-        console.error("Invalid JSON data could not be parsed:", error as Error);
+        if (error instanceof ZodError) {
+          console.error(error.issues[0]?.message || "Validation error");
+          return;
+        } else if (error instanceof Error) {
+          console.error(error as Error);
+          return;
+        }
+        console.error(error as string);
+        return;
+      }
+
+      // check assign value
+      if (!v_parsed_response) {
+        console.error("Message validation error");
         return;
       }
 
@@ -118,17 +139,18 @@ export default function Draw({ params }: { params: Promise<{ room_id: string }> 
       let msg = "";
 
       // All web-socket events
-      switch (parsed_response.type) {
+      switch (v_parsed_response.type) {
         case "join-room": {
           // get message from ws-response
-          msg = parsed_response.message;
+          msg = v_parsed_response.message;
 
           // update ws_logs array
-          set_ws_logs((curr) => [...curr, { text: msg, status: parsed_response.status }]);
+          set_ws_logs((curr) => [...curr, { text: msg, status: v_parsed_response.status }]);
 
           // check status
-          if (parsed_response.status === "error") {
-            msg = parsed_response.message as string;
+          // force user to leave whiteboard if not authorized to join
+          if (v_parsed_response.status === "error") {
+            msg = v_parsed_response.message as string;
             console.error(msg);
             error_notification(msg);
             router.push("/rooms");
@@ -141,43 +163,38 @@ export default function Draw({ params }: { params: Promise<{ room_id: string }> 
         }
         case "create-shape": {
           // get message from ws-response
-          msg = parsed_response.message;
+          msg = v_parsed_response.message;
 
           // update ws_logs array
-          set_ws_logs((curr) => [...curr, { text: msg, status: parsed_response.status }]);
+          set_ws_logs((curr) => [...curr, { text: msg, status: v_parsed_response.status }]);
 
-          // check status
-          if (parsed_response.status === "error") {
+          // check error status
+          if (v_parsed_response.status === "error" || !v_parsed_response.payload) {
             console.error(msg);
             error_notification(msg);
             return;
           }
-          const all_shapes: Shape[] = parsed_response.payload.map((shape: unknown) => { 
-            //@ts-expect-error - ts type error
-            return { ...shape.data };
-          });
-          console.info(msg);
+          // get all shapes
+          const all_shapes = v_parsed_response.payload;
           // update shapes state
           set_shapes(all_shapes);
+          console.info(msg);
           break;
         }
         case "delete-shape": {
           // get message from ws-response
-          msg = parsed_response.message;
+          msg = v_parsed_response.message;
 
           // update ws_logs array
-          set_ws_logs((curr) => [...curr, { text: msg, status: parsed_response.status }]);
+          set_ws_logs((curr) => [...curr, { text: msg, status: v_parsed_response.status }]);
 
-          // check status
-          if (parsed_response.status === "error") {
+          // check error status
+          if (v_parsed_response.status === "error" || !v_parsed_response.payload) {
             console.error(msg);
             error_notification(msg);
             return;
           }
-          const all_shapes: Shape[] = parsed_response.payload.map((shape: unknown) => {
-            // @ts-ignore - shape.data is data about shape
-            return { ...shape.data };
-          });
+          const all_shapes = v_parsed_response.payload;
           console.info(msg);
           // update shapes state
           set_shapes(all_shapes);
@@ -185,110 +202,95 @@ export default function Draw({ params }: { params: Promise<{ room_id: string }> 
         }
         case "delete-all-shapes": {
           // get message from ws-response
-          msg = parsed_response.message;
+          msg = v_parsed_response.message;
 
           // update ws_logs array
-          set_ws_logs((curr) => [...curr, { text: msg, status: parsed_response.status }]);
+          set_ws_logs((curr) => [...curr, { text: msg, status: v_parsed_response.status }]);
 
-          // check status
-          if (parsed_response.status === "error") {
+          // check error status
+          if (v_parsed_response.status === "error" && !v_parsed_response.payload) {
             console.error(msg);
             error_notification(msg);
             return;
           }
-          const all_shapes: Shape[] = parsed_response.payload.map((shape: unknown) => {
-            // @ts-ignore - shape.data is data about shape
-            return { ...shape.data };
-          });
+          const all_shapes = v_parsed_response.payload;
+          console.info(msg);
+          // update shapes state
+          set_shapes(all_shapes || []);
+          break;
+        }
+        case "alter-shape": {
+          // get message from ws-response
+          msg = v_parsed_response.message;
+
+          // update ws_logs array
+          set_ws_logs((curr) => [...curr, { text: msg, status: v_parsed_response.status }]);
+
+          // check error status
+          if (v_parsed_response.status === "error" || !v_parsed_response.payload) {
+            console.error(msg);
+            error_notification(msg);
+            return;
+          }
+          const all_shapes = v_parsed_response.payload;
           console.info(msg);
           // update shapes state
           set_shapes(all_shapes);
           break;
         }
-        case "alter-shape": {
-          // get message from ws-response
-          msg = parsed_response.message;
-
-          // update ws_logs array
-          set_ws_logs((curr) => [...curr, { text: msg, status: parsed_response.status }]);
-
-          // check status
-          if (parsed_response.status === "error") {
-            console.error(msg);
-            error_notification(msg);
-            return;
-          }
-          console.info(msg);
-          const all_shapes: Shape[] = parsed_response.payload.map((shape: unknown) => {
-            // @ts-ignore - shape.data is data about shape
-            return { ...shape.data };
-          });
-          set_shapes(all_shapes);
-          break;
-        }
         case "get-all-shapes": {
           // get message from ws-response
-          msg = parsed_response.message;
+          msg = v_parsed_response.message;
 
           // update ws_logs array
-          set_ws_logs((curr) => [...curr, { text: msg, status: parsed_response.status }]);
+          set_ws_logs((curr) => [...curr, { text: msg, status: v_parsed_response.status }]);
 
-          // check status
-          if (parsed_response.status === "error") {
+          // check error status
+          if (v_parsed_response.status === "error" || !v_parsed_response.payload) {
             console.error(msg);
             error_notification(msg);
-            set_shapes([]);
             return;
           }
+          const all_shapes = v_parsed_response.payload;
           console.info(msg);
-          const all_shapes: Shape[] = parsed_response.payload.map((shape: unknown) => {
-            // @ts-ignore - shape.data is data about shape
-            return { ...shape.data };
-          });
+          // update shapes state
           set_shapes(all_shapes);
           break;
         }
         case "auth": {
           // get message from ws-response
-          msg = parsed_response.message;
+          msg = v_parsed_response.message;
 
           // update ws_logs array
-          set_ws_logs((curr) => [...curr, { text: msg, status: parsed_response.status }]);
+          set_ws_logs((curr) => [...curr, { text: msg, status: v_parsed_response.status }]);
 
-          // check status
-          if (parsed_response.status === "error") {
+          // check error status
+          if (v_parsed_response.status === "error") {
             console.error(msg);
             error_notification(msg);
-            set_shapes([]);
+            router.push("/rooms/join");
             return;
           }
           console.info(msg);
-          const all_shapes: Shape[] = parsed_response.payload.map((shape: unknown) => {
-            // @ts-ignore - shape.data is data about shape
-            return { ...shape.data };
-          });
-          set_shapes(all_shapes);
+          send_ws_request({ type: "join-room", payload: { room_id } }, ws);
           break;
         }
         case "others": {
           // get message from ws-response
-          msg = parsed_response.message;
+          msg = v_parsed_response.message;
 
           // update ws_logs array
-          set_ws_logs((curr) => [...curr, { text: msg, status: parsed_response.status }]);
+          set_ws_logs((curr) => [...curr, { text: msg, status: v_parsed_response.status }]);
 
-          // check status
-          if (parsed_response.status === "error") {
+          // check error status
+          if (v_parsed_response.status === "error" || !v_parsed_response.payload) {
             console.error(msg);
             error_notification(msg);
-            set_shapes([]);
             return;
           }
+          const all_shapes = v_parsed_response.payload;
           console.info(msg);
-          const all_shapes: Shape[] = parsed_response.payload.map((shape: unknown) => {
-            // @ts-ignore - shape.data is data about shape
-            return { ...shape.data };
-          });
+          // update shapes state
           set_shapes(all_shapes);
           break;
         }
@@ -297,24 +299,20 @@ export default function Draw({ params }: { params: Promise<{ room_id: string }> 
 
     // cleanup function
     return () => {
+      console.error("Under clean-up method");
       // close web-socket instance if current web-socket status is connection or connected
       if (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING) {
         ws.close();
         web_socket_ref.current = null;
       }
     };
-  }, [WS_BACKEND_BASE_URL, room_id]);
+  }, [room_id, router]);
 
-  // send message on successfully initializing web-socket instance
-  useEffect(() => {}, [WS_BACKEND_BASE_URL, room_id]);
-
-  function handle_set_selected_btn_id(id: string | null) {
-    set_selected_btn_id(id);
-  }
+  const handle_set_selected_btn_id = (id: string | null) => set_selected_btn_id(id);
 
   // delete all the shapes
   function delete_all_shapes() {
-    const check = confirm("Kindly confirm the deletion of all shapes. (Ok/Cancel)");
+    const check = confirm("Kindly confirm the deletion of all shapes. (ok/cancel)");
 
     // change selected btn to -> cursor
     set_selected_btn_id("cursor");
@@ -351,6 +349,7 @@ export default function Draw({ params }: { params: Promise<{ room_id: string }> 
             {BTNS_CANVAS.map((btn) => (
               <BtnDrawCanvas
                 id={btn.id}
+                key={btn.id}
                 selected_btn_id={selected_btn_id}
                 icon={btn.icon}
                 on_click={() => set_selected_btn_id(btn.id)}
@@ -367,7 +366,7 @@ export default function Draw({ params }: { params: Promise<{ room_id: string }> 
           <DrawCanvas
             selected_btn={{ selected_btn_id, handle_set_selected_btn_id }}
             all_shapes={{ shapes }}
-            web_socket={web_socket_ref.current}
+            web_socket_ref={web_socket_ref}
           />
         </section>
         {/* Live logs */}
@@ -378,8 +377,8 @@ export default function Draw({ params }: { params: Promise<{ room_id: string }> 
           ) : (
             <ul className="space-y-1 sm:space-y-2">
               {ws_logs.map((log, idx) => (
-                <li>
-                  <Alert key={idx} text={log.text} status={log.status} class_name="text-xs sm:text-sm" />
+                <li key={idx}>
+                  <Alert text={log.text} status={log.status} class_name="text-xs sm:text-sm" />
                 </li>
               ))}
             </ul>

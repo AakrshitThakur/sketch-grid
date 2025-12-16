@@ -15,8 +15,8 @@ export default function Collaborate() {
         <FcIdea className="w-15 h-auto" />
       </div>
 
-      <div className="w-xs sm:w-sm md:w-md aspect-square shrink-0 rounded-xl overflow-hidden">
-        <Image className="w-full h-full" src="/collaborate.png" alt="Collaborate image" />
+      <div className="w-xs sm:w-sm md:w-md relative aspect-square shrink-0 rounded-xl overflow-hidden">
+        <Image className="w-full h-full" src="/collaborate.png" alt="Collaborate image" fill />
       </div>
     </section>
   );

@@ -1,9 +1,10 @@
 import { BsFillInfoCircleFill } from "react-icons/bs";
 import { SiTicktick } from "react-icons/si";
 import { BiSolidMessageSquareError } from "react-icons/bi";
+import type { WsResponseStatus } from "@repo/zod/index";
 
 interface AlertProps {
-  status: "info" | "success" | "error";
+  status: WsResponseStatus;
   class_name?: string;
   text: string;
 }

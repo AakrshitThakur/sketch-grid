@@ -20,7 +20,7 @@ interface DrawCanvasProps {
     handle_set_selected_btn_id: (id: string | null) => void;
   };
   all_shapes: { shapes: Shapes };
-  web_socket: WebSocket | null;
+  web_socket_ref: React.RefObject<WebSocket | null>;
 }
 
 export default function DrawCanvas(props: DrawCanvasProps) {
@@ -39,9 +39,7 @@ export default function DrawCanvas(props: DrawCanvasProps) {
   });
 
   // used to set current dragged or drawn shape
-  function handle_set_curr_shape(shape: Shape) {
-    set_curr_shape(shape);
-  }
+  const handle_set_curr_shape = (shape: Shape) => set_curr_shape(shape);
 
   // reset all the DrawCanvas's states to initial values
   function reset_to_initial() {
@@ -63,7 +61,7 @@ export default function DrawCanvas(props: DrawCanvasProps) {
   // initialize canvas whiteboard
   useEffect(() => {
     // stop everything if web-socket isn't initialized
-    if (!props.web_socket) return;
+    if (!props.web_socket_ref.current) return;
 
     // get canvas reference
     const canvas = canvas_ref.current;
@@ -75,7 +73,7 @@ export default function DrawCanvas(props: DrawCanvasProps) {
 
     // setting canvas pre-requisites
     reset_styles_to_initial(ctx);
-  }, [props.web_socket]);
+  }, [props.web_socket_ref]);
 
   // draw a text when select canvas btn is "text"
   useEffect(() => {
@@ -90,7 +88,7 @@ export default function DrawCanvas(props: DrawCanvasProps) {
     if (!ctx) return;
 
     // stop everything if web-socket isn't initialized
-    if (!props.web_socket) return;
+    if (!props.web_socket_ref.current) return;
 
     // setting canvas pre-requisites
     reset_styles_to_initial(ctx);
@@ -130,7 +128,7 @@ export default function DrawCanvas(props: DrawCanvasProps) {
           },
         },
       },
-      props.web_socket
+      props.web_socket_ref.current
     );
 
     // set to initial state values
@@ -138,7 +136,7 @@ export default function DrawCanvas(props: DrawCanvasProps) {
 
     // Run this after React finishes the current render + effects
     setTimeout(() => reset_to_initial(), 0);
-  }, [props.selected_btn, props.web_socket]);
+  }, [props.selected_btn, props.web_socket_ref]);
 
   // re-draw all the shapes after response from web-socket server
   useEffect(() => {
@@ -239,7 +237,7 @@ export default function DrawCanvas(props: DrawCanvasProps) {
         handle_set_curr_shape,
         reset_styles_to_initial,
         ctx,
-        web_socket: props.web_socket,
+        web_socket: props.web_socket_ref.current,
       });
       return;
     }
@@ -250,13 +248,13 @@ export default function DrawCanvas(props: DrawCanvasProps) {
       all_shapes: props.all_shapes,
       handle_set_curr_shape,
       ctx,
-      web_socket: props.web_socket,
+      web_socket: props.web_socket_ref.current,
     });
   }
 
   // on mouse-up event-handler
   function handle_mouse_up() {
-    if (!start_point || (!is_drawing && !is_dragging) || !props.web_socket) {
+    if (!start_point || (!is_drawing && !is_dragging) || !props.web_socket_ref.current) {
       reset_to_initial();
       return;
     }
@@ -276,9 +274,9 @@ export default function DrawCanvas(props: DrawCanvasProps) {
 
     // push curr-shape to shapes
     if (is_drawing && curr_shape) {
-      send_ws_request({ type: "create-shape", payload: curr_shape }, props.web_socket);
+      send_ws_request({ type: "create-shape", payload: curr_shape }, props.web_socket_ref.current);
     } else if (is_dragging && curr_shape) {
-      send_ws_request({ type: "alter-shape", payload: { shape_id: curr_shape.id, data: curr_shape } }, props.web_socket);
+      send_ws_request({ type: "alter-shape", payload: { shape_id: curr_shape.id, data: curr_shape } }, props.web_socket_ref.current);
     }
 
     // reset state's to initial values

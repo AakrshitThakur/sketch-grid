@@ -1,10 +1,10 @@
 import type { WebSocket } from "ws";
 import { user_conns } from "../states/user.states.js";
 import { get_room_record, get_shape_record, get_shape_records, prisma_client } from "@repo/db/index";
-import { Shape } from "@repo/types/index";
 import { send_ws_response } from "../utils/websocket.utils.js";
-import { catch_general_exception } from "../utils/exceptions.utils.js";
 import type { WebSocketResponseType } from "../types/index.js";
+import type { Shape } from "@repo/zod/index";
+import { catch_general_exception_ws } from "@repo/utils/exceptions";
 
 interface BroadcastAllShapesData {
   type: WebSocketResponseType;
@@ -51,8 +51,9 @@ async function get_user_joined_room(type: WebSocketResponseType, ws: WebSocket) 
     }
     return user_conn_details.room;
   } catch (error) {
-    catch_general_exception(error, ws);
-    return null;
+    const { status, type, message, payload } = catch_general_exception_ws(error as Error);
+    send_ws_response({ status, type, message, payload }, ws);
+    return false;
   }
 }
 
@@ -77,11 +78,13 @@ async function broadcast_all_shapes(data: BroadcastAllShapesData, ws: WebSocket)
       return false;
     }
 
+    // all shapes array
+    let all_shapes: (Shape | null)[] = [];
     // converting data property from json to a valid ts-object
     if (all_shapes_obj.payload) {
-      all_shapes_obj.payload = all_shapes_obj.payload.map((shape) => {
-        if (shape.data && typeof shape.data === "string") return { ...shape, data: JSON.parse(shape.data) };
-        return shape;
+      all_shapes = all_shapes_obj.payload.map((shape) => {
+        if (shape.data && typeof shape.data === "string") return JSON.parse(shape.data);
+        return null;
       });
     }
 
@@ -90,12 +93,13 @@ async function broadcast_all_shapes(data: BroadcastAllShapesData, ws: WebSocket)
       if (data.room_id === value.room) {
         msg = data.broadcast_msg;
         // broadcast all the shapes of a specific room to all the client connected to the same room
-        send_ws_response({ status: "success", type: data.type, message: msg, payload: all_shapes_obj.payload }, value.ws);
+        send_ws_response({ status: "success", type: data.type, message: msg, payload: all_shapes }, value.ws);
       }
     }
     return true;
   } catch (error) {
-    catch_general_exception(error, ws);
+    const { status, type, message, payload } = catch_general_exception_ws(error as Error);
+    send_ws_response({ status, type, message, payload }, ws);
     return false;
   }
 }
@@ -140,7 +144,8 @@ async function create_shape(payload: Shape, ws: WebSocket) {
     console.info(msg);
     return broadcast_all_shapes({ type, room_id, broadcast_msg: msg }, ws);
   } catch (error) {
-    catch_general_exception(error, ws);
+    const { status, type, message, payload } = catch_general_exception_ws(error as Error);
+    send_ws_response({ status, type, message, payload }, ws);
     return false;
   }
 }
@@ -182,7 +187,8 @@ async function alter_shape(payload: { shape_id: string; data: Shape }, ws: WebSo
     console.info(msg);
     return broadcast_all_shapes({ type, room_id, broadcast_msg: msg }, ws);
   } catch (error) {
-    catch_general_exception(error, ws);
+    const { status, type, message, payload } = catch_general_exception_ws(error as Error);
+    send_ws_response({ status, type, message, payload }, ws);
     return false;
   }
 }
@@ -241,7 +247,8 @@ async function delete_all_shapes(ws: WebSocket) {
     console.info(msg);
     return broadcast_all_shapes({ type, room_id: room_obj.payload.id, broadcast_msg: msg }, ws);
   } catch (error) {
-    catch_general_exception(error, ws);
+    const { status, type, message, payload } = catch_general_exception_ws(error as Error);
+    send_ws_response({ status, type, message, payload }, ws);
     return false;
   }
 }
@@ -301,7 +308,8 @@ async function delete_shape(payload: { shape_id: string }, ws: WebSocket) {
     console.info(msg);
     return broadcast_all_shapes({ type, room_id, broadcast_msg: msg }, ws);
   } catch (error) {
-    catch_general_exception(error, ws);
+    const { status, type, message, payload } = catch_general_exception_ws(error as Error);
+    send_ws_response({ status, type, message, payload }, ws);
     return false;
   }
 }
@@ -320,7 +328,8 @@ async function get_all_shapes(ws: WebSocket) {
     console.info(msg);
     return broadcast_all_shapes({ type, room_id, broadcast_msg: msg }, ws);
   } catch (error) {
-    catch_general_exception(error, ws);
+    const { status, type, message, payload } = catch_general_exception_ws(error as Error);
+    send_ws_response({ status, type, message, payload }, ws);
     return false;
   }
 }

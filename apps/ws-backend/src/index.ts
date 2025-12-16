@@ -1,11 +1,21 @@
-import { WebSocketServer } from "ws";
+import { WebSocketServer, type WebSocket } from "ws";
 import jsonwebtoken from "jsonwebtoken";
 import dotenv from "dotenv";
 import { user_conns } from "./states/user.states.js";
 import { join_room, leave_room } from "./sockets/room.socket.js";
 import { alter_shape, create_shape, delete_all_shapes, delete_shape, get_all_shapes } from "./sockets/shape.socket.js";
 import { send_ws_response } from "./utils/websocket.utils.js";
-import { catch_general_exception } from "./utils/exceptions.utils.js";
+import { catch_auth_exception_ws } from "@repo/utils/index";
+import {
+  WsReqAlterShape,
+  WsReqCreateShapeSchema,
+  WsReqDeleteAllShapesSchema,
+  WsReqDeleteShapeSchema,
+  WsReqGetAllShapesSchema,
+  WsReqJoinRoomSchema,
+  WsReqLeaveRoomSchema,
+  WsRequestSchema,
+} from "@repo/zod/index";
 import { get_user_record } from "@repo/db/index";
 import { JWT_SECRET } from "@repo/configs/index";
 
@@ -19,7 +29,7 @@ interface DecodedPayload {
 const user_ids: { [key: string]: boolean } = {};
 
 // verifying provided jwt
-async function verify_jwt(jwt: string): Promise<string | { id: string; username: string }> {
+async function verify_jwt(jwt: string, ws: WebSocket): Promise<string | { id: string; username: string }> {
   return new Promise((resolve, reject) => {
     jsonwebtoken.verify(jwt, JWT_SECRET, async (error: any, decoded_payload: unknown) => {
       // jwt is invalid
@@ -67,12 +77,12 @@ wss.on("connection", async function connection(ws, req) {
     const jwt = search_params.get("jwt");
 
     // get user-id from parsed jwt
-    const user = await verify_jwt(jwt || "");
+    const user = await verify_jwt(jwt || "", ws);
 
     // check user value
     if (typeof user !== "object") {
       // error
-      const msg = "User verification failed";
+      const msg = user;
       console.error(msg);
       send_ws_response({ status: "error", type: "auth", message: msg, payload: null }, ws);
       ws.close();
@@ -100,49 +110,69 @@ wss.on("connection", async function connection(ws, req) {
 
     console.info(user_ids);
 
-    console.info("New client successfully connected to web-socket server");
-
     // push user to global conn state
     // store user-id for message event
     ws.id = user_conns.push_new_user(ws);
+
+    console.info("New client successfully connected to web-socket server");
+
+    // User is authenticated
+    const msg = `User authentication for ${ws.user_credentials.username} has been successfully completed`;
+    console.info(msg);
+    send_ws_response({ status: "success", type: "auth", message: msg, payload: null }, ws);
 
     // on-message event
     ws.on("message", async function incoming(message) {
       try {
         // convert: raw-date -> string -> object
-        const parsed_message = JSON.parse(message.toString());
+        const parsed_message: unknown = JSON.parse(message.toString());
+        if (!parsed_message || typeof parsed_message !== "object" || !("type" in parsed_message)) {
+          // invalid incoming message type
+          const msg = "Please provide a valid incoming message type";
+          console.error(msg);
+          send_ws_response<null>({ status: "error", type: "others", message: msg, payload: null }, ws);
+          return;
+        }
+        // const v_parsed_message = WsRequestSchema.parse(parsed_message);
 
         if (parsed_message.type === "join-room") {
+          const v_parsed_message = WsReqJoinRoomSchema.parse(parsed_message);
           // join a new room
-          await join_room(parsed_message.payload.room_id, ws);
+          await join_room(v_parsed_message.payload.room_id, ws);
           console.info(Object.entries(user_conns.user_conns_state));
           return;
         } else if (parsed_message.type === "leave-room") {
+          WsReqLeaveRoomSchema.parse(parsed_message);
           // leave a room
-          await leave_room(parsed_message.payload.room_id, ws);
+          await leave_room(ws);
           console.info(Object.entries(user_conns.user_conns_state));
           return;
         } else if (parsed_message.type === "create-shape") {
+          const v_parsed_message = WsReqCreateShapeSchema.parse(parsed_message);
           // create a new shape
-          await create_shape(parsed_message.payload, ws);
+          await create_shape(v_parsed_message.payload, ws);
           console.info(Object.entries(user_conns.user_conns_state));
           return;
         } else if (parsed_message.type === "delete-shape") {
+          const v_parsed_message = WsReqDeleteShapeSchema.parse(parsed_message);
           // delete a shape
-          await delete_shape(parsed_message.payload, ws);
+          await delete_shape(v_parsed_message.payload, ws);
           console.info(Object.entries(user_conns.user_conns_state));
           return;
         } else if (parsed_message.type === "delete-all-shapes") {
+          WsReqDeleteAllShapesSchema.parse(parsed_message);
           // delete a shape
           await delete_all_shapes(ws);
           console.info(Object.entries(user_conns.user_conns_state));
           return;
         } else if (parsed_message.type === "alter-shape") {
+          const v_parsed_message = WsReqAlterShape.parse(parsed_message);
           // delete a shape
-          await alter_shape(parsed_message.payload, ws);
+          await alter_shape(v_parsed_message.payload, ws);
           console.info(Object.entries(user_conns.user_conns_state));
           return;
         } else if (parsed_message.type === "get-all-shapes") {
+          WsReqGetAllShapesSchema.parse(parsed_message);
           // get all the shapes of specific room
           await get_all_shapes(ws);
           console.info(Object.entries(user_conns.user_conns_state));
@@ -154,7 +184,9 @@ wss.on("connection", async function connection(ws, req) {
         console.error(msg);
         send_ws_response<null>({ status: "error", type: "others", message: msg, payload: null }, ws);
       } catch (error) {
-        catch_general_exception(error, ws);
+        const { status, type, message, payload } = catch_auth_exception_ws(error as Error);
+        send_ws_response({ status, type, message, payload }, ws);
+        ws.close();
         return;
       }
     });
@@ -183,7 +215,9 @@ wss.on("connection", async function connection(ws, req) {
       send_ws_response<null>({ status: "info", type: "others", message: msg, payload: null }, ws);
     });
   } catch (error) {
-    catch_general_exception(error, ws);
+    const { status, type, message, payload } = catch_auth_exception_ws(error as Error);
+    send_ws_response({ status, type, message, payload }, ws);
+    ws.close();
     return;
   }
 });

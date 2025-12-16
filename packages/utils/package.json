@@ -13,6 +13,7 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
-    "@repo/typescript-config": "*"
+    "@repo/typescript-config": "*", 
+    "@repo/zod": "*"
   }
 }

@@ -23,7 +23,7 @@ async function join_room(room_id: string, ws: WebSocket) {
 }
 
 // @params -> room_id to leave to & ws: WebSocket instance of connected user
-async function leave_room(room_id: string, ws: WebSocket) {
+async function leave_room(ws: WebSocket) {
   let msg = "";
 
   // user not-found
@@ -34,10 +34,8 @@ async function leave_room(room_id: string, ws: WebSocket) {
     return false;
   }
 
-  const params = { room_id, ws };
-
   // leave specific room
-  const check = await user_conns.leave_room(params);
+  const check = await user_conns.leave_room({ ws });
   if (!check) return false;
   return true;
 }

@@ -78,7 +78,6 @@ const WsTypeSchema = z.enum([
   "auth",
   "others",
 ]);
-
 const WsStatusSchema = z.enum(["success", "error", "info", "warn"]);
 
 // zod-schema for web-socket response object
@@ -87,14 +86,89 @@ const WsResponseSchema = z.object({
   type: WsTypeSchema,
   status: WsStatusSchema,
   message: z.string(),
-  payload: z.union([ShapeSchema, ShapesSchema]).nullable(),
+  payload: ShapesSchema.nullable(),
+});
+
+/* ---------- WebSocket Request ---------- */
+const WsReqJoinRoomSchema = z.object({
+  type: WsTypeSchema,
+  payload: z.object({ room_id: z.string() }),
+});
+
+const WsReqLeaveRoomSchema = z.object({
+  type: WsTypeSchema,
+  payload: z.null(),
+});
+
+const WsReqCreateShapeSchema = z.object({
+  type: WsTypeSchema,
+  payload: ShapeSchema,
+});
+
+const WsReqGetAllShapesSchema = z.object({
+  type: WsTypeSchema,
+  payload: z.null(),
+});
+
+const WsReqDeleteShapeSchema = z.object({
+  type: WsTypeSchema,
+  payload: z.object({ shape_id: z.string() }),
+});
+
+const WsReqDeleteAllShapesSchema = z.object({
+  type: WsTypeSchema,
+  payload: z.null(),
+});
+
+const WsReqAlterShape = z.object({
+  type: WsTypeSchema,
+  payload: z.object({ shape_id: z.string(), data: ShapeSchema }),
+});
+
+const WsRequestSchema = z.object({
+  type: WsTypeSchema,
+  payload: z.nullable(
+    z.union([
+      z.object({ room_id: z.string() }),
+      z.object({ shape_id: z.string() }),
+      z.object({ shape_id: z.string(), data: ShapeSchema }),
+      ShapeSchema,
+    ])
+  ),
 });
 
 /* ---------- Inferred Types ---------- */
-export type Point = z.infer<typeof PointSchema>;
-export type BaseShape = z.infer<typeof BaseShapeSchema>;
-export type Shape = z.infer<typeof ShapeSchema>;
-export type Shapes = z.infer<typeof ShapesSchema>;
-export type WsType = z.infer<typeof WsTypeSchema>;
-export type WsStatus = z.infer<typeof WsStatusSchema>;
-export type WsResponse = z.infer<typeof WsResponseSchema>;
+type Point = z.infer<typeof PointSchema>;
+type CircleShape = z.infer<typeof CircleShapeSchema>;
+type BoxShape = z.infer<typeof BoxShapeSchema>;
+type TextShape = z.infer<typeof TextShapeSchema>;
+type ArrowShape = z.infer<typeof ArrowShapeSchema>;
+type DiamondShape = z.infer<typeof DiamondShapeSchema>;
+type Shape = z.infer<typeof ShapeSchema>;
+type WsResponseType = z.infer<typeof WsTypeSchema>;
+type WsResponseStatus = z.infer<typeof WsStatusSchema>;
+type WsResponse = z.infer<typeof WsResponseSchema>;
+
+export {
+  WsResponseSchema,
+  WsReqJoinRoomSchema,
+  WsReqLeaveRoomSchema,
+  WsReqCreateShapeSchema,
+  WsReqAlterShape,
+  WsReqGetAllShapesSchema,
+  WsReqDeleteShapeSchema,
+  WsReqDeleteAllShapesSchema,
+  WsRequestSchema,
+};
+export type {
+  Point,
+  CircleShape,
+  BoxShape,
+  TextShape,
+  ArrowShape,
+  DiamondShape,
+  Shape,
+  WsResponseType,
+  WsResponseStatus,
+  WsResponse,
+};
