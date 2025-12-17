@@ -1,4 +1,4 @@
-import type { Point, Shapes, Shape } from "@repo/types/index";
+import type { Point, Shape } from "@repo/zod/index";
 import {
   ARROW_DRAG_STROKE_WIDTH,
   BOX_DRAG_STOKE_WIDTH,
@@ -10,7 +10,7 @@ import {
 interface Params {
   start_point: Point;
   end_point: Point;
-  all_shapes: { shapes: Shapes };
+  all_shapes: { shapes: Shape[] };
   handle_set_curr_shape: (shape: Shape) => void;
   reset_styles_to_initial: (ctx: CanvasRenderingContext2D) => void;
   ctx: CanvasRenderingContext2D;

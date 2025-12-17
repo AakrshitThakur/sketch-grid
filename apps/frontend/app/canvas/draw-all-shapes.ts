@@ -1,6 +1,6 @@
-import type { Shapes } from "@repo/types/index";
+import type { Shape } from "@repo/zod/index";
 
-export default function draw_all_shapes(shapes: Shapes, ctx: CanvasRenderingContext2D) {
+export default function draw_all_shapes(shapes: Shape[], ctx: CanvasRenderingContext2D) {
   // iterating shapes global array
   shapes.forEach((shape) => {
     switch (shape.type) {

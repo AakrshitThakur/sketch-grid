@@ -105,7 +105,7 @@ export default function Navbar() {
       },
       {
         label: "Delete Room",
-        navigate_func: () => router.push("/rooms/delete"),
+        navigate_func: () => router.push("/rooms/mine"),
         icon: <MdDelete className="w-full h-full" />,
       },
     ],
@@ -118,7 +118,7 @@ export default function Navbar() {
         {/* logo */}
         <Link href="/">
           <div className="h-10 w-auto fixed rounded-sm overflow-hidden">
-            <Image className="w-full h-full" src="/logo.png" alt="Sketch Grid Logo" fill={true} />
+            <Image className="w-full h-full" src="/logo.png" alt="Sketch Grid Logo" fill={true} objectFit="contain" />
           </div>
         </Link>
 

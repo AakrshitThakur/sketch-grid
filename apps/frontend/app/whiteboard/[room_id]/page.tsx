@@ -59,16 +59,12 @@ export default function Draw({ params }: { params: Promise<{ room_id: string }> 
   const [ws_logs, set_ws_logs] = useState<WsLogs[]>([]);
 
   useEffect(() => {
-    console.log("sdffgsdsdfdasfsddasdasfadsfasdasfsdfvsdvsdvsdfvfrgvrf");
-
     // get jwt from local-storage
     const jwt = localStorage.getItem("jwt");
     if (!jwt || !WS_BACKEND_BASE_URL) return;
 
     // If an older socket exists, close it before creating a new one
     if (web_socket_ref.current) {
-      console.error("Under if-block");
-
       const curr_web_socket = web_socket_ref.current;
       // check state
       if (curr_web_socket.readyState === WebSocket.OPEN || curr_web_socket.readyState === WebSocket.CONNECTING) {
@@ -82,18 +78,7 @@ export default function Draw({ params }: { params: Promise<{ room_id: string }> 
     const ws = new WebSocket(`${WS_BACKEND_BASE_URL}?jwt=${jwt}`);
 
     // The open event is fired when a connection with a WebSocket is opened
-    ws.onopen = () => {
-      console.info("Connection to WebSocket server established successfully");
-      web_socket_ref.current = ws;
-
-      if (!web_socket_ref.current || web_socket_ref.current.readyState !== WebSocket.OPEN) {
-        console.error("WebSocket not open");
-        return;
-      }
-      // WebSocket.send() method enqueues the specified data to be transmitted to the server over the WebSocket connection
-      // join specific room
-      // setTimeout(() => send_ws_request({ type: "join-room", payload: { room_id } }, ws), 1000);
-    };
+    ws.onopen = () => console.info("Connection to WebSocket server established successfully");
     // The error event is fired when a connection with a WebSocket has been closed due to an error (some data couldn't be sent for example)
     ws.onerror = (error) => {
       console.error("WebSocket error:", error);
@@ -169,13 +154,13 @@ export default function Draw({ params }: { params: Promise<{ room_id: string }> 
           set_ws_logs((curr) => [...curr, { text: msg, status: v_parsed_response.status }]);
 
           // check error status
-          if (v_parsed_response.status === "error" || !v_parsed_response.payload) {
+          if (v_parsed_response.status === "error") {
             console.error(msg);
             error_notification(msg);
             return;
           }
           // get all shapes
-          const all_shapes = v_parsed_response.payload;
+          const all_shapes = v_parsed_response.payload || [];
           // update shapes state
           set_shapes(all_shapes);
           console.info(msg);
@@ -189,12 +174,12 @@ export default function Draw({ params }: { params: Promise<{ room_id: string }> 
           set_ws_logs((curr) => [...curr, { text: msg, status: v_parsed_response.status }]);
 
           // check error status
-          if (v_parsed_response.status === "error" || !v_parsed_response.payload) {
+          if (v_parsed_response.status === "error" && !v_parsed_response.payload) {
             console.error(msg);
             error_notification(msg);
             return;
           }
-          const all_shapes = v_parsed_response.payload;
+          const all_shapes = v_parsed_response.payload || [];
           console.info(msg);
           // update shapes state
           set_shapes(all_shapes);
@@ -213,10 +198,10 @@ export default function Draw({ params }: { params: Promise<{ room_id: string }> 
             error_notification(msg);
             return;
           }
-          const all_shapes = v_parsed_response.payload;
+          const all_shapes = v_parsed_response.payload || [];
           console.info(msg);
           // update shapes state
-          set_shapes(all_shapes || []);
+          set_shapes(all_shapes);
           break;
         }
         case "alter-shape": {
@@ -227,12 +212,12 @@ export default function Draw({ params }: { params: Promise<{ room_id: string }> 
           set_ws_logs((curr) => [...curr, { text: msg, status: v_parsed_response.status }]);
 
           // check error status
-          if (v_parsed_response.status === "error" || !v_parsed_response.payload) {
+          if (v_parsed_response.status === "error" && !v_parsed_response.payload) {
             console.error(msg);
             error_notification(msg);
             return;
           }
-          const all_shapes = v_parsed_response.payload;
+          const all_shapes = v_parsed_response.payload || [];
           console.info(msg);
           // update shapes state
           set_shapes(all_shapes);
@@ -246,12 +231,12 @@ export default function Draw({ params }: { params: Promise<{ room_id: string }> 
           set_ws_logs((curr) => [...curr, { text: msg, status: v_parsed_response.status }]);
 
           // check error status
-          if (v_parsed_response.status === "error" || !v_parsed_response.payload) {
+          if (v_parsed_response.status === "error" && !v_parsed_response.payload) {
             console.error(msg);
             error_notification(msg);
             return;
           }
-          const all_shapes = v_parsed_response.payload;
+          const all_shapes = v_parsed_response.payload || [];
           console.info(msg);
           // update shapes state
           set_shapes(all_shapes);
@@ -297,9 +282,11 @@ export default function Draw({ params }: { params: Promise<{ room_id: string }> 
       }
     };
 
+    // assign ws instance
+    web_socket_ref.current = ws;
+
     // cleanup function
     return () => {
-      console.error("Under clean-up method");
       // close web-socket instance if current web-socket status is connection or connected
       if (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING) {
         ws.close();

@@ -1,5 +1,5 @@
 import { nanoid } from "nanoid";
-import type { Shape, Shapes } from "@repo/types/index";
+import type { Shape } from "@repo/zod/index";
 import debounced_delete_shape from "./debounced_delete_shape";
 import { ARROW_DRAG_STROKE_WIDTH } from "@/constants/whiteboard.constants";
 
@@ -7,7 +7,7 @@ interface Props {
   selected_btn_id: string | null;
   start_point: { x: number; y: number };
   end_point: { x: number; y: number };
-  all_shapes: { shapes: Shapes };
+  all_shapes: { shapes: Shape[] };
   handle_set_curr_shape: (shape: Shape) => void;
   ctx: CanvasRenderingContext2D;
   web_socket: WebSocket | null;

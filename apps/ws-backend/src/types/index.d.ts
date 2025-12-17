@@ -1,10 +1,8 @@
-import type { WsType, WsStatus } from "@repo/types/index";
-
-type WebSocketResponseType = WsType;
+import type { WsResponseType, WsResponseStatus } from "@repo/zod/index";
 
 interface WebSocketResponse<T> {
-  status: WsStatus;
-  type: WebSocketResponseType;
+  status: WsResponseStatus;
+  type: WsResponseType;
   message: string;
   payload: T;
 }

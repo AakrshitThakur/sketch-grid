@@ -71,7 +71,7 @@ async function broadcast_all_shapes(data: BroadcastAllShapesData, ws: WebSocket)
 
     // get all shapes of a specific room
     const all_shapes_obj = await get_shape_records({ room_id: data.room_id });
-    if (all_shapes_obj.status === "error") {
+    if (all_shapes_obj.status === "error" && !all_shapes_obj.payload) {
       msg = `Shapes of Room ID: ${data.room_id} not found`;
       console.info(msg);
       send_ws_response({ status: "info", type: data.type, message: msg, payload: [] }, ws);

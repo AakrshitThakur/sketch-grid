@@ -129,10 +129,13 @@ const WsRequestSchema = z.object({
   type: WsTypeSchema,
   payload: z.nullable(
     z.union([
-      z.object({ room_id: z.string() }),
-      z.object({ shape_id: z.string() }),
-      z.object({ shape_id: z.string(), data: ShapeSchema }),
-      ShapeSchema,
+      z.object(WsReqJoinRoomSchema),
+      z.object(WsReqLeaveRoomSchema),
+      z.object(WsReqCreateShapeSchema),
+      z.object(WsReqAlterShape),
+      z.object(WsReqGetAllShapesSchema),
+      z.object(WsReqDeleteShapeSchema),
+      z.object(WsReqDeleteAllShapesSchema),
     ])
   ),
 });

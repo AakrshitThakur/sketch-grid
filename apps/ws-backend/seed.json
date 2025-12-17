@@ -6,10 +6,8 @@
     }
   },
   "leave-room": {
-    "type": "leave-room",
-    "payload": {
-      "room_id": "room-id"
-    }
+    "type": "leave-room", 
+    "payload": null
   },
   "create-shape": {
     "type": "create-shape",
@@ -18,12 +16,6 @@
       "type": "circle",
       "center": { "x": 235, "y": 355 },
       "radius": 50
-    }
-  },
-  "delete-shape": {
-    "type": "delete-shape",
-    "payload": {
-      "shape_id": "shape-id"
     }
   },
   "alter-shape": {
@@ -40,6 +32,16 @@
   },
   "get-all-shapes": {
     "type": "get-all-shapes",
+    "payload": null
+  },
+  "delete-shape": {
+    "type": "delete-shape",
+    "payload": {
+      "shape_id": "shape-id"
+    }
+  },
+  "delete-all-shapes": {
+    "type": "delete-all-shapes", 
     "payload": null
   }
 }

@@ -5,7 +5,7 @@ import mouse_move_draw_canvas from "./mouse-move-draw-canvas";
 import mouse_move_drag_canvas from "./mouse-move-drag-canvas";
 import mouse_move_hover_canvas from "./mouse-move-hover-canvas";
 import draw_all_shapes from "./draw-all-shapes";
-import type { Shape, Shapes } from "@repo/types/index";
+import type { Shape } from "@repo/zod/index";
 import { send_ws_request } from "@/utils/send-ws-request.utils";
 
 interface CanvasDefaultProps {
@@ -19,7 +19,7 @@ interface DrawCanvasProps {
     selected_btn_id: string | null;
     handle_set_selected_btn_id: (id: string | null) => void;
   };
-  all_shapes: { shapes: Shapes };
+  all_shapes: { shapes: Shape[] };
   web_socket_ref: React.RefObject<WebSocket | null>;
 }
 
@@ -276,7 +276,10 @@ export default function DrawCanvas(props: DrawCanvasProps) {
     if (is_drawing && curr_shape) {
       send_ws_request({ type: "create-shape", payload: curr_shape }, props.web_socket_ref.current);
     } else if (is_dragging && curr_shape) {
-      send_ws_request({ type: "alter-shape", payload: { shape_id: curr_shape.id, data: curr_shape } }, props.web_socket_ref.current);
+      send_ws_request(
+        { type: "alter-shape", payload: { shape_id: curr_shape.id, data: curr_shape } },
+        props.web_socket_ref.current
+      );
     }
 
     // reset state's to initial values

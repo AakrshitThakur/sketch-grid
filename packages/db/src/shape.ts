@@ -20,8 +20,8 @@ async function get_shape_records(input: GetShapeRecords) {
         status_code: 404,
         status: "error",
         message: "No Shapes found",
-        payload: null,
-      } as ReturnPrismaResponse<null>;
+        payload: [],
+      } as ReturnPrismaResponse<[]>;
     }
 
     const return_shapes: ReturnPrismaResponse<typeof shapes> = {

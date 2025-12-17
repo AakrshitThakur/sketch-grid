@@ -1,6 +1,6 @@
-import type { WsType } from "@repo/types/index";
+import type { WsResponseType } from "@repo/zod/index";
 interface WebSocketRequest<T> {
-  type: WsType;
+  type: WsResponseType;
   payload: T;
 }
 
