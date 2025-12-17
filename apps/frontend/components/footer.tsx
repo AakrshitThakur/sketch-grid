@@ -14,9 +14,9 @@ export default function Footer() {
           {/* Brand Section */}
           <div className="flex flex-col gap-3">
             {/* logo */}
-            <div className="w-32 h-auto relative rounded-sm overflow-hidden">
-              <Image className="w-full h-full" src="/logo.png" alt="Sketch Grid Logo" fill />
-            </div>
+            <Link href="/" className="flex rounded-sm overflow-hidden">
+              <Image src="/logo.png" alt="Sketch Grid Logo" className="rounded-sm overflow-hidden" height={25} width={100} />
+            </Link>
             <p className="text-sm">Building amazing web experiences with modern technology.</p>
             {/* Social Links */}
             <div className="flex gap-3">
