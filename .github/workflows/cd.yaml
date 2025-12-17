@@ -1,0 +1,20 @@
+---
+name: Deploy to the Sketch-Grid EC2 instance
+on:
+  push:
+    branches:
+      - main
+jobs:
+  redeploy_everything:
+    name: Redeploy everything to production cluster
+    steps:
+      - name: SSH into server
+      - run: |
+          echo ${{secrets.SSH_PRIVATE_KEY}} &> ~/ssh_key
+          ssh -i ~/ssh_key ubuntu@13.62.19.172
+          cd sketch-grid && git pull
+          npm install 
+          npm run build 
+          pm2 restart ws-backend
+          pm2 restart http-backend
+          pm2 restart frontend
