@@ -5,6 +5,7 @@ on:
     branches:
       - main
 jobs:
+  uses: ubuntu-latest
   redeploy_everything:
     name: Redeploy everything to production cluster
     steps:
