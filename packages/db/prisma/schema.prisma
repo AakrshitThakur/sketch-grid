@@ -10,31 +10,31 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("LOCAL_DATABASE_URL")
+  url = env("REMOTE_DATABASE_URL")
 }
 
 model User {
-  id         String     @id @default(uuid())
-  username   String     @unique
-  email      String     @unique
-  password   String
-  rooms      Room[]
-  shapes     Shape[]
+  id       String  @id @default(uuid())
+  username String  @unique
+  email    String  @unique
+  password String
+  rooms    Room[]
+  shapes   Shape[]
 }
 
 model Room {
-  id         String     @id @default(uuid())
-  slug       String     @unique
-  password   String
-  createdAt  DateTime   @default(now())
-  admin_id   String
-  admin      User       @relation(fields: [admin_id], references: [id], onDelete: Cascade)
-  user_ids   String[]
-  shapes Shape[]
+  id        String   @id @default(uuid())
+  slug      String   @unique
+  password  String
+  createdAt DateTime @default(now())
+  admin_id  String
+  admin     User     @relation(fields: [admin_id], references: [id], onDelete: Cascade)
+  user_ids  String[]
+  shapes    Shape[]
 }
 
 model Shape {
-  id       String    @id @default(uuid())
+  id       String @id @default(uuid())
   data     Json
   room_id  String
   room     Room   @relation(fields: [room_id], references: [id], onDelete: Cascade)
