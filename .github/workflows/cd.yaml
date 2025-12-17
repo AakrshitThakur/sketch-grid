@@ -5,17 +5,16 @@ on:
     branches:
       - main
 jobs:
-  uses: ubuntu-latest
   redeploy_everything:
+    runs-on: ubuntu-latest
     name: Redeploy everything to production cluster
     steps:
-      - name: SSH into server
-      - run: |
-          echo ${{secrets.SSH_PRIVATE_KEY}} &> ~/ssh_key
-          ssh -i ~/ssh_key ubuntu@13.62.19.172
-          cd sketch-grid && git pull
-          npm install 
-          npm run build 
-          pm2 restart ws-backend
-          pm2 restart http-backend
-          pm2 restart frontend
+      run: |
+        echo ${{secrets.SSH_PRIVATE_KEY}} &> ~/ssh_key
+        ssh -i ~/ssh_key ubuntu@13.62.19.172
+        cd sketch-grid && git pull
+        npm install 
+        npm run build 
+        pm2 restart ws-backend
+        pm2 restart http-backend
+        pm2 restart frontend
