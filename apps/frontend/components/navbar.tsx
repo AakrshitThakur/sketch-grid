@@ -124,8 +124,8 @@ export default function Navbar() {
 
         {/* navigation links */}
         <div className="hidden md:flex gap-2 items-center">
-          <Button type="secondary" size="md" text="About" />
-          <Button type="secondary" size="md" text="Contact" />
+          <Button type="secondary" size="md" text="About" on_click={() => router.push("/about")} />
+          <Button type="secondary" size="md" text="Contact" on_click={() => router.push("/about")} />
           <DropDownLinks {...socials_drop_down_props} />
         </div>
 
@@ -163,8 +163,8 @@ export default function Navbar() {
               </div>
               {/* navigation links */}
               <div className="flex flex-col text-center gap-1 p-3">
-                <Button type="secondary" size="md" text="About" />
-                <Button type="secondary" size="md" text="Contact" />
+                <Button type="secondary" size="md" text="About" on_click={() => router.push("/about")} />
+                <Button type="secondary" size="md" text="Contact" on_click={() => router.push("/about")} />
                 <ToggleMode />
                 <DropDownLinks {...socials_drop_down_props} />
                 <DropDownLinks {...auth_drop_down_props} />
