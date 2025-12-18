@@ -9,7 +9,7 @@ import { BsEyeFill, BsEyeSlashFill } from "react-icons/bs";
 import { RiTeamFill } from "react-icons/ri";
 import { success_notification, error_notification } from "@/utils/toast.utils";
 import { create_room_zod_schema } from "@repo/zod/index";
-import { Card, TextInputMd } from "@repo/ui/index";
+import { Card, TextInputMd, Alert } from "@repo/ui/index";
 import CheckUserAuth from "@/wrappers/check-user-auth";
 
 interface FormValidationErrors {
@@ -101,6 +101,7 @@ export default function JoinRoom() {
     >
       <CheckUserAuth>
         <div className="flex flex-col items-center justify-center overflow-hidden">
+          <Alert status="info" text="Room_name: join-all and Password: joinall" class_name="text-sm mb-1" />
           <Card size="md" class_name="color-accent color-accent-content w-full h-auto space-y-5 p-5 rounded-2xl">
             {/* header */}
             <div className="text-center space-y-2">

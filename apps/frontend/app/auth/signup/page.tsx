@@ -9,7 +9,7 @@ import { BsEyeFill, BsEyeSlashFill } from "react-icons/bs";
 import { IoPersonAdd } from "react-icons/io5";
 import { success_notification, error_notification } from "@/utils/toast.utils";
 import { signup_zod_schema } from "@repo/zod/index";
-import { Card } from "@repo/ui/index";
+import { Card, Alert } from "@repo/ui/index";
 
 interface FormValidationErrors {
   username?: string;
@@ -98,6 +98,7 @@ export default function Signup() {
       className="color-base-100 color-base-content min-h-[75vh] flex justify-center items-center bg-linear-to-b to-green-500 overflow-hidden p-5 sm:p-7 md:p-9"
     >
       <div className="flex flex-col items-center justify-center overflow-hidden">
+        <Alert status="info" text="Email: aak@aak.com and Password: #2004Aak" class_name="text-sm mb-1" />
         <Card size="md" class_name="color-accent color-accent-content w-full max-w-md h-auto space-y-5 p-5 rounded-2xl">
           {/* header */}
           <div className="text-center space-y-2">

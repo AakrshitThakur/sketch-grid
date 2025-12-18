@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import useFetch from "@/hooks/use-fetch";
 import type { RoomTable } from "@repo/types/index";
-import { Card, Heading, Loading } from "@repo/ui/index";
+import { Card, Heading, Loading, Alert } from "@repo/ui/index";
 import { success_notification, error_notification } from "@/utils/toast.utils";
 
 interface CallApi {
@@ -47,8 +47,9 @@ export default function Rooms() {
   return (
     <div
       id="rooms"
-      className="color-base-100 color-base-content min-h-[65vh] flex justify-center items-center bg-linear-to-b to-blue-500 p-5 sm:p-7 md:p-9"
+      className="color-base-100 color-base-content min-h-[65vh] flex flex-col justify-center items-center bg-linear-to-b to-blue-500 p-5 sm:p-7 md:p-9"
     >
+      <Alert status="info" text="Room_name: join-all and Password: joinall" class_name="text-sm mb-1" />
       {!loading && data ? (
         <Card class_name="color-accent color-accent-content items-center space-y-1 p-3 sm:p-4 md:p-5 rounded-xl" size="xl">
           <Heading class_name="text-center mb-3 sm:mb-4 md:mb-5" size="h2" text="Viewing Rooms" />
