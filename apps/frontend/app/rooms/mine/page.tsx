@@ -89,12 +89,7 @@ export default function MyRooms() {
               id={`my-room-${room.id}`}
               type="button"
               key={room.id}
-              onClick={() => {
-                // // get element reference
-                // const r = document.getElementById(`my-room-${room.id}`);
-                // if (!r) return;
-                router.push(`/rooms/whiteboard/${room.id}`);
-              }}
+              onClick={() => router.push(`/rooms/whiteboard/${room.id}`)}
               className="color-base-300 color-base-content flex items-center gap-2 rounded-md cursor-pointer p-2"
             >
               <span className="text-md">{room.slug}&nbsp;|&nbsp;</span>

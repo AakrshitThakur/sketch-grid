@@ -4,6 +4,7 @@ import { nanoid } from "nanoid";
 import mouse_move_draw_canvas from "./mouse-move-draw-canvas";
 import mouse_move_drag_canvas from "./mouse-move-drag-canvas";
 import mouse_move_hover_canvas from "./mouse-move-hover-canvas";
+import resize_canvas_viewport from "./resize_canvas_viewport";
 import draw_all_shapes from "./draw-all-shapes";
 import type { Shape } from "@repo/zod/index";
 import { send_ws_request } from "@/utils/send-ws-request.utils";
@@ -37,9 +38,14 @@ export default function DrawCanvas(props: DrawCanvasProps) {
     fill_style: "oklch(50% 0.15 30)",
     stroke_style: "oklch(50% 0.15 30)",
   });
+  const [canvas_viewport_transform, set_canvas_viewport_transform] = useState({ scale: 1, x: 0, y: 0 });
 
   // used to set current dragged or drawn shape
   const handle_set_curr_shape = (shape: Shape) => set_curr_shape(shape);
+
+  function handle_set_canvas_viewport_transform(scale: number, x: number, y: number) {
+    set_canvas_viewport_transform({ scale, x, y });
+  }
 
   // reset all the DrawCanvas's states to initial values
   function reset_to_initial() {
@@ -58,6 +64,50 @@ export default function DrawCanvas(props: DrawCanvasProps) {
     ctx.setLineDash(canvas_default_props.current.line_dash);
   }
 
+  // function update_zoom(canvas: HTMLCanvasElement, e: WheelEvent) {
+  //   e.preventDefault();
+  //   const ctx = canvas.getContext("2d");
+  //   if (!ctx) return;
+
+  //   const rect = canvas.getBoundingClientRect();
+  //   const mouseX = e.clientX - rect.left;
+  //   const mouseY = e.clientY - rect.top;
+
+  //   set_canvas_viewport_transform((prev) => {
+  //     const old_scale = prev.scale;
+  //     const old_x = prev.x;
+  //     const old_y = prev.y;
+
+  //     const zoom_speed = 0.001;
+  //     let new_scale = old_scale * (1 - e.deltaY * zoom_speed);
+  //     new_scale = Math.max(0.1, Math.min(new_scale, 20));
+
+  //     const scale_ratio = new_scale / old_scale;
+
+  //     // (mouseX - old_x) = the distance from the current transform origin to the mouse in canvas coordinates
+  //     //  Example:
+
+  //     // mouseX = 400 (mouse is at pixel 400 on canvas)
+  //     // old_x = 100 (current transform origin)
+  //     // old_scale = 1.0
+  //     // new_scale = 2.0 (zooming in 2x)
+  //     // scale_ratio = 2.0 / 1.0 = 2.0
+
+  //     // Step by step:
+
+  //     // (mouseX - old_x) = 400 - 100 = 300
+  //     // This is the distance from the transform origin to the mouse
+  //     // (mouseX - old_x) * scale_ratio = 300 * 2.0 = 600
+  //     // After scaling 2x, that distance becomes 600 pixels
+  //     // mouseX - (...) = 400 - 600 = -200
+  //     // To keep the mouse at pixel 400, we need to move the origin to -200
+  //     const new_x = mouseX - (mouseX - old_x) * scale_ratio;
+  //     const new_y = mouseY - (mouseY - old_y) * scale_ratio;
+
+  //     return { scale: new_scale, x: new_x, y: new_y };
+  //   });
+  // }
+
   // initialize canvas whiteboard
   useEffect(() => {
     // stop everything if web-socket isn't initialized
@@ -73,7 +123,34 @@ export default function DrawCanvas(props: DrawCanvasProps) {
 
     // setting canvas pre-requisites
     reset_styles_to_initial(ctx);
+
+    resize_canvas_viewport(handle_set_canvas_viewport_transform, canvas);
+
+    window.addEventListener("resize", () => resize_canvas_viewport(handle_set_canvas_viewport_transform, canvas));
+    return () =>
+      window.removeEventListener("resize", () => resize_canvas_viewport(handle_set_canvas_viewport_transform, canvas));
+
+    // canvas.addEventListener("wheel", (e: WheelEvent) => update_zoom(canvas, e), { passive: false });
+    // return () => canvas.removeEventListener("wheel", (e: WheelEvent) => update_zoom(canvas, e));
   }, [props.web_socket_ref]);
+
+  useEffect(() => {
+    const canvas = canvas_ref.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    const scale = canvas_viewport_transform.scale;
+    const origin = { x: canvas_viewport_transform.x, y: canvas_viewport_transform.y };
+
+    ctx.setTransform(scale, 0, 0, scale, origin.x, origin.y);
+
+    reset_styles_to_initial(ctx);
+    draw_all_shapes(props.all_shapes.shapes, ctx);
+  }, [canvas_viewport_transform, props.all_shapes.shapes]);
 
   // draw a text when select canvas btn is "text"
   useEffect(() => {
@@ -147,14 +224,19 @@ export default function DrawCanvas(props: DrawCanvasProps) {
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
+    // This clears the visible viewport without resetting the matrix
+    ctx.clearRect(
+      -canvas_viewport_transform.x / canvas_viewport_transform.scale,
+      -canvas_viewport_transform.y / canvas_viewport_transform.scale,
+      canvas.width / canvas_viewport_transform.scale,
+      canvas.height / canvas_viewport_transform.scale
+    );
     // setting canvas pre-requisites
     reset_styles_to_initial(ctx);
 
     // re-drawing all the canvas-shapes
     draw_all_shapes(props.all_shapes.shapes, ctx);
-  }, [props.all_shapes.shapes]);
+  }, [props.all_shapes.shapes, canvas_viewport_transform.scale, canvas_viewport_transform]);
 
   function handle_mouse_down(e: React.MouseEvent<HTMLCanvasElement>) {
     if (start_point) return;
@@ -170,11 +252,12 @@ export default function DrawCanvas(props: DrawCanvasProps) {
     // The Element.getBoundingClientRect() method returns a position relative to the viewport.
     const canvas_pos = canvas.getBoundingClientRect();
 
-    const scale_x = canvas.width / canvas_pos.width;
-    const scale_y = canvas.height / canvas_pos.height;
+    // 1. Get mouse position relative to canvas element (CSS Pixels)
+    const mouse_x = e.clientX - canvas_pos.left;
+    const mouse_y = e.clientY - canvas_pos.top;
 
-    const current_x = Math.floor((e.clientX - canvas_pos.left) * scale_x) + 0.5;
-    const current_y = Math.floor((e.clientY - canvas_pos.top) * scale_y) + 0.5;
+    const current_x = mouse_x;
+    const current_y = mouse_y;
 
     if (props.selected_btn.selected_btn_id === "cursor") {
       // unable user to drag existing shapes
@@ -203,13 +286,20 @@ export default function DrawCanvas(props: DrawCanvasProps) {
     // The Element.getBoundingClientRect() method returns a position relative to the viewport.
     const canvas_pos = canvas.getBoundingClientRect();
 
-    const scale_x = canvas.width / canvas_pos.width;
-    const scale_y = canvas.height / canvas_pos.height;
+    // Get mouse position relative to canvas element (CSS Pixels)
+    const mouse_x = e.clientX - canvas_pos.left;
+    const mouse_y = e.clientY - canvas_pos.top;
 
-    const end_x = Math.floor((e.clientX - canvas_pos.left) * scale_x) + 0.5;
-    const end_y = Math.floor((e.clientY - canvas_pos.top) * scale_y) + 0.5;
+    const end_x = mouse_x;
+    const end_y = mouse_y;
 
-    mouse_move_hover_canvas({ end_point: { x: end_x, y: end_y }, all_shapes: { shapes: props.all_shapes.shapes }, ctx });
+    const mouse_move_hover_canvas_args = {
+      end_point: { x: end_x * canvas_viewport_transform.scale, y: end_y * canvas_viewport_transform.scale },
+      all_shapes: { shapes: props.all_shapes.shapes },
+      reset_styles_to_initial,
+      ctx,
+    };
+    mouse_move_hover_canvas(mouse_move_hover_canvas_args);
 
     if (!start_point || (!is_drawing && !is_dragging)) {
       reset_to_initial();
@@ -218,8 +308,8 @@ export default function DrawCanvas(props: DrawCanvasProps) {
 
     // clear canvas screen to avoid overlapping
     if (props.selected_btn.selected_btn_id !== "pencil") {
+      // This clears the visible viewport without resetting the matrix
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-
       // setting canvas pre-requisites
       reset_styles_to_initial(ctx);
 
@@ -230,15 +320,22 @@ export default function DrawCanvas(props: DrawCanvasProps) {
     // draw specific shape on mouse-move
     // drag specific shape
     if (is_dragging) {
-      mouse_move_drag_canvas({
-        start_point,
-        end_point: { x: end_x, y: end_y },
+      const mouse_move_drag_canvas_args = {
+        start_point: {
+          x: start_point.x * canvas_viewport_transform.scale,
+          y: start_point.y * canvas_viewport_transform.scale,
+        },
+        end_point: {
+          x: end_x * canvas_viewport_transform.scale,
+          y: end_y * canvas_viewport_transform.scale,
+        },
         all_shapes: props.all_shapes,
         handle_set_curr_shape,
         reset_styles_to_initial,
         ctx,
         web_socket: props.web_socket_ref.current,
-      });
+      };
+      mouse_move_drag_canvas(mouse_move_drag_canvas_args);
       return;
     }
     mouse_move_draw_canvas({
@@ -294,9 +391,7 @@ export default function DrawCanvas(props: DrawCanvasProps) {
     <canvas
       id="whiteboard-canvas"
       ref={canvas_ref}
-      width={1500}
-      height={900}
-      className="color-neutral color-neutral-content inline-block w-full h-full shrink-0 rounded-xl touch-none"
+      className="color-neutral color-neutral-content block shrink-0 rounded-xl touch-none"
       onMouseDown={handle_mouse_down}
       onMouseMove={handle_mouse_move}
       onMouseUp={handle_mouse_up}

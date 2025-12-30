@@ -58,6 +58,38 @@ export default function Draw({ params }: { params: Promise<{ room_id: string }> 
   const web_socket_ref = useRef<WebSocket | null>(null);
   const [ws_logs, set_ws_logs] = useState<WsLogs[]>([]);
 
+  // get tailwind cursor value for current selected_btn_id
+  function get_cursor_value(s_btn_id: string | null) {
+    if(!s_btn_id) return "cursor-default";
+    // match all cases
+    switch (s_btn_id) {
+      case "cursor": {
+        return "cursor-default";
+      }
+      case "eraser": {
+        return "cursor-[url('/eraser.png'),_auto]";
+      }
+      default: {
+        return "cursor-crosshair";
+      }
+    }
+  }
+  const handle_set_selected_btn_id = (id: string | null) => set_selected_btn_id(id);
+
+  // delete all the shapes
+  function delete_all_shapes() {
+    const check = confirm("Kindly confirm the deletion of all shapes. (ok/cancel)");
+
+    // change selected btn to -> cursor
+    set_selected_btn_id("cursor");
+
+    // check response from user
+    if (!web_socket_ref.current || !check) return;
+
+    // clear all shapes if authorized
+    send_ws_request({ type: "delete-all-shapes", payload: null }, web_socket_ref.current);
+  }
+
   useEffect(() => {
     // get jwt from local-storage
     const jwt = localStorage.getItem("jwt");
@@ -295,28 +327,12 @@ export default function Draw({ params }: { params: Promise<{ room_id: string }> 
     };
   }, [room_id, router]);
 
-  const handle_set_selected_btn_id = (id: string | null) => set_selected_btn_id(id);
-
-  // delete all the shapes
-  function delete_all_shapes() {
-    const check = confirm("Kindly confirm the deletion of all shapes. (ok/cancel)");
-
-    // change selected btn to -> cursor
-    set_selected_btn_id("cursor");
-
-    // check response from user
-    if (!web_socket_ref.current || !check) return;
-
-    // clear all shapes if authorized
-    send_ws_request({ type: "delete-all-shapes", payload: null }, web_socket_ref.current);
-  }
-
   console.info(shapes);
 
   return (
     <div
       id="whiteboard"
-      className={`color-base-100 color-base-content shrink-0 min-h-[65vh] flex flex-col justify-center items-center gap-2 sm:gap-3 bg-linear-to-b to-blue-500 overflow-hidden p-3 sm:p-5 md:p-7`}
+      className={`color-base-100 color-base-content shrink-0 min-h-[65vh] flex flex-col justify-center items-center gap-2 sm:gap-3 bg-linear-to-b to-blue-500 overflow-hidden p-3 sm:p-5 md:p-7 box-content`}
     >
       <CheckUserAuth>
         {/* heading of page */}
@@ -325,12 +341,10 @@ export default function Draw({ params }: { params: Promise<{ room_id: string }> 
           <SiGoogleclassroom className="inline-block w-9 h-auto" />
         </div>
         {/* functionality btns of draw-canvas */}
-        <section
-          className={`relative shrink-0 w-full h-auto ${selected_btn_id && selected_btn_id !== "cursor" && "cursor-crosshair"}`}
-        >
+        <section className={`relative shrink-0 w-full h-auto flex flex-col justify-center items-center overflow-hidden rounded-xl ${get_cursor_value(selected_btn_id)}`}>
           <div
             id="btns-draw-canvas"
-            className="color-base-300 color-base-content absolute top-2 sm:top-3 left-1/2 -translate-x-1/2 shrink-0 w-full max-w-[90%] sm:max-w-lg md:max-w-xl h-auto flex justify-center items-center gap-5 sm:gap-7 md:gap-9 lg:gap-11 rounded-full overflow-hidden p-1 sm:p-1.5"
+            className="color-base-300 color-base-content absolute top-2 sm:top-3 left-1/2 -translate-x-1/2 shrink-0 w-full max-w-[90%] sm:max-w-lg md:max-w-xl h-auto flex justify-center items-center gap-5 sm:gap-7 md:gap-9 lg:gap-11 rounded-full overflow-hidden p-1 sm:p-1.5 hover:cursor-default"
           >
             {/* mapping all the btns of BTN_CANVAS */}
             {BTNS_CANVAS.map((btn) => (
@@ -344,7 +358,7 @@ export default function Draw({ params }: { params: Promise<{ room_id: string }> 
             ))}
           </div>
           <div
-            className="absolute bottom-2.5 md:top-2.5 right-2.5 color-error color-error-content shrink-0 w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7 rounded-full overflow-hidden cursor-pointer p-1"
+            className="absolute bottom-2.5 md:top-2.5 right-3 color-error color-error-content shrink-0 w-5 h-5 sm:w-6 sm:h-6 md:w-7 md:h-7 rounded-full overflow-hidden cursor-pointer p-1"
             onClick={delete_all_shapes}
           >
             <FaTrash className="w-full h-full" />

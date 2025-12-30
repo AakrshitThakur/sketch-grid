@@ -4,14 +4,15 @@ import {
   BOX_DRAG_STOKE_WIDTH,
   CIRCLE_DRAG_STOKE_WIDTH,
   DIAMOND_DRAG_STROKE_WIDTH,
+  SHAPE_HOVER_STROKE_COLOR,
   TEXT_BOX_DRAG_STROKE_WIDTH,
 } from "@/constants/whiteboard.constants";
+import draw_all_shapes from "./draw-all-shapes";
 
 interface Params {
   end_point: Point;
-  all_shapes: {
-    shapes: Shape[];
-  };
+  all_shapes: { shapes: Shape[] };
+  reset_styles_to_initial: (ctx: CanvasRenderingContext2D) => void;
   ctx: CanvasRenderingContext2D;
 }
 
@@ -22,35 +23,35 @@ export default function mouse_move_hover_canvas(params: Params) {
   function add_move_cursor_only(canvas: HTMLElement | null) {
     //  Adds the specified class(es) to the element's class attribute
     // If the class already exists on the element, it won't add it again (no duplicates)
-    if(canvas) canvas.classList.add("move");
+    if (canvas) canvas.classList.add("move");
     remove_n_resize_cursor(canvas);
     remove_e_resize_cursor(canvas);
     remove_n_w_resize_cursor(canvas);
     remove_n_e_resize_cursor(canvas);
   }
   function add_n_resize_cursor_only(canvas: HTMLElement | null) {
-    if(canvas) canvas.classList.add("n-resize");
+    if (canvas) canvas.classList.add("n-resize");
     remove_move_cursor(canvas);
     remove_e_resize_cursor(canvas);
     remove_n_w_resize_cursor(canvas);
     remove_n_e_resize_cursor(canvas);
   }
   function add_e_resize_cursor_only(canvas: HTMLElement | null) {
-    if(canvas) canvas.classList.add("e-resize");
+    if (canvas) canvas.classList.add("e-resize");
     remove_move_cursor(canvas);
     remove_n_resize_cursor(canvas);
     remove_n_w_resize_cursor(canvas);
     remove_n_e_resize_cursor(canvas);
   }
   function add_n_e_resize_cursor_only(canvas: HTMLElement | null) {
-    if(canvas) canvas.classList.add("ne-resize");
+    if (canvas) canvas.classList.add("ne-resize");
     remove_move_cursor(canvas);
     remove_n_resize_cursor(canvas);
     remove_e_resize_cursor(canvas);
     remove_n_w_resize_cursor(canvas);
   }
   function add_n_w_resize_cursor_only(canvas: HTMLElement | null) {
-    if(canvas) canvas.classList.add("nw-resize");
+    if (canvas) canvas.classList.add("nw-resize");
     remove_move_cursor(canvas);
     remove_n_resize_cursor(canvas);
     remove_e_resize_cursor(canvas);
@@ -60,19 +61,19 @@ export default function mouse_move_hover_canvas(params: Params) {
   function remove_move_cursor(canvas: HTMLElement | null) {
     // Removes the specified class(es) from the element's class attribute
     // If the class doesn't exist on the element, it does nothing (no error thrown)
-    if(canvas) canvas.classList.remove("move");
+    if (canvas) canvas.classList.remove("move");
   }
   function remove_n_resize_cursor(canvas: HTMLElement | null) {
-    if(canvas) canvas.classList.remove("n-resize");
+    if (canvas) canvas.classList.remove("n-resize");
   }
   function remove_e_resize_cursor(canvas: HTMLElement | null) {
-    if(canvas) canvas.classList.remove("e-resize");
+    if (canvas) canvas.classList.remove("e-resize");
   }
   function remove_n_e_resize_cursor(canvas: HTMLElement | null) {
-    if(canvas) canvas.classList.remove("ne-resize");
+    if (canvas) canvas.classList.remove("ne-resize");
   }
   function remove_n_w_resize_cursor(canvas: HTMLElement | null) {
-    if(canvas) canvas.classList.remove("nw-resize");
+    if (canvas) canvas.classList.remove("nw-resize");
   }
   function remove_all_cursor_types(canvas: HTMLElement | null) {
     if (!canvas) return;
@@ -93,6 +94,7 @@ export default function mouse_move_hover_canvas(params: Params) {
         const box_height = shape.height;
 
         params.ctx.lineWidth = BOX_DRAG_STOKE_WIDTH;
+        params.ctx.strokeStyle = SHAPE_HOVER_STROKE_COLOR;
 
         // left-to-right line
         const left_to_right = new Path2D();
@@ -117,6 +119,7 @@ export default function mouse_move_hover_canvas(params: Params) {
         // full-box
         const box = new Path2D();
         box.rect(box_start.x, box_start.y, box_width, box_height);
+        params.ctx.stroke(box);
 
         if (
           params.ctx.isPointInStroke(left_to_right, end.x, end.y) ||
@@ -141,6 +144,7 @@ export default function mouse_move_hover_canvas(params: Params) {
         const radius = shape.radius;
 
         params.ctx.lineWidth = CIRCLE_DRAG_STOKE_WIDTH;
+        params.ctx.strokeStyle = SHAPE_HOVER_STROKE_COLOR;
 
         const first_quadrant_circle = new Path2D();
         first_quadrant_circle.arc(center.x, center.y, radius, -Math.PI / 2, 0, false);
@@ -154,6 +158,7 @@ export default function mouse_move_hover_canvas(params: Params) {
         // creating a full-circle to check if point lies inside the circle or not
         const circle = new Path2D();
         circle.arc(center.x, center.y, radius, 0, 2 * Math.PI, false);
+        params.ctx.stroke(circle);
 
         // checking where does the point lies inside or at the edge
         if (params.ctx.isPointInStroke(first_quadrant_circle, end.x, end.y)) {
@@ -186,9 +191,12 @@ export default function mouse_move_hover_canvas(params: Params) {
 
         // make an identical line-segment for validations but not printing it
         params.ctx.lineWidth = ARROW_DRAG_STROKE_WIDTH;
+        params.ctx.strokeStyle = SHAPE_HOVER_STROKE_COLOR;
+
         const line_segment = new Path2D();
         line_segment.moveTo(line_start.x, line_start.y);
         line_segment.lineTo(line_end.x, line_end.y);
+        params.ctx.stroke(line_segment)
 
         // checking if point is on stoke of line-segment
         if (params.ctx.isPointInStroke(line_segment, end.x, end.y)) {
@@ -202,11 +210,13 @@ export default function mouse_move_hover_canvas(params: Params) {
         const end_text = { x: shape.points.end.x, y: shape.points.end.y };
 
         params.ctx.lineWidth = TEXT_BOX_DRAG_STROKE_WIDTH;
+        params.ctx.strokeStyle = SHAPE_HOVER_STROKE_COLOR;
 
         // box to check if point lies inside the text-box
         const box = new Path2D();
         box.rect(start_text.x, start_text.y, end_text.x - start_text.x, end_text.y - start_text.y);
         box.closePath();
+        params.ctx.stroke(box);
 
         // left-to-right line to check if point lies on the upper-edge of text-box
         const left_to_right = new Path2D();
@@ -258,6 +268,7 @@ export default function mouse_move_hover_canvas(params: Params) {
         const height = shape.height;
 
         params.ctx.lineWidth = DIAMOND_DRAG_STROKE_WIDTH;
+        params.ctx.strokeStyle = SHAPE_HOVER_STROKE_COLOR;
 
         const n_e_edge = new Path2D();
         n_e_edge.moveTo(center.x, center.y - height);
@@ -282,6 +293,7 @@ export default function mouse_move_hover_canvas(params: Params) {
         diamond.lineTo(center.x, center.y + height);
         diamond.lineTo(center.x - width, center.y);
         diamond.closePath();
+        params.ctx.stroke(diamond);
 
         if (params.ctx.isPointInStroke(n_e_edge, end.x, end.y)) {
           // point lies on the right-hand-side edges of diamond
@@ -306,6 +318,12 @@ export default function mouse_move_hover_canvas(params: Params) {
         break;
       }
     }
+    // Get back to initial values when nothing matches
+    // Cursor initials
     remove_all_cursor_types(whiteboard_canvas);
+    // Canvas initials
+    params.ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+    params.reset_styles_to_initial(params.ctx);
+    draw_all_shapes(params.all_shapes.shapes, params.ctx)
   }
 }

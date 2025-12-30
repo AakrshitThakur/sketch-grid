@@ -1,4 +1,4 @@
-import { WebSocketServer, type WebSocket } from "ws";
+import { WebSocketServer } from "ws";
 import jsonwebtoken from "jsonwebtoken";
 import dotenv from "dotenv";
 import { user_conns } from "./states/user.states.js";
@@ -14,10 +14,10 @@ import {
   WsReqGetAllShapesSchema,
   WsReqJoinRoomSchema,
   WsReqLeaveRoomSchema,
-  WsRequestSchema,
 } from "@repo/zod/index";
 import { get_user_record } from "@repo/db/index";
 import { JWT_SECRET } from "@repo/configs/index";
+import { INACTIVITY_TIMEOUT } from "./utils/constants.utils.js";
 
 dotenv.config();
 
@@ -29,7 +29,7 @@ interface DecodedPayload {
 const user_ids: { [key: string]: boolean } = {};
 
 // verifying provided jwt
-async function verify_jwt(jwt: string, ws: WebSocket): Promise<string | { id: string; username: string }> {
+async function verify_jwt(jwt: string): Promise<string | { id: string; username: string }> {
   return new Promise((resolve, reject) => {
     jsonwebtoken.verify(jwt, JWT_SECRET, async (error: any, decoded_payload: unknown) => {
       // jwt is invalid
@@ -77,7 +77,7 @@ wss.on("connection", async function connection(ws, req) {
     const jwt = search_params.get("jwt");
 
     // get user-id from parsed jwt
-    const user = await verify_jwt(jwt || "", ws);
+    const user = await verify_jwt(jwt || "");
 
     // check user value
     if (typeof user !== "object") {
@@ -121,8 +121,24 @@ wss.on("connection", async function connection(ws, req) {
     console.info(msg);
     send_ws_response({ status: "success", type: "auth", message: msg, payload: null }, ws);
 
+    // Debouncing approach to disconnect user if inactive for long time
+    let inactivityTimer: NodeJS.Timeout | undefined = undefined;
+    function resetInactivityTimer() {
+      clearTimeout(inactivityTimer);
+      inactivityTimer = setTimeout(() => {
+        const msg = "User inactive, disconnecting...";
+        console.error(msg);
+        send_ws_response({ status: "error", type: "others", message: msg, payload: null }, ws);
+        ws.close();
+      }, INACTIVITY_TIMEOUT);
+    }
+
+    // Start checking for User inactivity
+    resetInactivityTimer();
+
     // on-message event
     ws.on("message", async function incoming(message) {
+      resetInactivityTimer();
       try {
         // convert: raw-date -> string -> object
         const parsed_message: unknown = JSON.parse(message.toString());
