@@ -17,9 +17,9 @@ jobs:
 
           ssh -i ~/ssh_key ubuntu@13.60.220.224 << 'EOF'
             cd sketch-grid
-            git pull origin main
-            npm install
-            npm run build
+            sudo git pull origin main
+            sudo npm install
+            sudo npm run build
             pm2 restart ws-backend
             pm2 restart http-backend
             pm2 restart frontend
